@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "NICloudAI",
+  "version": "0.1.0",
+  "description": "隱私優先的近期病歷摘要助理",
+  "action": {
+    "default_title": "開啟 NICloudAI",
+    "default_popup": "index.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://medcloud2.nhi.gov.tw/imu/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": ["storage"],
+  "host_permissions": [
+    "http://localhost:11434/*",
+    "http://127.0.0.1:11434/*"
+  ],
+  "optional_host_permissions": [
+    "https://openrouter.ai/*"
+  ]
+}

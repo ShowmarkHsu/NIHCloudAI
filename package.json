@@ -1,0 +1,38 @@
+{
+  "name": "nicloudai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Privacy-first clinical summary assistant browser extension",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build && vite build --config vite.content.config.ts",
+    "build:smoke": "tsc -b && vite build --config vite.smoke.config.ts && vite build --config vite.smoke.content.config.ts && node scripts/verify-smoke-build.mjs",
+    "serve:smoke": "vite --host 127.0.0.1 --port 4173",
+    "typecheck": "tsc -b --pretty false",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "smoke:ollama": "vite-node scripts/ollama-smoke.ts",
+    "version:check": "node scripts/version-check.mjs",
+    "security:scan": "node scripts/secret-scan.mjs",
+    "verify": "npm run version:check && npm run test && npm run typecheck && npm run build && npm run security:scan"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.1.0",
+    "@types/chrome": "^0.0.289",
+    "@types/node": "^22.10.7",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "jsdom": "^26.0.0",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0",
+    "vitest": "^3.0.5"
+  }
+}

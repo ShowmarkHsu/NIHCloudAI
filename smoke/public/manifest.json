@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "NICloudAI Synthetic Smoke",
+  "version": "0.1.0",
+  "description": "Local synthetic-only smoke build for NICloudAI",
+  "action": {
+    "default_title": "開啟 NICloudAI Synthetic Smoke",
+    "default_popup": "index.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://127.0.0.1/smoke/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": ["storage"],
+  "host_permissions": [
+    "http://127.0.0.1/smoke/*",
+    "http://localhost:11434/*",
+    "http://127.0.0.1:11434/*"
+  ]
+}
