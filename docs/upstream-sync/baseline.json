@@ -1,0 +1,50 @@
+{
+  "$schema": "./baseline.schema.json",
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-14",
+  "product": {
+    "name": "NIHCloudAI",
+    "repositoryTarget": "https://github.com/ShowmarkHsu/NHITW_cloud_analyzer_react_MUI.git"
+  },
+  "upstream": {
+    "repository": "https://github.com/leescot/NHITW_cloud_analyzer_react_MUI.git",
+    "commit": "cad76e59c60eafc2947939fc44d7683ba9f7ab9d",
+    "version": "26.0702.1",
+    "license": {
+      "spdx": "Apache-2.0",
+      "path": "LICENSE",
+      "sha256": "937421423788e11ca034e88a57736d0c0eeb3387c8dfe75db5c050262449c12b"
+    }
+  },
+  "nicloudaiSource": {
+    "repository": "https://github.com/ShowmarkHsu/NIHCloudAI.git",
+    "commit": "bab69c741e1f6a5b2da65276ce8fe955973e05ca"
+  },
+  "remoteTopology": {
+    "verificationStatus": "blocked-final-fork-unavailable",
+    "checkedAt": "2026-08-14",
+    "roles": {
+      "origin": {
+        "repository": "https://github.com/ShowmarkHsu/NHITW_cloud_analyzer_react_MUI.git",
+        "configured": false,
+        "readable": false,
+        "writable": false,
+        "note": "GitHub API and git ls-remote returned repository not found; no remote write attempted."
+      },
+      "upstream": {
+        "repository": "https://github.com/leescot/NHITW_cloud_analyzer_react_MUI.git",
+        "configured": false,
+        "readable": true,
+        "writable": false,
+        "note": "Public upstream and pinned commit verified read-only."
+      },
+      "nicloudai": {
+        "repository": "https://github.com/ShowmarkHsu/NIHCloudAI.git",
+        "configured": false,
+        "readable": true,
+        "writable": true,
+        "note": "Source repository access verified; retained as the current repository origin until the final fork exists."
+      }
+    }
+  }
+}

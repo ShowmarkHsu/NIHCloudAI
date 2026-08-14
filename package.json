@@ -15,6 +15,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "baseline:check": "node scripts/verify-upstream-baseline.mjs",
     "build": "vite build && node scripts/build.js",
     "build:zip": "vite build && node scripts/build.js --zip",
     "build:alpha": "vite build && node scripts/build.js --alpha",
