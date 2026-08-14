@@ -1,0 +1,20 @@
+{
+  "$schema": "./fixture.schema.json",
+  "fixtureVersion": 1,
+  "id": "settings-extremes",
+  "synthetic": true,
+  "description": "Observable settings are represented at both extremes without changing source data.",
+  "clock": {"now": "2026-06-30T12:00:00+08:00", "timezone": "Asia/Taipei"},
+  "sessions": [{"id": "fixture-session-settings", "patientKey": "synthetic-patient-settings"}],
+  "settingsVariants": [
+    {"id": "minimal", "values": {"autoOpenPage": false, "floatingIconPosition": "top-right", "titleTextSize": "small", "contentTextSize": "small", "noteTextSize": "small", "useColorfulTabs": false, "enableCKMTab": false, "showGenericName": false, "showDiagnosis": false, "showATC5Name": false, "showLabUnit": false, "showLabReference": false, "showLabAbbreviation": false, "enableCustomMedicationFormat": false, "enableCustomLabFormat": false, "copyAllMedications": false, "copyAllLabs": false}},
+    {"id": "maximal", "values": {"autoOpenPage": true, "floatingIconPosition": "bottom-right", "titleTextSize": "large", "contentTextSize": "large", "noteTextSize": "large", "useColorfulTabs": true, "enableCKMTab": true, "showGenericName": true, "showDiagnosis": true, "showATC5Name": true, "showLabUnit": true, "showLabReference": true, "showLabAbbreviation": true, "enableCustomMedicationFormat": true, "enableCustomLabFormat": true, "copyAllMedications": true, "copyAllLabs": true, "copyOrder": "oldest-first", "labLayout": "three-column", "atcGroups": ["SYNTHETIC-GROUP-A", "SYNTHETIC-GROUP-B"], "trackedLabs": ["LAB-SYN-B", "LAB-SYN-A"]}},
+    {"id": "middle-icon", "values": {"floatingIconPosition": "middle-right"}}
+  ],
+  "events": [
+    {"seq": 1, "type": "session-start", "sessionId": "fixture-session-settings", "patientKey": "synthetic-patient-settings"},
+    {"seq": 2, "type": "source-result", "sessionId": "fixture-session-settings", "patientKey": "synthetic-patient-settings", "source": "western-medication", "status": "has-data", "body": {"rObject": [{"drug_date": "2026-06-29", "drug_code": "SYN-SETTING-MED", "drug_ename": "SYNTHETIC SETTING ITEM"}]}, "error": null},
+    {"seq": 3, "type": "source-result", "sessionId": "fixture-session-settings", "patientKey": "synthetic-patient-settings", "source": "lab", "status": "has-data", "body": {"rObject": [{"inspect_date": "2026-06-29", "order_code": "LAB-SYN-A", "assay_value": "1", "unit": "u", "ref_value": "0-2"}]}, "error": null}
+  ],
+  "expected": {"activeSessionId": "fixture-session-settings", "activePatientKey": "synthetic-patient-settings", "acceptedEventSeq": [1, 2, 3], "rejectedEventSeq": [], "sourceStates": {"western-medication": "has-data", "lab": "has-data"}}
+}

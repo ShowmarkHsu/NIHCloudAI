@@ -1,0 +1,21 @@
+{
+  "$schema": "./fixture.schema.json",
+  "fixtureVersion": 1,
+  "id": "empty-and-denied",
+  "synthetic": true,
+  "description": "Confirmed empty sources coexist with synthetic permission denial and server failure without contaminating successful states.",
+  "clock": {"now": "2026-06-30T12:00:00+08:00", "timezone": "Asia/Taipei"},
+  "sessions": [{"id": "fixture-session-empty", "patientKey": "synthetic-patient-empty"}],
+  "settingsVariants": [{"id": "default", "values": {"enableAdultHealthCheck": false, "enableCancerScreening": false, "enableHepatitisData": true}}],
+  "events": [
+    {"seq": 1, "type": "session-start", "sessionId": "fixture-session-empty", "patientKey": "synthetic-patient-empty"},
+    {"seq": 2, "type": "source-result", "sessionId": "fixture-session-empty", "patientKey": "synthetic-patient-empty", "source": "western-medication", "status": "confirmed-empty", "body": {"rObject": []}, "error": null},
+    {"seq": 3, "type": "source-result", "sessionId": "fixture-session-empty", "patientKey": "synthetic-patient-empty", "source": "chinese-medication", "status": "confirmed-empty", "body": {"rObject": []}, "error": null},
+    {"seq": 4, "type": "source-result", "sessionId": "fixture-session-empty", "patientKey": "synthetic-patient-empty", "source": "lab", "status": "unauthorized", "body": null, "error": {"code": "SYNTHETIC_HTTP_403", "httpStatus": 403}},
+    {"seq": 5, "type": "source-result", "sessionId": "fixture-session-empty", "patientKey": "synthetic-patient-empty", "source": "imaging", "status": "fetch-failure", "body": null, "error": {"code": "SYNTHETIC_HTTP_500", "httpStatus": 500}},
+    {"seq": 6, "type": "source-result", "sessionId": "fixture-session-empty", "patientKey": "synthetic-patient-empty", "source": "allergy", "status": "confirmed-empty", "body": {"rObject": []}, "error": null},
+    {"seq": 7, "type": "source-result", "sessionId": "fixture-session-empty", "patientKey": "synthetic-patient-empty", "source": "surgery", "status": "confirmed-empty", "body": {"rObject": []}, "error": null},
+    {"seq": 8, "type": "source-result", "sessionId": "fixture-session-empty", "patientKey": "synthetic-patient-empty", "source": "discharge", "status": "confirmed-empty", "body": {"rObject": []}, "error": null}
+  ],
+  "expected": {"activeSessionId": "fixture-session-empty", "activePatientKey": "synthetic-patient-empty", "acceptedEventSeq": [1, 2, 3, 4, 5, 6, 7, 8], "rejectedEventSeq": [], "sourceStates": {"western-medication": "confirmed-empty", "chinese-medication": "confirmed-empty", "lab": "unauthorized", "imaging": "fetch-failure", "allergy": "confirmed-empty", "surgery": "confirmed-empty", "discharge": "confirmed-empty"}}
+}

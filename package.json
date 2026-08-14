@@ -20,6 +20,7 @@
     "build:zip": "vite build && node scripts/build.js --zip",
     "build:alpha": "vite build && node scripts/build.js --alpha",
     "test": "vite build && node scripts/build.js --test && node tests/serve.js",
+    "test:fixtures": "node tests/characterization/replay-fixtures.mjs",
     "dev": "vite",
     "preview": "vite preview",
     "lint": "eslint",

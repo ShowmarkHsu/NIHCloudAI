@@ -1,0 +1,18 @@
+{
+  "$schema": "./fixture.schema.json",
+  "fixtureVersion": 1,
+  "id": "patient-switch-race",
+  "synthetic": true,
+  "description": "A late source response from synthetic patient A is rejected after switching to synthetic patient B.",
+  "clock": {"now": "2026-06-30T12:00:00+08:00", "timezone": "Asia/Taipei"},
+  "sessions": [{"id": "fixture-session-race-a", "patientKey": "synthetic-patient-race-a"}, {"id": "fixture-session-race-b", "patientKey": "synthetic-patient-race-b"}],
+  "settingsVariants": [{"id": "default", "values": {"alwaysOpenOverviewTab": true}}],
+  "events": [
+    {"seq": 1, "type": "session-start", "sessionId": "fixture-session-race-a", "patientKey": "synthetic-patient-race-a"},
+    {"seq": 2, "type": "source-result", "sessionId": "fixture-session-race-a", "patientKey": "synthetic-patient-race-a", "source": "western-medication", "status": "has-data", "body": {"rObject": [{"drug_code": "SYN-RACE-A"}]}, "error": null},
+    {"seq": 3, "type": "session-start", "sessionId": "fixture-session-race-b", "patientKey": "synthetic-patient-race-b"},
+    {"seq": 4, "type": "source-result", "sessionId": "fixture-session-race-a", "patientKey": "synthetic-patient-race-a", "source": "lab", "status": "has-data", "body": {"rObject": [{"order_code": "SYN-LATE-A"}]}, "error": null},
+    {"seq": 5, "type": "source-result", "sessionId": "fixture-session-race-b", "patientKey": "synthetic-patient-race-b", "source": "lab", "status": "has-data", "body": {"rObject": [{"order_code": "SYN-CURRENT-B"}]}, "error": null}
+  ],
+  "expected": {"activeSessionId": "fixture-session-race-b", "activePatientKey": "synthetic-patient-race-b", "acceptedEventSeq": [1, 2, 3, 5], "rejectedEventSeq": [4], "sourceStates": {"lab": "has-data"}}
+}

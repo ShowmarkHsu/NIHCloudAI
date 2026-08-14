@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ShowmarkHsu/NHITW_cloud_analyzer_react_MUI/blob/main/tests/fixtures/clinical/fixture.schema.json",
+  "title": "NIHCloudAI synthetic characterization fixture",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "fixtureVersion", "id", "synthetic", "description", "clock", "sessions", "settingsVariants", "events", "expected"],
+  "properties": {
+    "$schema": {"const": "./fixture.schema.json"},
+    "fixtureVersion": {"const": 1},
+    "id": {"enum": ["full-spectrum", "empty-and-denied", "patient-switch-race", "sparse-and-malformed", "boundary-clock", "settings-extremes"]},
+    "synthetic": {"const": true},
+    "description": {"type": "string", "minLength": 1},
+    "clock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["now", "timezone"],
+      "properties": {
+        "now": {"type": "string", "format": "date-time"},
+        "timezone": {"const": "Asia/Taipei"}
+      }
+    },
+    "sessions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "patientKey"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^fixture-session-[a-z0-9-]+$"},
+          "patientKey": {"type": "string", "pattern": "^synthetic-patient-[a-z0-9-]+$"}
+        }
+      }
+    },
+    "settingsVariants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "values"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "values": {"type": "object"}
+        }
+      }
+    },
+    "events": {"type": "array", "minItems": 1},
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["activeSessionId", "activePatientKey", "acceptedEventSeq", "rejectedEventSeq", "sourceStates"]
+    }
+  }
+}
