@@ -42,7 +42,7 @@ export type SourceFamilySanitizationResult =
     };
 
 const identityFieldNamePattern =
-  /(?:patient(?:[ _-]*(?:name|id))?|display[ _-]*name|national[ _-]*id|medical[ _-]*record(?:[ _-]*number)?|card[ _-]*number|session[ _-]*id|姓名|身分證|身份證|病歷號|病历号|卡號|卡号)/iu;
+  /(?:\bpatient[ _-]*(?:name|id)\b|\bdisplay[ _-]*name\b|\bnational[ _-]*id\b|\bmedical[ _-]*record(?:[ _-]*number)?\b|\bcard[ _-]*number\b|\bsession[ _-]*id\b|姓名|身分證|身份證|病歷號|病历号|卡號|卡号)/iu;
 const taiwanNationalIdPattern = /\b[A-Z][12]\d{8}\b/u;
 const markupPattern = /<[^>]*>/gu;
 const whitespacePattern = /\s+/gu;
