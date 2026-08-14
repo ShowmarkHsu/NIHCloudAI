@@ -4,13 +4,19 @@
   "title": "NIHCloudAI synthetic characterization fixture",
   "type": "object",
   "additionalProperties": false,
-  "required": ["$schema", "fixtureVersion", "id", "synthetic", "description", "clock", "sessions", "settingsVariants", "events", "expected"],
+  "required": ["$schema", "fixtureVersion", "id", "synthetic", "description", "coverage", "clock", "sessions", "settingsVariants", "events", "expected"],
   "properties": {
     "$schema": {"const": "./fixture.schema.json"},
     "fixtureVersion": {"const": 1},
     "id": {"enum": ["full-spectrum", "empty-and-denied", "patient-switch-race", "sparse-and-malformed", "boundary-clock", "settings-extremes"]},
     "synthetic": {"const": true},
     "description": {"type": "string", "minLength": 1},
+    "coverage": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"}
+    },
     "clock": {
       "type": "object",
       "additionalProperties": false,

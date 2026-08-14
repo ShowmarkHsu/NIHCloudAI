@@ -13,12 +13,17 @@ npm run test:fixtures
 
 The replay validates exact fixture envelopes, monotonic event order, declared
 session/patient pairs, source terminal states, late-result rejection, an
-explicit synthetic marker, and a conservative direct-identifier scan. The
-source bodies preserve only the minimum shapes needed by future upstream
-characterization tests. They are not a clinical projection contract and must
-not be reused as Provider input.
+explicit synthetic marker, a conservative direct-identifier scan, and the
+detailed Ticket 02 coverage matrix for every fixture family. The source bodies
+exercise characterization cases only. They are not a clinical projection
+contract and must not be reused as Provider input.
 
-Later B1 commits will add processor/clipboard observable goldens and browser
-visual baselines. This first commit deliberately does not modify
-`FloatingIcon`, `legacyContent`, `dataManager`, any processor, iframe, Provider,
-or UI code.
+Run the non-AI settings, tabs, processor, and byte-exact clipboard goldens with:
+
+```text
+npm run test:characterization
+```
+
+The next B1 commit will add browser visual baselines. This batch deliberately
+does not modify `FloatingIcon`, `legacyContent`, `dataManager`, any processor,
+iframe, Provider, or UI code.

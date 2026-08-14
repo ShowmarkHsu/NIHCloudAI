@@ -1,0 +1,61 @@
+{
+  "chineseOutput": [
+    {
+      "date": "2026/06/28",
+      "days": 7,
+      "dosage": 28,
+      "freq": "BID",
+      "hosp": "SYNTHETIC TCM A",
+      "icd_code": "Z02",
+      "icd_name": "SYNTHETIC TCM DIAGNOSIS",
+      "medications": [
+        {"category": "SYNTHETIC EFFECT", "dailyDosage": "3", "days": 7, "dosage": 21, "frequency": "BID", "isMulti": true, "name": "SYNTHETIC FORMULA", "perDosage": "1.5", "sosc_name": "SYNTHETIC EFFECT", "type": "SYNTHETIC GRANULE"},
+        {"category": "", "dailyDosage": "1", "days": 7, "dosage": 7, "frequency": "BID", "isMulti": false, "name": "SYNTHETIC SINGLE", "perDosage": "0.5", "sosc_name": "", "type": "SYNTHETIC POWDER"}
+      ],
+      "visitType": "門診"
+    }
+  ],
+  "imagingOutput": {
+    "withReport": [
+      {"ctmri_mark": "", "cure_path_name": "SYNTHETIC CHEST", "date": "2026/06/26", "file_qty": "2", "file_type": "DCF", "hosp": "SYNTHETIC IMAGING", "inspectResult": "REPORT-LINE-1\nREPORT-LINE-2\nREPORT-LINE-3", "ipl_case_seq_no": "", "ord_mark": "", "orderName": "SYNTHETIC CT\nCHEST", "order_code": "SYN-IMG-A", "read_pos": "2", "real_inspect_date": "2026/06/26"}
+    ],
+    "withoutReport": [
+      {"ctmri_mark": "", "cure_path_name": "", "date": "2026/06/25", "file_qty": "2", "file_type": "DCF", "hosp": "SYNTHETIC IMAGING", "inspectResult": "", "ipl_case_seq_no": "", "ord_mark": "", "orderName": "SYNTHETIC MRI", "order_code": "SYN-IMG-B", "read_pos": "2", "real_inspect_date": "2026/06/25"}
+    ]
+  },
+  "labOutput": [
+    {
+      "date": "2026-06-27",
+      "hosp": "SYNTHETIC LAB",
+      "icd_code": "Z03",
+      "icd_name": "SYNTHETIC LAB DIAGNOSIS",
+      "labs": [
+        {"_rawConsultValue": "10-100", "_usingCustomRange": false, "abbrName": null, "assayMethod": "SYNTHETIC METHOD", "consultValue": null, "formattedReference": "10-100", "hasMultipleValues": false, "isAbnormal": false, "itemName": "SYNTHETIC ANALYTE HIGH", "orderCode": "SYN-LAB-A", "orderName": "SYNTHETIC TEST A", "referenceMax": null, "referenceMin": null, "type": "生化學檢查", "unit": "u/L", "value": "123.4", "valueRange": null, "valueStatus": "normal"},
+        {"_rawConsultValue": "NEGATIVE", "_usingCustomRange": false, "abbrName": null, "assayMethod": "", "consultValue": null, "formattedReference": "NEGATIVE", "hasMultipleValues": false, "isAbnormal": false, "itemName": "SYNTHETIC ANALYTE TEXT", "orderCode": "SYN-LAB-B", "orderName": "SYNTHETIC TEST B", "referenceMax": null, "referenceMin": null, "type": "其它檢驗", "unit": "", "value": "NEGATIVE", "valueRange": null, "valueStatus": "normal"}
+      ]
+    }
+  ],
+  "medicationOutput": [
+    {
+      "date": "2026/06/30",
+      "hosp": "SYNTHETIC CLINIC",
+      "icd_code": "Z00",
+      "icd_name": "SYNTHETIC DIAGNOSIS",
+      "medications": [
+        {"atc_code": "A10BK01", "atc_name": "SGLT2", "days": "14", "dosage": "14", "drug_left": 3, "drugcode": "SYN-MED-A", "frequency": "QD", "ingredient": "SYNTHETIC INGREDIENT A", "name": "SYNTHETIC ALPHA (10)", "perDosage": "1"},
+        {"atc_code": "M01AE01", "atc_name": "NSAID", "days": "3", "dosage": "6", "drug_left": 0, "drugcode": "SYN-MED-B", "frequency": "PRN", "ingredient": "SYNTHETIC INGREDIENT B", "name": "SYNTHETIC RESCUE", "perDosage": "SPECIAL"}
+      ],
+      "visitType": "門診"
+    },
+    {
+      "date": "2026/06/29",
+      "hosp": "SYNTHETIC HOSPITAL",
+      "icd_code": "Z01",
+      "icd_name": "SYNTHETIC FOLLOWUP",
+      "medications": [
+        {"atc_code": "C09CA01", "atc_name": "ARB", "days": "15", "dosage": "30", "drug_left": 1, "drugcode": "SYN-MED-C", "frequency": "BID", "ingredient": "SYNTHETIC INGREDIENT C", "name": "SYNTHETIC BETA", "perDosage": "1"}
+      ],
+      "visitType": "住診"
+    }
+  ]
+}
