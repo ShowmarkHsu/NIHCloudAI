@@ -30,7 +30,7 @@
     "visual:serve": "vite --config vite.visual.config.js",
     "dev": "vite",
     "preview": "vite preview",
-    "lint": "eslint",
+    "lint": "node --test tests/lint/b1-lint-scope.test.mjs && node scripts/run-b1-lint.mjs",
     "lint:fix": "eslint --fix"
   },
   "dependencies": {

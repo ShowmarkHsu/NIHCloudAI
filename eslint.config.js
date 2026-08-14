@@ -94,6 +94,17 @@ export default [
   },
   {
     files: [
+      'scripts/**/*.mjs',
+      'tests/characterization/**/*.mjs',
+      'tests/lint/**/*.mjs',
+      'tests/run-browser-mocha.mjs',
+    ],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
+  {
+    files: [
       'tests/**/*.js',
     ],
     languageOptions: {
@@ -101,6 +112,24 @@ export default [
         ...globals.browser,
         ...globals.mocha,
       },
+    },
+  },
+  {
+    files: [
+      'tests/visual/**/*.{js,jsx,mjs}',
+    ],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      globals: globals.browser,
+      parserOptions: {
+        ecmaFeatures: { jsx: true },
+        sourceType: 'module',
+      },
+    },
+    settings: { react: { version: '19.0' } },
+    plugins: { react },
+    rules: {
+      'react/jsx-uses-vars': 'error',
     },
   },
 ];
