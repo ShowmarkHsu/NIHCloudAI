@@ -1,4 +1,3 @@
-import React from 'react';
 import {createRoot} from 'react-dom/client';
 
 import {installChromeMock} from './chromeMock.js';
@@ -36,5 +35,6 @@ window.__visualHarness = {
   acceptedEventSeq: installed.replay.acceptedSeq,
   rejectedEventSeq: installed.replay.rejectedSeq,
 };
+await document.fonts?.ready;
 await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 document.body.dataset.harnessReady = 'true';

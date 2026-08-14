@@ -27,6 +27,7 @@ async function openFloating(page, {
   if (settingsFixture) query.set('settingsFixture', settingsFixture);
   await page.goto(`/tests/visual/index.html?${query}`);
   await expect(page.locator('body')).toHaveAttribute('data-harness-ready', 'true');
+  await expect.poll(() => page.evaluate(() => document.fonts.status)).toBe('loaded');
   await page.getByAltText('NHI Extractor').click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
@@ -62,8 +63,8 @@ async function assertNoTabOverlap(dialog) {
   }
 }
 
-async function assertVisibleControlsNotClipped(region) {
-  const failures = await region.locator([
+async function findVisibleControlsClippedBy(region) {
+  return region.locator([
     'button',
     '[role="tab"]',
     '[role="switch"]',
@@ -85,7 +86,10 @@ async function assertVisibleControlsNotClipped(region) {
       };
     }).filter(({clipped}) => clipped);
   }, await region.elementHandle());
-  expect(failures).toEqual([]);
+}
+
+async function assertVisibleControlsNotClipped(region) {
+  expect(await findVisibleControlsClippedBy(region)).toEqual([]);
 }
 
 async function assertDialogGeometry(page, dialog) {
@@ -140,6 +144,18 @@ async function selectTab(dialog, name) {
   await expect(panel).toBeVisible();
   return panel;
 }
+
+test('clipping guard rejects a visible control that overflows its visual region', async ({page}) => {
+  await page.setContent(`
+    <main data-testid="clip-probe" style="position: relative; width: 100px; height: 30px; overflow: visible;">
+      <button aria-label="synthetic clipping probe" style="position: absolute; left: 95px; top: 0;">probe</button>
+    </main>
+  `);
+  await expect(page.getByRole('button', {name: 'synthetic clipping probe'})).toBeVisible();
+  await expect(findVisibleControlsClippedBy(page.getByTestId('clip-probe'))).resolves.toEqual([
+    {name: 'synthetic clipping probe', clipped: true},
+  ]);
+});
 
 test('default overview locks dialog, empty/denied state, tabs and regions', async ({page}) => {
   const {dialog, pageErrors} = await openFloating(page, {fixture: 'empty-and-denied'});
@@ -334,6 +350,7 @@ test('settings accordions expose named controls without clipping', async ({page}
   const pageErrors = observePageErrors(page);
   await page.goto('/tests/visual/index.html?surface=popup&fixture=settings-extremes&variant=maximal');
   await expect(page.locator('body')).toHaveAttribute('data-harness-ready', 'true');
+  await expect.poll(() => page.evaluate(() => document.fonts.status)).toBe('loaded');
   const shell = page.getByRole('main', {name: '合成設定頁面'});
   await expect(shell.getByRole('tab')).toHaveCount(4);
   for (const [id, slug] of [
