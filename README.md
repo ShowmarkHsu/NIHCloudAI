@@ -1,4 +1,17 @@
-# NHITW Cloud Analyzer (更好的健保雲端 2.0)
+# NIHCloudAI
+
+NIHCloudAI 以 **NHITW Cloud Analyzer（更好的健保雲端 2.0）** 為 upstream
+產品基底，保留既有非 AI 功能與操作方式，並在獨立批次中導入可核對的臨床摘要。
+
+本 repository 的 upstream 與 NIHCloudAI 來源追溯、同步政策及固定基準記錄於
+[`docs/upstream-sync/`](docs/upstream-sync/)。原專案名稱、Apache-2.0 授權與著作權
+歸屬均予保留；目前這個基準尚未包含 AI projection、Provider、iframe 或 AI UI。
+
+## Upstream project
+
+以下原始說明屬於 NHITW Cloud Analyzer upstream 基準。
+
+## NHITW Cloud Analyzer (更好的健保雲端 2.0)
 
 這是一個 Chrome 擴充功能，用於從健保雲端資料系統擷取資料。此工具可協助醫療專業人員更有效率地處理健保雲端資料。
 

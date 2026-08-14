@@ -1,0 +1,15 @@
+NIHCloudAI
+Copyright 2026 Showmark Hsu
+
+This product includes and modifies software from NHITW Cloud Analyzer
+("更好的健保雲端 2.0"), developed by The NHITW Cloud Analyzer Project
+Authors and distributed under the Apache License, Version 2.0.
+
+Upstream project:
+https://github.com/leescot/NHITW_cloud_analyzer_react_MUI
+
+NIHCloudAI source project:
+https://github.com/ShowmarkHsu/NIHCloudAI
+
+The upstream Apache-2.0 LICENSE is retained without modification. NIHCloudAI
+changes and their source baselines are recorded in docs/upstream-sync/.

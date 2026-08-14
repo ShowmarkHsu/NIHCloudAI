@@ -1,17 +1,17 @@
 {
   "name": "nhitw-cloud-analyzer",
   "version": "26.0702.1",
-  "description": "NHITW Cloud Analyzer - 更好的健保雲端 2.0",
+  "description": "NIHCloudAI - based on NHITW Cloud Analyzer (更好的健保雲端 2.0)",
   "license": "Apache-2.0",
   "author": "The NHITW Cloud Analyzer Project Authors",
   "repository": {
     "type": "git",
-    "url": "https://github.com/leescot/NHITW_cloud_analyzer_react_MUI.git"
+    "url": "https://github.com/ShowmarkHsu/NHITW_cloud_analyzer_react_MUI.git"
   },
   "bugs": {
-    "url": "https://github.com/leescot/NHITW_cloud_analyzer_react_MUI/issues"
+    "url": "https://github.com/ShowmarkHsu/NHITW_cloud_analyzer_react_MUI/issues"
   },
-  "homepage": "https://github.com/leescot/NHITW_cloud_analyzer_react_MUI",
+  "homepage": "https://github.com/ShowmarkHsu/NHITW_cloud_analyzer_react_MUI",
   "private": true,
   "type": "module",
   "scripts": {
