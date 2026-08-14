@@ -1,0 +1,44 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+  background: #eef3f8;
+  font-family: Arial, "Noto Sans TC", sans-serif;
+}
+
+.synthetic-host {
+  width: 100vw;
+  height: 100vh;
+  background:
+    linear-gradient(135deg, rgba(25, 118, 210, 0.06), transparent 45%),
+    #eef3f8;
+}
+
+.popup-shell {
+  width: min(760px, 100vw);
+  height: 100vh;
+  margin: 0 auto;
+  overflow: auto;
+  background: #fff;
+  box-shadow: 0 0 24px rgba(15, 35, 55, 0.16);
+}
+
+/* Freeze transitions without changing production component geometry. */
+*,
+*::before,
+*::after {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+  caret-color: transparent !important;
+}

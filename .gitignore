@@ -68,6 +68,8 @@ __tests__/coverage
 .coverage
 zip/
 .test_data/
+test-results/
+playwright-report/
 
 # Claude Code configuration
 CLAUDE.md
