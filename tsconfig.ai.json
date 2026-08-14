@@ -20,9 +20,11 @@
   "include": [
     "src/ai/contracts/**/*.ts",
     "src/ai/projection/**/*.ts",
+    "src/ai/session/**/*.ts",
     "src/ai/release/**/*.ts",
     "tests/ai/contracts/**/*.ts",
     "tests/ai/projection/**/*.ts",
+    "tests/ai/session/**/*.ts",
     "vitest.ai.config.ts"
   ]
 }
