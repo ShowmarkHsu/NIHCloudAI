@@ -23,8 +23,10 @@ export const aiTypecheckRoots = [
   'src/ai/contracts',
   'src/ai/release',
   'src/ai/session',
+  'src/background',
   'tests/ai/contracts',
   'tests/ai/session',
+  'tests/ai/security',
 ];
 
 const lintExtensions = new Set(['.js', '.jsx', '.mjs']);
