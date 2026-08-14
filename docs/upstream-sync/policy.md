@@ -10,11 +10,11 @@ The intended repository topology is fixed:
 | `upstream` | NHITW Cloud Analyzer source | `leescot/NHITW_cloud_analyzer_react_MUI` |
 | `nicloudai` | NIHCloudAI AI/security source | `ShowmarkHsu/NIHCloudAI` |
 
-On 2026-08-14 the final fork returned `Repository not found` to both the GitHub
-API and `git ls-remote`. No remote was renamed, added, pushed to, or otherwise
-written. The exact result is recorded in [`baseline.json`](baseline.json). Do
-not configure or push `origin` until the authenticated maintainer can read the
-target repository and its push permission has been verified.
+On 2026-08-14 the final fork was verified through the GitHub API as a fork of
+the configured upstream, and the authenticated maintainer had push permission.
+The independent integration worktree now uses the three remote roles above.
+The exact result is recorded in [`baseline.json`](baseline.json); this topology
+verification did not push, create a branch on GitHub, or modify `main`.
 
 The only long-lived branch is `main`. Feature, fix, and synchronization work
 uses short-lived `codex/*` branches. Formal history must not be rebased or
