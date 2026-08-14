@@ -13,6 +13,7 @@ test('new maintained B1 and AI contract files cannot silently escape their gates
   assert.equal(classifyMaintainedFile('tests/visual/new-visual-test.mjs'), 'eslint');
   assert.equal(classifyMaintainedFile('tests/characterization/new-contract.jsx'), 'eslint');
   assert.equal(classifyMaintainedFile('src/ai/contracts/new-contract.ts'), 'typecheck');
+  assert.equal(classifyMaintainedFile('src/ai/release/new-manifest.ts'), 'typecheck');
   assert.equal(classifyMaintainedFile('tests/ai/contracts/new-contract.test.ts'), 'typecheck');
   assert.equal(classifyMaintainedFile('src/components/FloatingIcon.jsx'), undefined);
 });

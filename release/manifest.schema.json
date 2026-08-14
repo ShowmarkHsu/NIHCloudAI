@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nihcloudai.example/schemas/release-manifest.v1.json",
+  "title": "NIHCloudAI immutable release manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "artifact", "source", "contracts", "providers", "evidence"],
+  "properties": {
+    "schemaVersion": { "const": "release-manifest.v1" },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact", "version", "sha256"],
+      "properties": {
+        "artifact": { "const": "nihcloudai-extension.zip" },
+        "version": { "$ref": "#/$defs/version" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["upstreamCommit", "nihCloudAiCommit", "extensionVersion"],
+      "properties": {
+        "upstreamCommit": { "$ref": "#/$defs/gitCommit" },
+        "nihCloudAiCommit": { "$ref": "#/$defs/gitCommit" },
+        "extensionVersion": { "$ref": "#/$defs/version" }
+      }
+    },
+    "contracts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projectionVersion", "promptVersion", "summaryVersion", "rulesVersion", "caseSetVersion"],
+      "properties": {
+        "projectionVersion": { "const": "clinical-projection.v1" },
+        "promptVersion": { "const": "clinical-summary-prompt.v1" },
+        "summaryVersion": { "const": "clinical-summary.v1" },
+        "rulesVersion": { "const": "clinical-rules.v2" },
+        "caseSetVersion": { "const": "clinical-case-set.v1" }
+      }
+    },
+    "providers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ollama", "openRouter"],
+      "properties": {
+        "ollama": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["endpoint", "model", "digest", "timeoutSeconds"],
+          "properties": {
+            "endpoint": { "const": "http://127.0.0.1:11434" },
+            "model": { "const": "gemma4:e2b-it-qat" },
+            "digest": { "const": "sha256:07ea59a474013479c8b6b802bef095c40e964a1d776ba02f264c0e30e1aede0c" },
+            "timeoutSeconds": { "const": 180 }
+          }
+        },
+        "openRouter": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["endpoint", "model", "route", "temperature", "topP", "seed", "reasoningEffort", "reasoningExclude", "maxTokens", "stream", "strictJsonSchema", "tools", "plugins", "webSearch", "allowFallbacks", "quantization", "zdr", "dataCollection", "requireParameters"],
+          "properties": {
+            "endpoint": { "const": "https://openrouter.ai/api/v1/chat/completions" },
+            "model": { "const": "openai/gpt-oss-120b" },
+            "route": { "const": "deepinfra/bf16" },
+            "temperature": { "const": 0 },
+            "topP": { "const": 1 },
+            "seed": { "const": 0 },
+            "reasoningEffort": { "const": "medium" },
+            "reasoningExclude": { "const": true },
+            "maxTokens": { "const": 4096 },
+            "stream": { "const": false },
+            "strictJsonSchema": { "const": true },
+            "tools": { "const": false },
+            "plugins": { "const": false },
+            "webSearch": { "const": false },
+            "allowFallbacks": { "const": false },
+            "quantization": { "const": "bf16" },
+            "zdr": { "const": true },
+            "dataCollection": { "const": "deny" },
+            "requireParameters": { "const": true }
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ollama", "openRouter", "openRouterMetadataSha256"],
+      "properties": {
+        "ollama": { "$ref": "#/$defs/providerEvidence" },
+        "openRouter": { "$ref": "#/$defs/providerEvidence" },
+        "openRouterMetadataSha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  },
+  "$defs": {
+    "gitCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "sha256": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "providerEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["configurationSha256", "clinicalAcceptanceSha256"],
+      "properties": {
+        "configurationSha256": { "$ref": "#/$defs/sha256" },
+        "clinicalAcceptanceSha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}
