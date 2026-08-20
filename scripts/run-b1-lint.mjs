@@ -21,10 +21,13 @@ export const lintRoots = [
 
 export const aiTypecheckRoots = [
   'src/ai/contracts',
+  'src/ai/providers',
   'src/ai/release',
+  'src/ai/rules',
   'src/ai/session',
   'src/background',
   'tests/ai/contracts',
+  'tests/ai/summary',
   'tests/ai/session',
   'tests/ai/security',
 ];

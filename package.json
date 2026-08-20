@@ -25,6 +25,7 @@
     "test:browser": "node tests/run-browser-mocha.mjs",
     "test:ai": "vitest run --config vitest.ai.config.ts",
     "typecheck:ai": "tsc --project tsconfig.ai.json",
+    "typecheck": "npm run typecheck:ai",
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots",
     "visual:serve": "vite --config vite.visual.config.js",
