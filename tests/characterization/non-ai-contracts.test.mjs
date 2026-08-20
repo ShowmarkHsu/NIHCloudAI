@@ -189,12 +189,29 @@ test('non-AI tabs retain relative order and Advanced remains conditional', async
 
   const advancedCondition = 'appSettings.western.enableMedicationCustomCopyFormat || appSettings.lab.enableLabCustomCopyFormat';
   assert.equal(source.split(advancedCondition).length - 1, 2, 'Advanced tab and panel must share the same condition');
-  assert.match(source, /const helpTabIndex = 7;\s*const advancedTabIndex = 8;/);
-  for (const [index, component] of [
-    [0, 'MedicationList'], [1, 'MedicationTable'], [2, 'ChineseMedicine'], [3, 'LabData'],
-    [4, 'LabTableView'], [5, 'ImagingData'], [6, 'MedDaysData'],
+  const tabIds = [
+    ['MEDICATION_LIST', 0], ['MEDICATION_TABLE', 1], ['CHINESE_MEDICINE', 2], ['LAB_DATA', 3],
+    ['LAB_TABLE', 4], ['IMAGING', 5], ['MEDICATION_DAYS', 6], ['HELP', 7], ['ADVANCED', 8],
+  ];
+  for (const [tabId, index] of tabIds) {
+    assert.match(source, new RegExp(`${tabId}: ${index}`), `stable ID must preserve ${tabId}'s legacy value`);
+  }
+  assert.doesNotMatch(source, /const helpTabIndex = 7;|const advancedTabIndex = 8;/);
+  assert.match(source, /index=\{TAB_IDS\.HELP\}/);
+  assert.match(source, /index=\{TAB_IDS\.ADVANCED\}/);
+  for (const [tabId] of tabIds.slice(0, -2)) {
+    assert.match(source, new RegExp(`<Tab\\s+value=\\{TAB_IDS\\.${tabId}\\}`));
+  }
+  assert.match(source, /<Tab\s+value=\{TAB_IDS\.HELP\}/);
+  assert.match(source, /<Tab\s+value=\{TAB_IDS\.ADVANCED\}/);
+  assert.doesNotMatch(source, /setTabValue\(message\.tabIndex\)/);
+  assert.equal((source.match(/setTabValue\(TAB_IDS\.ADVANCED\)/g) || []).length, 4);
+  for (const [tabId, component] of [
+    ['MEDICATION_LIST', 'MedicationList'], ['MEDICATION_TABLE', 'MedicationTable'],
+    ['CHINESE_MEDICINE', 'ChineseMedicine'], ['LAB_DATA', 'LabData'], ['LAB_TABLE', 'LabTableView'],
+    ['IMAGING', 'ImagingData'], ['MEDICATION_DAYS', 'MedDaysData'],
   ]) {
-    assert.match(source, new RegExp(`<TabPanel value=\\{tabValue\\} index=\\{?${index}\\}?>[\\s\\S]{0,180}<${component}`));
+    assert.match(source, new RegExp(`<TabPanel value=\\{tabValue\\} index=\\{TAB_IDS\\.${tabId}\\}>[\\s\\S]{0,180}<${component}`));
   }
 });
 

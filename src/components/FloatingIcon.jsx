@@ -120,9 +120,22 @@ import {
 // Add a global flag to prevent multiple openings
 window.isFloatingIconOpening = false;
 
+const TAB_IDS = Object.freeze({
+  OVERVIEW: false,
+  MEDICATION_LIST: 0,
+  MEDICATION_TABLE: 1,
+  CHINESE_MEDICINE: 2,
+  LAB_DATA: 3,
+  LAB_TABLE: 4,
+  IMAGING: 5,
+  MEDICATION_DAYS: 6,
+  HELP: 7,
+  ADVANCED: 8,
+});
+
 const FloatingIcon = () => {
   const [open, setOpen] = useState(false);
-  const [tabValue, setTabValue] = useState(false);
+  const [tabValue, setTabValue] = useState(TAB_IDS.OVERVIEW);
   const [groupedMedications, setGroupedMedications] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
   const [groupedLabs, setGroupedLabs] = useState([]);
@@ -242,7 +255,7 @@ const FloatingIcon = () => {
         }
         // 只有當自訂設定已啟用時才切換到指定的標籤
         if (typeof message.tabIndex === 'number' && appSettings.western.enableMedicationCustomCopyFormat) {
-          setTabValue(message.tabIndex);
+          setTabValue(TAB_IDS.ADVANCED);
         }
       }
 
@@ -254,7 +267,7 @@ const FloatingIcon = () => {
         }
         // 只有當自訂設定已啟用時才切換到指定的標籤
         if (typeof message.tabIndex === 'number' && appSettings.lab.enableLabCustomCopyFormat) {
-          setTabValue(message.tabIndex);
+          setTabValue(TAB_IDS.ADVANCED);
         }
       }
 
@@ -264,7 +277,7 @@ const FloatingIcon = () => {
           setOpen(true);
         }
         if (appSettings.western.enableMedicationCustomCopyFormat) {
-          setTabValue(advancedTabIndex);
+          setTabValue(TAB_IDS.ADVANCED);
         }
       }
 
@@ -274,7 +287,7 @@ const FloatingIcon = () => {
           setOpen(true);
         }
         if (appSettings.lab.enableLabCustomCopyFormat) {
-          setTabValue(advancedTabIndex);
+          setTabValue(TAB_IDS.ADVANCED);
         }
       }
     });
@@ -438,7 +451,7 @@ const FloatingIcon = () => {
     setOpen(true);
 
     if (generalDisplaySettings.alwaysOpenOverviewTab) {
-      setTabValue(false); // Show overview (no tab selected)
+      setTabValue(TAB_IDS.OVERVIEW); // Show overview (no tab selected)
     }
   };
 
@@ -451,7 +464,7 @@ const FloatingIcon = () => {
   };
 
   const handleOverviewClick = () => {
-    setTabValue(false);
+    setTabValue(TAB_IDS.OVERVIEW);
   };
 
   const handleSnackbarClose = () => {
@@ -461,10 +474,6 @@ const FloatingIcon = () => {
   // Calculate CKD stage
   const gfrValue = extractGFRValue(patientSummaryData);
   const ckdStage = getCKDStage(gfrValue);
-
-  // Tab index（CKM 已整合進 Overview，不再有獨立 Tab）
-  const helpTabIndex = 7;
-  const advancedTabIndex = 8;
 
   // Get position styles based on settings
   const getIconPositionStyle = () => {
@@ -568,7 +577,7 @@ const FloatingIcon = () => {
                     px: 2,
                     py: 0.75,
                     fontWeight: "bold",
-                    color: tabValue === false ? "#0d47a1" : "#1976d2",
+                    color: tabValue === TAB_IDS.OVERVIEW ? "#0d47a1" : "#1976d2",
                     fontSize:
                       (generalDisplaySettings &&
                         generalDisplaySettings.contentTextSize &&
@@ -577,7 +586,7 @@ const FloatingIcon = () => {
                         ]) ||
                       CONTENT_TEXT_SIZES["medium"],
                     borderRight: "1px solid #e0e0e0",
-                    borderBottom: tabValue === false ? "2px solid #1976d2" : "2px solid transparent",
+                    borderBottom: tabValue === TAB_IDS.OVERVIEW ? "2px solid #1976d2" : "2px solid transparent",
                     flexShrink: 0,
                     cursor: "pointer",
                     "&:hover": {
@@ -627,6 +636,7 @@ const FloatingIcon = () => {
                 }}
               >
                 <Tab
+                  value={TAB_IDS.MEDICATION_LIST}
                   label={`西藥 (${groupedMedications.length})`}
                   icon={<MedicationIcon sx={{ fontSize: "1rem" }} />}
                   iconPosition="start"
@@ -641,6 +651,7 @@ const FloatingIcon = () => {
                   }}
                 />
                 <Tab
+                  value={TAB_IDS.MEDICATION_TABLE}
                   icon={<TableChartIcon sx={{ fontSize: "1.125rem" }} />}
                   aria-label="西藥表格檢視"
                   sx={{
@@ -655,6 +666,7 @@ const FloatingIcon = () => {
                   }}
                 />
                 <Tab
+                  value={TAB_IDS.CHINESE_MEDICINE}
                   label={`中藥 (${groupedChineseMeds.length})`}
                   icon={<GrassIcon sx={{ fontSize: "1rem" }} />}
                   iconPosition="start"
@@ -669,6 +681,7 @@ const FloatingIcon = () => {
                   }}
                 />
                 <Tab
+                  value={TAB_IDS.LAB_DATA}
                   label={`檢驗 (${groupedLabs.length})`}
                   icon={<ScienceIcon sx={{ fontSize: "1rem" }} />}
                   iconPosition="start"
@@ -681,6 +694,7 @@ const FloatingIcon = () => {
                   }}
                 />
                 <Tab
+                  value={TAB_IDS.LAB_TABLE}
                   icon={<TableViewIcon sx={{ fontSize: "1.125rem" }} />}
                   aria-label="檢驗表格檢視"
                   sx={{
@@ -693,6 +707,7 @@ const FloatingIcon = () => {
                   }}
                 />
                 <Tab
+                  value={TAB_IDS.IMAGING}
                   label={`影像 (${imagingData.withReport.length +
                     imagingData.withoutReport.length
                     })`}
@@ -717,6 +732,7 @@ const FloatingIcon = () => {
                   }}
                 />
                 <Tab
+                  value={TAB_IDS.MEDICATION_DAYS}
                   label={`餘藥 (${medDaysData.length})`}
                   icon={<InventoryIcon sx={{ fontSize: "1rem" }} />}
                   iconPosition="start"
@@ -729,6 +745,7 @@ const FloatingIcon = () => {
                   }}
                 />
                 <Tab
+                  value={TAB_IDS.HELP}
                   label="說明"
                   icon={<HelpOutlineIcon sx={{ fontSize: "1rem" }} />}
                   iconPosition="start"
@@ -742,6 +759,7 @@ const FloatingIcon = () => {
                 />
                 {(appSettings.western.enableMedicationCustomCopyFormat || appSettings.lab.enableLabCustomCopyFormat) && (
                   <Tab
+                    value={TAB_IDS.ADVANCED}
                     label="進階"
                     icon={<SettingsIcon sx={{ fontSize: "1rem" }} />}
                     iconPosition="start"
@@ -814,7 +832,7 @@ const FloatingIcon = () => {
         </DialogTitle>
         <DialogContent sx={{ flex: 1, overflow: "auto", minHeight: 0 }}>
           {/* Overview - shown when no tab is selected (clicking patient name) */}
-          {tabValue === false && (
+          {tabValue === TAB_IDS.OVERVIEW && (
             <Overview
               dashboardData={dashboardData}
               allergyData={allergyData}
@@ -846,7 +864,7 @@ const FloatingIcon = () => {
           )}
 
           {/* Western Medication List Tab */}
-          <TabPanel value={tabValue} index={0}>
+          <TabPanel value={tabValue} index={TAB_IDS.MEDICATION_LIST}>
             <MedicationList
               groupedMedications={groupedMedications}
               settings={{
@@ -861,7 +879,7 @@ const FloatingIcon = () => {
           </TabPanel>
 
           {/* Western Medication Table Tab */}
-          <TabPanel value={tabValue} index={1}>
+          <TabPanel value={tabValue} index={TAB_IDS.MEDICATION_TABLE}>
             <MedicationTable
               groupedMedications={groupedMedications}
               settings={{
@@ -875,7 +893,7 @@ const FloatingIcon = () => {
           </TabPanel>
 
           {/* Chinese Medicine Tab */}
-          <TabPanel value={tabValue} index={2}>
+          <TabPanel value={tabValue} index={TAB_IDS.CHINESE_MEDICINE}>
             <ChineseMedicine
               groupedChineseMeds={groupedChineseMeds}
               chineseMedSettings={appSettings.chinese}
@@ -884,7 +902,7 @@ const FloatingIcon = () => {
           </TabPanel>
 
           {/* Lab Data Tab */}
-          <TabPanel value={tabValue} index={3}>
+          <TabPanel value={tabValue} index={TAB_IDS.LAB_DATA}>
             <LabData
               groupedLabs={groupedLabs}
               settings={appSettings.western}
@@ -894,7 +912,7 @@ const FloatingIcon = () => {
           </TabPanel>
 
           {/* New Lab Table Tab */}
-          <TabPanel value={tabValue} index={4}>
+          <TabPanel value={tabValue} index={TAB_IDS.LAB_TABLE}>
             <LabTableView
               groupedLabs={groupedLabs}
               labSettings={appSettings.lab}
@@ -903,7 +921,7 @@ const FloatingIcon = () => {
           </TabPanel>
 
           {/* Imaging Data Tab */}
-          <TabPanel value={tabValue} index={5}>
+          <TabPanel value={tabValue} index={TAB_IDS.IMAGING}>
             <ImagingData
               imagingData={imagingData}
               generalDisplaySettings={generalDisplaySettings}
@@ -911,7 +929,7 @@ const FloatingIcon = () => {
           </TabPanel>
 
           {/* MedDays Data Tab */}
-          <TabPanel value={tabValue} index={6}>
+          <TabPanel value={tabValue} index={TAB_IDS.MEDICATION_DAYS}>
             <MedDaysData
               medDaysData={medDaysData}
               generalDisplaySettings={generalDisplaySettings}
@@ -919,13 +937,13 @@ const FloatingIcon = () => {
           </TabPanel>
 
           {/* Instructions Tab */}
-          <TabPanel value={tabValue} index={helpTabIndex}>
+          <TabPanel value={tabValue} index={TAB_IDS.HELP}>
             <Instructions generalDisplaySettings={generalDisplaySettings} />
           </TabPanel>
 
           {/* Advanced Settings Tab */}
           {(appSettings.western.enableMedicationCustomCopyFormat || appSettings.lab.enableLabCustomCopyFormat) && (
-            <TabPanel value={tabValue} index={advancedTabIndex}>
+            <TabPanel value={tabValue} index={TAB_IDS.ADVANCED}>
               <AdvancedSettings
                 appSettings={appSettings}
                 setAppSettings={setAppSettings}
