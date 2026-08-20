@@ -24,10 +24,12 @@ export const aiTypecheckRoots = [
   'src/ai/providers',
   'src/ai/release',
   'src/ai/rules',
+  'src/ai/summary',
   'src/ai/session',
   'src/background',
   'tests/ai/contracts',
   'tests/ai/summary',
+  'tests/ai/formatter',
   'tests/ai/session',
   'tests/ai/security',
 ];
