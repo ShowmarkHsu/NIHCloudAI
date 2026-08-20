@@ -73,6 +73,13 @@ describe('summary review and copy state machine', () => {
     expect(edited.status).toBe('ready-for-review');
     expect(getReviewedCopyText(edited, scope)).toBeUndefined();
 
+    const unvalidatedReview = transitionSummaryReviewCopyState(edited, {
+      type: 'review-confirmed',
+      scope,
+    });
+    expect(unvalidatedReview).toBe(edited);
+    expect(getReviewedCopyText(unvalidatedReview, scope)).toBeUndefined();
+
     const regenerated = transitionSummaryReviewCopyState(edited, {
       type: 'regeneration-started',
       scope,
@@ -147,6 +154,24 @@ describe('summary review and copy state machine', () => {
 
     expect(lateResult).toBe(switched);
     expect(getReviewedCopyText(lateResult, nextScope)).toBeUndefined();
+  });
+
+  it('tombstones an ended or changed scope so a late result cannot revive it', () => {
+    for (const event of [
+      { type: 'patient-changed' },
+      { type: 'session-ended' },
+      { type: 'validation-state-changed' },
+    ] as const) {
+      const tombstoned = transitionSummaryReviewCopyState(validatedState(), event);
+      const lateResult = transitionSummaryReviewCopyState(tombstoned, {
+        type: 'summary-validated',
+        scope,
+        summary,
+      });
+
+      expect(lateResult).toBe(tombstoned);
+      expect(getReviewedCopyText(lateResult, scope)).toBeUndefined();
+    }
   });
 
   it('does not allow a failed regeneration to regain copy eligibility by review alone', () => {

@@ -40,12 +40,14 @@ type SummaryWithText = {
   readonly summary: FixedFiveSectionSummary;
   readonly sourceText: string;
   readonly draft: string;
+  readonly draftValidated: boolean;
 };
 
 export type SummaryReviewCopyState =
   | {
       readonly status: 'blocked';
       readonly scope: SummaryReviewScope | undefined;
+      readonly acceptingSummary: boolean;
       readonly draft: undefined;
     }
   | (SummaryWithText & {
@@ -62,6 +64,10 @@ export type SummaryReviewCopyEvent =
       readonly type: 'draft-edited';
       readonly scope: SummaryReviewScopeInput;
       readonly draft: string;
+    }
+  | {
+      readonly type: 'draft-revalidated';
+      readonly scope: SummaryReviewScopeInput;
     }
   | {
       readonly type: 'review-confirmed' | 'regeneration-started' | 'regeneration-failed';
@@ -119,16 +125,23 @@ function createValidatedState(
       summary,
       sourceText,
       draft: sourceText,
+      draftValidated: true,
     };
   } catch {
-    return createSummaryReviewCopyState();
+    return createSummaryReviewCopyState(scopeInput);
   }
 }
 
 export function createSummaryReviewCopyState(
   scopeInput?: SummaryReviewScopeInput,
+  acceptingSummary = true,
 ): SummaryReviewCopyState {
-  return { status: 'blocked', scope: scopeInput === undefined ? undefined : parseScope(scopeInput), draft: undefined };
+  return {
+    status: 'blocked',
+    scope: scopeInput === undefined ? undefined : parseScope(scopeInput),
+    acceptingSummary,
+    draft: undefined,
+  };
 }
 
 export function transitionSummaryReviewCopyState(
@@ -139,14 +152,24 @@ export function transitionSummaryReviewCopyState(
     case 'patient-changed':
     case 'session-ended':
     case 'revision-changed':
+      return createSummaryReviewCopyState(event.scope, event.scope !== undefined);
     case 'validation-state-changed':
+      return createSummaryReviewCopyState(event.scope ?? state.scope, false);
     case 'validation-failed':
-      return createSummaryReviewCopyState(event.scope);
+      if (
+        event.scope !== undefined &&
+        hasCurrentScope(state, event.scope) &&
+        state.status === 'regenerating'
+      ) {
+        return { ...state, status: 'regeneration-failed' };
+      }
+      return createSummaryReviewCopyState(event.scope ?? state.scope, true);
     case 'summary-validated': {
       const nextScope = parseScope(event.scope);
       if (nextScope === undefined) return state;
       const currentScope = state.scope;
       if (currentScope !== undefined && !sameScope(currentScope, nextScope)) return state;
+      if (state.status === 'blocked' && !state.acceptingSummary) return state;
       return createValidatedState(event.scope, event.summary);
     }
     case 'draft-edited':
@@ -156,11 +179,17 @@ export function transitionSummaryReviewCopyState(
       ) {
         return state;
       }
-      return { ...state, status: 'ready-for-review', draft: event.draft };
+      return { ...state, status: 'ready-for-review', draft: event.draft, draftValidated: false };
+    case 'draft-revalidated':
+      if (!hasCurrentScope(state, event.scope) || state.status !== 'ready-for-review') return state;
+      return state.draft === state.sourceText
+        ? { ...state, draftValidated: true }
+        : state;
     case 'review-confirmed':
       if (
         !hasCurrentScope(state, event.scope) ||
-        state.status !== 'ready-for-review'
+        state.status !== 'ready-for-review' ||
+        !state.draftValidated
       ) {
         return state;
       }
