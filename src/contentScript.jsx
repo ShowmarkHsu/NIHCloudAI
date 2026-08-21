@@ -1,4 +1,22 @@
+import { installContentDataSessionRuntime } from './ai/session/contentRuntime';
+
 console.log("Content script loaded");
+
+installContentDataSessionRuntime({
+  origin: window.location.origin,
+  send(message) {
+    chrome.runtime.sendMessage(message);
+  },
+  newSessionId() {
+    return `ds_${crypto.randomUUID().replaceAll('-', '')}`;
+  },
+  addEventListener(type, listener) {
+    window.addEventListener(type, listener);
+  },
+  removeEventListener(type, listener) {
+    window.removeEventListener(type, listener);
+  },
+});
 
 function initializeExtension() {
   console.log("Content script initializing");
