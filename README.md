@@ -12,6 +12,9 @@ NIHCloudAI 以 **NHITW Cloud Analyzer（更好的健保雲端 2.0）** 為 upstr
 呼叫固定 Provider 的受限流程。這些流程只以合成資料與本機 build 驗證，尚未有真實
 Provider、臨床資料或人工臨床驗收；因此不具備臨床使用或正式發布條件。現況判讀、
 已知缺口與收斂路線見[專案復原計畫](docs/PROJECT_RECOVERY_PLAN.md)。
+已授權操作者的非 PHI 人工檢核只能依
+[受控人工驗證 Runbook](docs/CONTROLLED_MANUAL_VALIDATION_RUNBOOK.md) 執行；通過該
+流程不表示 release ready 或可臨床使用。
 
 `npm run verify` 只驗證合成契約、非 AI 回歸、建置、browser suite 與已載入的 MV3
 iframe fail-closed browser test；它不是實際 AI Provider、臨床驗收或部署核准。

@@ -110,4 +110,16 @@ describe('extension-origin iframe summary broker', () => {
       ...message('iframe.summary.generate', 4, {provider: 'ollama'}), revision: 2,
     }, iframeSender)).toEqual({accepted: false, reason: 'scope-mismatch'});
   });
+
+  it('lets only the exact iframe discard its own in-flight operation', async () => {
+    const {broker, provider} = setup();
+
+    expect(await broker.receive(message('iframe.summary.discard', 1), iframeSender)).toEqual({accepted: true});
+    expect(provider.cancel).toHaveBeenCalledWith({tabId, sessionId, revision: 1});
+
+    expect(await broker.receive(message('iframe.summary.discard', 2), {
+      ...iframeSender, url: `${extensionOrigin}/popup.html`,
+    })).toEqual({accepted: false, reason: 'sender-url-mismatch'});
+    expect(provider.cancel).toHaveBeenCalledOnce();
+  });
 });

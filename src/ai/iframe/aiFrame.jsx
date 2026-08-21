@@ -42,6 +42,7 @@ function AiFrame() {
   const [openRouterSecret, setOpenRouterSecret] = useState("");
   const [remoteConsent, setRemoteConsent] = useState(false);
   const sequence = useRef(0);
+  const generationEpoch = useRef(0);
 
   const message = async (nextScope, type, extra = {}) => {
     sequence.current = Math.max(sequence.current + 1, Date.now());
@@ -83,6 +84,7 @@ function AiFrame() {
       setReviewed(false);
       setOpenRouterSecret("");
       setRemoteConsent(false);
+      generationEpoch.current += 1;
       void load(nextScope).catch(() => setStatus("stale"));
     };
     window.addEventListener("message", receiveScope);
@@ -96,7 +98,9 @@ function AiFrame() {
 
   const generate = async (provider) => {
     if (!scope || status === "generating") return;
+    const currentGeneration = ++generationEpoch.current;
     if (!(await requestHost(provider))) {
+      if (generationEpoch.current !== currentGeneration) return;
       setStatus("permission-required");
       return;
     }
@@ -106,11 +110,13 @@ function AiFrame() {
         return;
       }
       const stored = await message(scope, "iframe.openrouter.session-secret.set", {secret: openRouterSecret});
+      if (generationEpoch.current !== currentGeneration) return;
       if (!stored?.accepted) {
         setStatus("stale");
         return;
       }
       const consented = await message(scope, "iframe.openrouter.consent.grant");
+      if (generationEpoch.current !== currentGeneration) return;
       if (!consented?.accepted) {
         setStatus("stale");
         return;
@@ -122,6 +128,7 @@ function AiFrame() {
     setDraft(null);
     setReviewed(false);
     const response = await message(scope, "iframe.summary.generate", {provider});
+    if (generationEpoch.current !== currentGeneration) return;
     if (!response?.accepted) {
       setStatus("stale");
       return;
@@ -133,6 +140,22 @@ function AiFrame() {
     setSummary(response.result.summary);
     setDraft(response.result.summary);
     setStatus("ready-for-review");
+  };
+
+  const cancel = async () => {
+    if (!scope || status !== "generating") return;
+    generationEpoch.current += 1;
+    const response = await message(scope, "iframe.summary.discard");
+    if (!response?.accepted) {
+      setStatus("stale");
+      return;
+    }
+    setSummary(null);
+    setDraft(null);
+    setReviewed(false);
+    setOpenRouterSecret("");
+    setRemoteConsent(false);
+    setStatus("cancelled");
   };
 
   const confirmReview = async () => {
@@ -176,6 +199,7 @@ function AiFrame() {
       status === "ready-for-review" ? "完整摘要已通過固定格式驗證，請 review。" :
       status === "reviewed" || status === "copied" ? "已 review；可複製目前版本。" :
       status === "edited" ? "編輯已使 review/copy 失效；請還原為已驗證版本或重新生成。" :
+      status === "cancelled" ? "已取消生成；沒有可複製內容。" :
       status === "permission-required" ? "未授予所選 provider 的可選主機權限。" :
       status === "remote-authorization-required" ? "遠端摘要需要本次 session 的 BYOK 與明確同意。" :
       status === "stale" ? "資料工作階段已變更；舊快照與摘要不可使用。" : "生成失敗，沒有可複製內容。"}</p>
@@ -186,6 +210,7 @@ function AiFrame() {
     <div style={{display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12}}>
       <button type="button" onClick={() => void generate("ollama")} disabled={!scope || status === "generating"}>生成本機 Ollama 摘要</button>
       <button type="button" onClick={() => void generate("openrouter")} disabled={!scope || status === "generating"}>生成遠端 OpenRouter 摘要</button>
+      <button type="button" onClick={() => void cancel()} disabled={status !== "generating"}>取消生成</button>
       <button type="button" onClick={() => void confirmReview()} disabled={!summary || JSON.stringify(draft) !== JSON.stringify(summary)}>確認 review</button>
       <button type="button" onClick={() => void copy()} disabled={!reviewed}>複製已 review 摘要</button>
     </div>

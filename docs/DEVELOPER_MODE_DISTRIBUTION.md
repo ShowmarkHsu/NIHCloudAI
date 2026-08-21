@@ -2,6 +2,9 @@
 
 本分支只能以 Chrome 開發人員模式載入，供受控開發與合法測試使用；它不是 Chrome Web Store、院內管理式部署或正式臨床系統。請使用受控 Chrome profile 與已審查的原始碼版本，絕不把真實病歷、畫面截圖、網路封包或秘密放進本專案。
 
+完整的非 PHI 安裝、Provider、取消、revision 與移除人工步驟見
+[`CONTROLLED_MANUAL_VALIDATION_RUNBOOK.md`](CONTROLLED_MANUAL_VALIDATION_RUNBOOK.md)。
+
 ## 建置與安裝
 
 1. 在專案根目錄執行 `npm run verify`。
