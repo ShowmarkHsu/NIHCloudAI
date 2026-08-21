@@ -1,6 +1,12 @@
-# B6 Release Evidence — Machine-verifiable Gate
+# B6 Engineering Gate Evidence
 
-This branch's B6 deliverable is a reproducible release-readiness gate. It proves the build-time boundaries that can be checked without accessing a real patient, a Provider account, or a clinical reviewer.
+> **狀態說明（2026-08-21）**：本文件只記錄 machine-verifiable engineering gate。
+> 目前產品中的 AI 頁籤尚未接上 UI flow，Provider request 也尚未承載 sealed
+> snapshot／clinical facts，因此不得把本文件解讀為 AI 功能可用、release ready、
+> Provider 端對端通過或臨床驗收完成。完整缺口與復原順序見
+> [`PROJECT_RECOVERY_PLAN.md`](PROJECT_RECOVERY_PLAN.md)。
+
+This branch's B6 deliverable is a reproducible engineering gate. It proves only the build-time boundaries that can be checked without accessing a real patient, a Provider account, or a clinical reviewer.
 
 Run the complete gate from the repository root:
 

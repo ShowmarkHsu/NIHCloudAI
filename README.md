@@ -5,7 +5,15 @@ NIHCloudAI 以 **NHITW Cloud Analyzer（更好的健保雲端 2.0）** 為 upstr
 
 本 repository 的 upstream 與 NIHCloudAI 來源追溯、同步政策及固定基準記錄於
 [`docs/upstream-sync/`](docs/upstream-sync/)。原專案名稱、Apache-2.0 授權與著作權
-歸屬均予保留；目前這個基準尚未包含 AI projection、Provider、iframe 或 AI UI。
+歸屬均予保留。
+
+目前 `main` 是未加入 AI 的穩定 upstream fork 基準；`codex/integration-recovery`
+包含 AI contracts、projection、session lifecycle、Provider skeleton 與頁籤骨架，
+但尚未形成可用的端對端摘要流程，也不具備臨床使用或正式發布條件。現況判讀、
+已知缺口與收斂路線見[專案復原計畫](docs/PROJECT_RECOVERY_PLAN.md)。
+
+`npm run verify` 只驗證合成契約、非 AI 回歸、建置與瀏覽器測試；它不是 AI
+功能可用性、Provider 端對端驗證、臨床驗收或部署核准。
 
 ## Upstream project
 
