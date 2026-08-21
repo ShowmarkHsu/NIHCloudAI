@@ -215,6 +215,20 @@ test('non-AI tabs retain relative order and Advanced remains conditional', async
   }
 });
 
+test('AI summary tab is an inert append-only shell with no legacy message route', async () => {
+  const source = await readFile(path.join(ROOT, 'src/components/FloatingIcon.jsx'), 'utf8');
+  const tabs = source.indexOf('<Tabs');
+  const advancedTab = source.indexOf('label="進階"', tabs);
+  const aiSummaryTab = source.indexOf('label="AI 摘要"', tabs);
+
+  assert.match(source, /AI_SUMMARY: 'ai-summary'/, 'AI tab must use a non-numeric stable ID');
+  assert.ok(advancedTab > tabs, 'legacy Advanced tab must remain present in the tab strip');
+  assert.ok(aiSummaryTab > advancedTab, 'AI tab must append after every legacy tab, including conditional Advanced');
+  assert.match(source, /<Tab\s+value=\{TAB_IDS\.AI_SUMMARY\}\s+label="AI 摘要"/);
+  assert.match(source, /<TabPanel value=\{tabValue\} index=\{TAB_IDS\.AI_SUMMARY\}>\s*<\/TabPanel>/);
+  assert.doesNotMatch(source, /iframe|runtime\.sendMessage|chrome\.runtime/);
+});
+
 test('fixed clock is explicit and remaining-days characterization accepts injected now', async () => {
   const fixture = await readJson('tests/fixtures/clinical/boundary-clock.json');
   assert.equal(fixture.clock.now, FIXED_NOW);

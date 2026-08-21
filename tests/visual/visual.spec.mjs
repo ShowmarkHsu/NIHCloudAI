@@ -39,12 +39,13 @@ async function openFloating(page, {
 
 async function assertTabContract(dialog, advanced) {
   const tabs = dialog.locator('.MuiDialogTitle-root [role="tab"]');
-  await expect(tabs).toHaveCount(advanced ? 9 : 8);
+  await expect(tabs).toHaveCount(advanced ? 10 : 9);
   for (let index = 0; index < tabOrder.length; index += 1) {
     await expect(tabs.nth(index)).toHaveAccessibleName(tabOrder[index]);
   }
   if (advanced) await expect(tabs.nth(8)).toHaveAccessibleName('進階');
   else await expect(dialog.getByRole('tab', {name: '進階'})).toHaveCount(0);
+  await expect(tabs.nth(advanced ? 9 : 8)).toHaveAccessibleName('AI 摘要');
 }
 
 async function assertNoTabOverlap(dialog) {

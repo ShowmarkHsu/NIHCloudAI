@@ -131,6 +131,7 @@ const TAB_IDS = Object.freeze({
   MEDICATION_DAYS: 6,
   HELP: 7,
   ADVANCED: 8,
+  AI_SUMMARY: 'ai-summary',
 });
 
 const FloatingIcon = () => {
@@ -772,6 +773,10 @@ const FloatingIcon = () => {
                     }}
                   />
                 )}
+                <Tab
+                  value={TAB_IDS.AI_SUMMARY}
+                  label="AI 摘要"
+                />
               </Tabs>
             </Paper>
 
@@ -951,6 +956,9 @@ const FloatingIcon = () => {
               />
             </TabPanel>
           )}
+
+          <TabPanel value={tabValue} index={TAB_IDS.AI_SUMMARY}>
+          </TabPanel>
         </DialogContent>
       </Dialog>
       <Snackbar
