@@ -6,6 +6,9 @@ Provider 合格證明。僅可在受控 Chrome profile、已審查 commit 與核
 任何 PHI 帶入記錄、issue、commit、terminal、request body、response、HAR、
 DevTools 匯出或 screenshot。
 
+每次執行以[受控人工驗證證據與簽核紀錄](./CONTROLLED_VALIDATION_EVIDENCE_TEMPLATE.md)
+記錄最小、非敏感的證據與外部簽核狀態。
+
 ## 前置與可保存的最小證據
 
 1. 從已審查的 `codex/*` commit 執行 `npm ci` 與 `npm run verify`；兩者必須
