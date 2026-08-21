@@ -12,6 +12,10 @@
     "https://medcloud2.nhi.gov.tw/*",
     "https://drugtw.com/*"
   ],
+  "optional_host_permissions": [
+    "http://127.0.0.1:11434/*",
+    "https://openrouter.ai/*"
+  ],
   "background": {
     "service_worker": "background.js"
   },

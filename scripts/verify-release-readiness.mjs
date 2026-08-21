@@ -7,6 +7,10 @@ const ALLOWED_HOST_PERMISSIONS = [
   'https://drugtw.com/*',
   'https://medcloud2.nhi.gov.tw/*',
 ];
+const ALLOWED_OPTIONAL_HOST_PERMISSIONS = [
+  'http://127.0.0.1:11434/*',
+  'https://openrouter.ai/*',
+];
 const SECRET_SHAPED_VALUE = /(?:sk-[A-Za-z0-9_-]{20,}|sk-or-v1-[A-Za-z0-9_-]{16,}|Bearer\s+[A-Za-z0-9._-]{20,})/;
 
 function sortedStrings(value) {
@@ -27,12 +31,16 @@ export function assessReleaseReadiness({ manifest, artifacts }) {
   const failures = [];
   const permissions = sortedStrings(manifest?.permissions);
   const hostPermissions = sortedStrings(manifest?.host_permissions);
+  const optionalHostPermissions = sortedStrings(manifest?.optional_host_permissions);
 
   if (!sameStrings(permissions, ALLOWED_PERMISSIONS)) {
     failures.push(`manifest permissions must be exactly: ${ALLOWED_PERMISSIONS.join(', ')}`);
   }
   if (!sameStrings(hostPermissions, ALLOWED_HOST_PERMISSIONS)) {
     failures.push(`manifest host permissions must be exactly: ${ALLOWED_HOST_PERMISSIONS.join(', ')}`);
+  }
+  if (!sameStrings(optionalHostPermissions, ALLOWED_OPTIONAL_HOST_PERMISSIONS)) {
+    failures.push(`manifest optional host permissions must be exactly: ${ALLOWED_OPTIONAL_HOST_PERMISSIONS.join(', ')}`);
   }
 
   for (const artifact of artifacts) {

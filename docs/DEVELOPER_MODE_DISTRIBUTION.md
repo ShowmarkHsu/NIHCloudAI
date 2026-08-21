@@ -24,4 +24,11 @@
 - `https://medcloud2.nhi.gov.tw/*`：既有 content script 的固定健保雲端範圍。
 - `https://drugtw.com/*`：既有藥品圖片功能。
 
-此分支不宣告遠端 Provider host permission、iframe 或 Provider runtime；AI tab 只有受測的純 activation contract。將來加入這些能力必須先更新 release gate、文件與人工驗證範圍，不能沿用本文件當作預先授權。
+AI Provider 僅能由 background 執行；content script 沒有讀取或保存 API key 的能力。`http://127.0.0.1:11434/*`（Ollama loopback）及 `https://openrouter.ai/*` 是精確的 optional host permissions，不是常駐 host permissions。只有使用者選擇 Provider 後才可請求該 host；首次對 OpenRouter 外送前，必須顯示資料外送同意並取得當前 data session 的明確同意。BYOK 僅存在 background 的記憶體、限當前 session，登出、換病人、關閉分頁或取消後不得保留。
+
+## Provider 手動檢核
+
+1. 先在核准的合成測試頁面啟動資料 session；不得使用真實病歷。
+2. 確認 Chrome 只在使用者選取 Ollama 或 OpenRouter 時請求對應 optional host permission，且沒有廣泛 host grant。
+3. 確認 OpenRouter 第一次外送前會要求同意；拒絕或取消時沒有網路請求。
+4. 在沒有任何病歷連線的環境確認 timeout、取消與錯誤狀態；不得擷取或保存 request、response、金鑰、session 值或截圖。

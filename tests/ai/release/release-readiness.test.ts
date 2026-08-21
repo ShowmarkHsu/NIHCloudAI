@@ -10,6 +10,10 @@ const manifest = {
     'https://medcloud2.nhi.gov.tw/*',
     'https://drugtw.com/*',
   ],
+  optional_host_permissions: [
+    'http://127.0.0.1:11434/*',
+    'https://openrouter.ai/*',
+  ],
 };
 
 describe('B6 release readiness gate', () => {
@@ -26,7 +30,7 @@ describe('B6 release readiness gate', () => {
   it('rejects extra permissions, broad host grants, source maps, and secret-shaped values', () => {
     const expandedManifest = structuredClone(manifest);
     expandedManifest.permissions.push('scripting');
-    expandedManifest.host_permissions.push('https://*/*');
+    expandedManifest.optional_host_permissions.push('https://*/*');
 
     expect(assessReleaseReadiness({
       manifest: expandedManifest,
@@ -36,7 +40,7 @@ describe('B6 release readiness gate', () => {
       ],
     })).toEqual([
       'manifest permissions must be exactly: clipboardWrite, storage',
-      'manifest host permissions must be exactly: https://drugtw.com/*, https://medcloud2.nhi.gov.tw/*',
+      'manifest optional host permissions must be exactly: http://127.0.0.1:11434/*, https://openrouter.ai/*',
       'release artifact must not include source maps: dist/content.js.map',
       'release artifact contains a secret-shaped value: dist/content.js',
     ]);
