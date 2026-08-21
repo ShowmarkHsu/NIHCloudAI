@@ -1,5 +1,8 @@
 // background.js
 // 精簡版 — 只保留 content script 無法執行的 Chrome API
+import { installClosedBackgroundRuntime } from './background/runtimeWiring';
+
+installClosedBackgroundRuntime(chrome);
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'openPopup') {
@@ -17,8 +20,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  sendResponse({ status: 'received' });
-  return true;
+  return false;
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
