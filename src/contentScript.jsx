@@ -5,10 +5,25 @@ console.log("Content script loaded");
 installContentDataSessionRuntime({
   origin: window.location.origin,
   send(message) {
-    chrome.runtime.sendMessage(message);
+    return chrome.runtime.sendMessage(message);
   },
   newSessionId() {
     return `ds_${crypto.randomUUID().replaceAll('-', '')}`;
+  },
+  newPatientId() {
+    return `pt_${crypto.randomUUID().replaceAll('-', '')}`;
+  },
+  now() {
+    return new Date().toISOString();
+  },
+  issueSourceReference() {
+    return `sr_${crypto.randomUUID().replaceAll('-', '')}`;
+  },
+  onLabSnapshotSealed(presentation) {
+    window.dispatchEvent(new CustomEvent('ai.lab-snapshot.sealed', {detail: presentation}));
+  },
+  onLabSnapshotInvalidated() {
+    window.dispatchEvent(new CustomEvent('ai.lab-snapshot.invalidated'));
   },
   addEventListener(type, listener) {
     window.addEventListener(type, listener);

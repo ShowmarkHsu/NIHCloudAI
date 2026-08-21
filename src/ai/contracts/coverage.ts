@@ -24,6 +24,7 @@ export const COVERAGE_TERMINAL_STATES = [
   'unauthorized',
   'fetch-failure',
   'normalization-failure',
+  'not-collected',
   'out-of-scope',
 ] as const;
 
@@ -75,6 +76,14 @@ const normalizationFailureCoverageObjectSchema = z
   })
   .strict();
 
+const notCollectedCoverageObjectSchema = z
+  .object({
+    status: z.literal('not-collected'),
+    recordCount: z.literal(0),
+    reasonCode: z.literal('SOURCE_NOT_COLLECTED'),
+  })
+  .strict();
+
 const outOfScopeCoverageObjectSchema = z
   .object({
     status: z.literal('out-of-scope'),
@@ -90,6 +99,7 @@ export const phaseOneCoverageSchema = z
     unauthorizedCoverageObjectSchema,
     fetchFailureCoverageObjectSchema,
     normalizationFailureCoverageObjectSchema,
+    notCollectedCoverageObjectSchema,
   ])
   .readonly();
 

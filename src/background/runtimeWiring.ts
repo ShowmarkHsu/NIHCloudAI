@@ -1,6 +1,7 @@
 import {
   createClosedBackgroundDataSessionController,
 } from './closedDataSessionController';
+import { createSealedSnapshotStore } from './sealedSnapshotStore';
 
 type ChromeMessageSender = Readonly<{
   tab?: Readonly<{ id?: number; url?: string }>;
@@ -35,7 +36,15 @@ export type ClosedBackgroundRuntimeChrome = Readonly<{
  * a URL through a message. This deliberately owns no legacy action messages.
  */
 export function installClosedBackgroundRuntime(chromeApi: ClosedBackgroundRuntimeChrome) {
-  const controller = createClosedBackgroundDataSessionController();
+  const snapshots = createSealedSnapshotStore();
+  const controller = createClosedBackgroundDataSessionController({
+    storeSnapshot(scope, snapshot) {
+      return snapshots.put(scope, snapshot);
+    },
+    cancel(scope) {
+      snapshots.discard(scope);
+    },
+  });
 
   chromeApi.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const senderUrl = sender.url ?? sender.tab?.url;

@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     globals: false,
-    include: ['tests/ai/{contracts,projection,security,session,summary,formatter,release}/**/*.test.ts'],
+    include: ['tests/ai/{contracts,projection,security,session,summary,formatter,release,integration}/**/*.test.ts'],
     passWithNoTests: false,
     clearMocks: true,
     restoreMocks: true,

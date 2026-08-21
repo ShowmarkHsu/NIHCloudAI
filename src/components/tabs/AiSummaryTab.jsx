@@ -8,6 +8,23 @@ const EMPTY_VIEW = Object.freeze({
   sections: [],
 });
 
+const SOURCE_FAMILY_LABELS = Object.freeze({
+  encounter: "就醫", "western-medication": "西藥", "chinese-medication": "中藥",
+  allergy: "過敏", lab: "檢驗", imaging: "影像", procedure: "處置", discharge: "出院",
+});
+
+function coverageCopy(coverage) {
+  if (!coverage) return "尚未建立可核對的檢驗快照。";
+  return Object.entries(SOURCE_FAMILY_LABELS).map(([family, label]) => {
+    const state = coverage[family];
+    if (!state) return `${label}：未回報`;
+    if (state.status === "has-data") return `${label}：${state.recordCount} 筆`;
+    if (state.status === "confirmed-empty") return `${label}：已確認無資料`;
+    if (state.status === "not-collected") return `${label}：本次未收集`;
+    return `${label}：資料缺口（${state.status}）`;
+  });
+}
+
 const STATUS_COPY = Object.freeze({
   "waiting-for-data": "尚未建立可用資料工作階段，無法生成摘要。",
   "ready-to-generate": "資料已就緒。請由使用者主動按下「生成摘要」。",
@@ -30,6 +47,7 @@ export default function AiSummaryTab({
   onCopy,
   onCancel,
   sourceRefsForSection,
+  labSnapshot,
 }) {
   const sourcesFor = typeof sourceRefsForSection === "function"
     ? sourceRefsForSection
@@ -44,6 +62,17 @@ export default function AiSummaryTab({
         <Alert severity={view.status === "generation-failed" ? "error" : "info"}>
           {STATUS_COPY[view.status] || STATUS_COPY["waiting-for-data"]}
         </Alert>
+        <Box data-testid="ai-lab-snapshot-coverage">
+          <Typography variant="subtitle2">檢驗資料快照（未使用 LLM）</Typography>
+          <Typography variant="body2">{coverageCopy(labSnapshot?.coverage).join("；")}</Typography>
+          {labSnapshot?.sourceAliases?.length > 0 && (
+            <Stack direction="row" spacing={0.5} flexWrap="wrap" aria-label="檢驗可核對來源">
+              {labSnapshot.sourceAliases.map((source) => (
+                <Chip key={source.sourceRef} size="small" label={source.label} />
+              ))}
+            </Stack>
+          )}
+        </Box>
         <Stack direction="row" spacing={1} flexWrap="wrap">
           <Button variant="contained" onClick={onGenerate} disabled={!view.generateEnabled}>
             生成摘要

@@ -14,6 +14,7 @@ export type DataSessionEndReason = 'patient-changed' | 'logout' | 'tab-closed';
 type LifecycleMessage = Extract<
   ContentCapabilityMessage,
   | { type: 'content.data-session.started' }
+  | { type: 'content.data-session.revised' }
   | { type: 'content.data-session.ended' }
 >;
 
@@ -82,6 +83,15 @@ export function createClosedDataSessionLifecycle(
     replacePatient(sessionId: string, sequence: number): RevisionScope {
       end(sequence, 'patient-changed');
       return this.start(sessionId, sequence + 1);
+    },
+
+    advanceRevision(sequence: number): RevisionScope | null {
+      const current = coordinator.activeScopeForTab(configuration.tabId);
+      if (current === null) return null;
+      const next = coordinator.startNextRevision(current);
+      if (next === null) return null;
+      configuration.send(message('content.data-session.revised', next, sequence));
+      return next;
     },
 
     logout(sequence: number): boolean {

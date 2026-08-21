@@ -178,6 +178,7 @@ const FloatingIcon = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [patientSummaryData, setPatientSummaryData] = useState([]);
+  const [labSnapshot, setLabSnapshot] = useState(null);
 
   // 新增響應式布局檢測
   const theme = useTheme();
@@ -339,6 +340,17 @@ const FloatingIcon = () => {
       removeSettingsListener();
       removeMessageListener();
       removeDataFetchCompletionListener();
+    };
+  }, []);
+
+  useEffect(() => {
+    const receiveSnapshot = (event) => setLabSnapshot(event.detail ?? null);
+    const invalidateSnapshot = () => setLabSnapshot(null);
+    window.addEventListener("ai.lab-snapshot.sealed", receiveSnapshot);
+    window.addEventListener("ai.lab-snapshot.invalidated", invalidateSnapshot);
+    return () => {
+      window.removeEventListener("ai.lab-snapshot.sealed", receiveSnapshot);
+      window.removeEventListener("ai.lab-snapshot.invalidated", invalidateSnapshot);
     };
   }, []);
 
@@ -960,7 +972,7 @@ const FloatingIcon = () => {
           )}
 
           <TabPanel value={tabValue} index={TAB_IDS.AI_SUMMARY}>
-            <AiSummaryTab />
+            <AiSummaryTab labSnapshot={labSnapshot} />
           </TabPanel>
         </DialogContent>
       </Dialog>

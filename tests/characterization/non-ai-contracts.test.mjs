@@ -227,7 +227,9 @@ test('AI summary tab is an append-only closed presentation surface with no legac
   assert.ok(aiSummaryTab > advancedTab, 'AI tab must append after every legacy tab, including conditional Advanced');
   assert.match(source, /<Tab\s+value=\{TAB_IDS\.AI_SUMMARY\}\s+label="AI 摘要"/);
   assert.match(source, /import AiSummaryTab from "\.\/tabs\/AiSummaryTab";/);
-  assert.match(source, /<TabPanel value=\{tabValue\} index=\{TAB_IDS\.AI_SUMMARY\}>\s*<AiSummaryTab\s*\/>\s*<\/TabPanel>/);
+  assert.match(source, /const \[labSnapshot, setLabSnapshot\] = useState\(null\)/);
+  assert.match(source, /window\.addEventListener\("ai\.lab-snapshot\.sealed", receiveSnapshot\)/);
+  assert.match(source, /<TabPanel value=\{tabValue\} index=\{TAB_IDS\.AI_SUMMARY\}>\s*<AiSummaryTab labSnapshot=\{labSnapshot\} \/>\s*<\/TabPanel>/);
   assert.doesNotMatch(source, /iframe|runtime\.sendMessage|chrome\.runtime/);
 });
 

@@ -15,7 +15,9 @@ import type { RouterSender } from './aiMessageRouter';
 type LifecycleMessage = Extract<
   ContentCapabilityMessage,
   | { type: 'content.data-session.started' }
+  | { type: 'content.data-session.revised' }
   | { type: 'content.data-session.ended' }
+  | { type: 'content.snapshot.sealed' }
 >;
 
 type Result =
@@ -27,6 +29,7 @@ type Result =
 
 export type ClosedBackgroundDataSessionControllerConfiguration = Readonly<{
   cancel?: (scope: RevisionScope, reason: DataSessionEndReason) => void;
+  storeSnapshot?: (scope: RevisionScope, snapshot: Extract<ContentCapabilityMessage, { type: 'content.snapshot.sealed' }>['snapshot']) => boolean;
 }>;
 
 function rejected(reason: Exclude<Result, { accepted: true }>['reason']): Result {
@@ -51,7 +54,7 @@ function senderIsFixedNhiContent(sender: RouterSender): Result | null {
 function lifecycleMessage(message: unknown): LifecycleMessage | null {
   const parsed = contentCapabilityMessageSchema.safeParse(message);
   if (!parsed.success) return null;
-  return parsed.data.type === 'content.data-session.started' || parsed.data.type === 'content.data-session.ended'
+  return parsed.data.type === 'content.data-session.started' || parsed.data.type === 'content.data-session.revised' || parsed.data.type === 'content.data-session.ended' || parsed.data.type === 'content.snapshot.sealed'
     ? parsed.data
     : null;
 }
@@ -108,11 +111,23 @@ export function createClosedBackgroundDataSessionController(
       if (
         scope === null
         || scope.sessionId !== parsed.sessionId
-        || scope.revision !== parsed.revision
+        || (parsed.type === 'content.data-session.revised'
+          ? parsed.revision !== scope.revision + 1
+          : scope.revision !== parsed.revision)
       ) {
         return rejected('scope-mismatch');
       }
       if (!sequenceIsCurrent(scope, parsed.sequence)) return rejected('sequence-rollback');
+      if (parsed.type === 'content.data-session.revised') {
+        const next = coordinator.startNextRevision(scope);
+        if (next === null || next.revision !== parsed.revision) return rejected('scope-mismatch');
+        return { accepted: true };
+      }
+      if (parsed.type === 'content.snapshot.sealed') {
+        return configuration.storeSnapshot?.(scope, parsed.snapshot) === true
+          ? { accepted: true }
+          : rejected('scope-mismatch');
+      }
       cancel(scope, 'logout');
       coordinator.closeTab(tabId);
       return { accepted: true };

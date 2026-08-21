@@ -28,6 +28,10 @@ const contentDataSessionEndedMessageSchema = capabilityMessageBaseSchema.extend(
   type: z.literal('content.data-session.ended'),
 }).strict();
 
+const contentDataSessionRevisedMessageSchema = capabilityMessageBaseSchema.extend({
+  type: z.literal('content.data-session.revised'),
+}).strict();
+
 const contentSnapshotSealedMessageSchema = capabilityMessageBaseSchema.extend({
   type: z.literal('content.snapshot.sealed'),
   snapshot: patientSnapshotV1Schema,
@@ -48,6 +52,7 @@ const contentLifecycleStatusMessageSchema = capabilityMessageBaseSchema.extend({
 export const contentCapabilityMessageSchema = z.union([
   contentDataSessionStartedMessageSchema,
   contentDataSessionEndedMessageSchema,
+  contentDataSessionRevisedMessageSchema,
   contentSnapshotSealedMessageSchema,
   contentLifecycleStatusMessageSchema,
 ]).readonly();

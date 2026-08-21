@@ -158,6 +158,30 @@ test('clipping guard rejects a visible control that overflows its visual region'
   ]);
 });
 
+test('R1 AI tab renders only sealed lab coverage and opaque source aliases', async ({page}) => {
+  const {dialog} = await openFloating(page, {fixture: 'empty-and-denied'});
+  await page.evaluate(() => {
+    globalThis.dispatchEvent(new CustomEvent('ai.lab-snapshot.sealed', {detail: {
+      status: 'sealed',
+      coverage: {
+        encounter: {status: 'not-collected', recordCount: 0, reasonCode: 'SOURCE_NOT_COLLECTED'},
+        'western-medication': {status: 'not-collected', recordCount: 0, reasonCode: 'SOURCE_NOT_COLLECTED'},
+        'chinese-medication': {status: 'not-collected', recordCount: 0, reasonCode: 'SOURCE_NOT_COLLECTED'},
+        allergy: {status: 'not-collected', recordCount: 0, reasonCode: 'SOURCE_NOT_COLLECTED'},
+        lab: {status: 'has-data', recordCount: 1},
+        imaging: {status: 'not-collected', recordCount: 0, reasonCode: 'SOURCE_NOT_COLLECTED'},
+        procedure: {status: 'not-collected', recordCount: 0, reasonCode: 'SOURCE_NOT_COLLECTED'},
+        discharge: {status: 'not-collected', recordCount: 0, reasonCode: 'SOURCE_NOT_COLLECTED'},
+      },
+      sourceAliases: [{sourceRef: 'sr_r1_visual_source_00000001', label: '檢驗來源 1'}],
+    }}));
+  });
+  const panel = await selectTab(dialog, 'AI 摘要');
+  await expect(panel.getByTestId('ai-lab-snapshot-coverage')).toContainText('檢驗：1 筆');
+  await expect(panel.getByLabel('檢驗可核對來源')).toContainText('檢驗來源 1');
+  await expect(panel).not.toContainText('sr_r1_visual_source_00000001');
+});
+
 test('default overview locks dialog, empty/denied state, tabs and regions', async ({page}) => {
   const {dialog, pageErrors} = await openFloating(page, {fixture: 'empty-and-denied'});
   await assertTabContract(dialog, false);
