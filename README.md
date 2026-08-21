@@ -15,6 +15,12 @@ NIHCloudAI 以 **NHITW Cloud Analyzer（更好的健保雲端 2.0）** 為 upstr
 `npm run verify` 只驗證合成契約、非 AI 回歸、建置與瀏覽器測試；它不是 AI
 功能可用性、Provider 端對端驗證、臨床驗收或部署核准。
 
+目前擴充功能的 Chrome build version 仍為 upstream fork 相容所需的
+`26.0702.1`。這不是 NIHCloudAI 的獨立 SemVer release，也沒有任何已指派的
+NIHCloudAI 發布版本；`release/` 的 manifest 只是一個供未來受控發布使用的
+契約／provenance schema。任何獨立版本、tag 或部署都必須由 release owner
+在完成臨床與治理 gate 後另行核定。
+
 ## Upstream project
 
 以下原始說明屬於 NHITW Cloud Analyzer upstream 基準。

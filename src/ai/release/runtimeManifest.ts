@@ -25,11 +25,13 @@ export const OPENROUTER_ROUTE = 'deepinfra/bf16' as const;
 
 const gitCommitSchema = z.string().regex(/^[a-f0-9]{40}$/);
 const sha256Schema = z.string().regex(/^sha256:[a-f0-9]{64}$/);
-const releaseVersionSchema = z.string().regex(/^\d+\.\d+\.\d+$/);
+// Chrome accepts three or four numeric version components. This is deliberately
+// not called a NIHCloudAI SemVer schema: the current branch has no release identity.
+const chromeBuildVersionSchema = z.string().regex(/^\d+(?:\.\d+){2,3}$/);
 
 const artifactSchema = z.object({
   artifact: z.literal('nihcloudai-extension.zip'),
-  version: releaseVersionSchema,
+  version: chromeBuildVersionSchema,
   sha256: sha256Schema,
 }).strict().readonly();
 
@@ -73,7 +75,7 @@ export const releaseManifestV1Schema = z.object({
   source: z.object({
     upstreamCommit: gitCommitSchema,
     nihCloudAiCommit: gitCommitSchema,
-    extensionVersion: releaseVersionSchema,
+    extensionVersion: chromeBuildVersionSchema,
   }).strict().readonly(),
   contracts: z.object({
     projectionVersion: clinicalProjectionContractVersionSchema,

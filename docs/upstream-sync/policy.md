@@ -28,8 +28,11 @@ force-pushed.
   `bab69c741e1f6a5b2da65276ce8fe955973e05ca` in the implementing commit or PR.
 - The upstream Apache-2.0 [`LICENSE`](../../LICENSE) is retained unchanged.
   [`NOTICE`](../../NOTICE) records upstream and NIHCloudAI attribution.
-- NIHCloudAI releases use independent Semantic Versioning and annotated tags.
-  Upstream version numbers remain provenance only.
+- 此分支尚未有 NIHCloudAI release identity、獨立 Semantic Version 或 annotated
+  tag。現有 Chrome extension version `26.0702.1` 是 upstream fork 相容版本，
+  不得在文件、artifact 或 UI 中誤稱為 NIHCloudAI release。未來 release owner
+  僅能在完成治理與臨床 gate 後指派獨立 SemVer；upstream version 同時仍須保留
+  為 provenance。
 
 ## Synchronization triggers
 

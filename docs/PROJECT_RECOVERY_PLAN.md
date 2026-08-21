@@ -81,6 +81,16 @@
 
 在這些條件出現前，重寫只會丟掉已驗證的非 AI 行為與安全契約，並增加重新驗收成本。
 
-## 下一個 coding session 的唯一目標
+## 已完成的 R1 checkpoint（2026-08-21）
 
-執行 R1，只做「檢驗來源的一條無 LLM 垂直切片」。不要同時實作 Ollama、OpenRouter、更多來源家族或發布流程。完成後再依同一 deep module interface 擴張其他來源。
+R1 已完成「檢驗來源的一條無 LLM 垂直切片」：既有 terminal `labdata`
+結果只會進入一個 closed module；該 module 內部完成白名單 normalization、
+整個家族 quarantine、明確 coverage、revision 專屬 alias/reference vault 及 seal。
+sealed snapshot 由 background in-memory store 接受，既有 AI tab 僅顯示 coverage
+與 opaque source aliases。其餘 Phase 1 source family 使用明確的
+`not-collected`，不再把未收集誤稱 empty 或 negative。合成 integration/browser
+測試涵蓋正常、quarantine、revision 與 background acceptance；沒有 LLM、PHI
+或 real Provider request。
+
+R2 的下一個本地工作是把同一 sealed request 接到已核定的 extension-origin UI
+boundary；不得為了趕工將 Provider command 加回 content-script tab。

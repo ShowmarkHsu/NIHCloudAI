@@ -2,8 +2,14 @@ import {
   dataSessionIdSchema,
   snapshotRevisionSchema,
 } from '../contracts/patientSnapshot';
-import { OLLAMA_MODEL, OPENROUTER_ENDPOINT, OPENROUTER_MODEL } from '../release/runtimeManifest';
+import { OLLAMA_MODEL, OPENROUTER_ENDPOINT, OPENROUTER_MODEL, OPENROUTER_ROUTE } from '../release/runtimeManifest';
 import type { RevisionScope } from '../session/coordinator';
+import {
+  parseProviderSummaryOutput,
+  isSealedSummaryRequest,
+  type SealedSummaryRequest,
+} from '../summary/providerRequest';
+import type { FixedFiveSectionSummary } from '../contracts/summary';
 
 export const OLLAMA_GENERATE_ENDPOINT = 'http://127.0.0.1:11434/api/generate' as const;
 export const OPENROUTER_GENERATE_ENDPOINT = OPENROUTER_ENDPOINT;
@@ -36,11 +42,12 @@ export type BackgroundProviderBoundaryConfiguration = Readonly<{
   fetch: ProviderFetch;
   timeoutMs?: number;
   timer?: Timer;
+  ensureOptionalHostPermission?: (provider: 'openrouter') => Promise<boolean>;
 }>;
 
 export type ProviderGenerationResult =
-  | Readonly<{ status: 'completed'; output: string }>
-  | Readonly<{ status: 'consent-required' | 'secret-unavailable' | 'timeout' | 'cancelled' | 'failed' }>;
+  | Readonly<{ status: 'completed'; summary: FixedFiveSectionSummary }>
+  | Readonly<{ status: 'permission-required' | 'consent-required' | 'secret-unavailable' | 'timeout' | 'cancelled' | 'failed' }>;
 
 function assertScope(scope: RevisionScope): void {
   if (!Number.isSafeInteger(scope.tabId) || scope.tabId < 0) {
@@ -69,7 +76,7 @@ function defaultTimer(): Timer {
   };
 }
 
-function fixedRequest(provider: SummaryProvider, secret: string | undefined): {
+function fixedRequest(provider: SummaryProvider, secret: string | undefined, request: SealedSummaryRequest): {
   endpoint: string;
   headers: Record<string, string>;
   body: string;
@@ -78,7 +85,7 @@ function fixedRequest(provider: SummaryProvider, secret: string | undefined): {
     return {
       endpoint: OLLAMA_GENERATE_ENDPOINT,
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ model: OLLAMA_MODEL, prompt: 'Return only the fixed clinical-summary.v1 JSON.', stream: false }),
+      body: JSON.stringify({ model: OLLAMA_MODEL, prompt: request.prompt, stream: false }),
     };
   }
   if (secret === undefined) throw new TypeError('OpenRouter requires a session secret');
@@ -87,18 +94,32 @@ function fixedRequest(provider: SummaryProvider, secret: string | undefined): {
     headers: { 'content-type': 'application/json', authorization: `Bearer ${secret}` },
     body: JSON.stringify({
       model: OPENROUTER_MODEL,
-      messages: [{ role: 'user', content: 'Return only the fixed clinical-summary.v1 JSON.' }],
+      messages: [{ role: 'user', content: request.prompt }],
       stream: false,
       temperature: 0,
       top_p: 1,
       seed: 0,
+      provider: {
+        order: [OPENROUTER_ROUTE.split('/')[0]],
+        allow_fallbacks: false,
+        require_parameters: true,
+        data_collection: 'deny',
+        zdr: true,
+      },
     }),
   };
 }
 
 function outputFromResponse(value: unknown): string | null {
   if (typeof value !== 'object' || value === null) return null;
-  const output = Reflect.get(value, 'completion');
+  const ollamaOutput = Reflect.get(value, 'response');
+  if (typeof ollamaOutput === 'string' && ollamaOutput.length > 0) return ollamaOutput;
+  const completion = Reflect.get(value, 'completion');
+  if (typeof completion === 'string' && completion.length > 0) return completion;
+  const choices = Reflect.get(value, 'choices');
+  if (!Array.isArray(choices) || choices.length !== 1 || typeof choices[0] !== 'object' || choices[0] === null) return null;
+  const message = Reflect.get(choices[0], 'message');
+  const output = typeof message === 'object' && message !== null ? Reflect.get(message, 'content') : null;
   return typeof output === 'string' && output.length > 0 ? output : null;
 }
 
@@ -106,7 +127,8 @@ function outputFromResponse(value: unknown): string | null {
  * The only Provider execution boundary. Its BYOK vault is an unexported
  * in-memory Map keyed by opaque data-session id; it is neither persisted nor
  * reachable from content code. Requests cannot choose a URL, model, method,
- * or prompt, and never receive a patient record through this API.
+ * or prompt. It receives only a parsed SealedSummaryRequest, never a DOM node,
+ * raw API payload, endpoint, model, header, or free-form request object.
  */
 export function createBackgroundProviderBoundary(
   configuration: BackgroundProviderBoundaryConfiguration,
@@ -116,14 +138,15 @@ export function createBackgroundProviderBoundary(
     throw new RangeError('timeoutMs must be a positive safe integer');
   }
   const timer = configuration.timer ?? defaultTimer();
-  const openRouterSecretsBySession = new Map<string, string>();
-  const remoteConsentBySession = new Set<string>();
+  const openRouterSecretsByScope = new Map<string, string>();
+  const remoteConsentByScope = new Set<string>();
   const pendingByScope = new Map<string, AbortController>();
 
   function clearSession(scope: RevisionScope): boolean {
     const pending = pendingByScope.get(scopeKey(scope));
-    const hadSecret = openRouterSecretsBySession.delete(scope.sessionId);
-    const hadConsent = remoteConsentBySession.delete(scope.sessionId);
+    const key = scopeKey(scope);
+    const hadSecret = openRouterSecretsByScope.delete(key);
+    const hadConsent = remoteConsentByScope.delete(key);
     if (pending !== undefined) {
       pending.abort();
       pendingByScope.delete(scopeKey(scope));
@@ -137,12 +160,12 @@ export function createBackgroundProviderBoundary(
       if (secret.length < 1 || secret.length > 4_096) {
         throw new RangeError('session secret must be a non-empty bounded value');
       }
-      openRouterSecretsBySession.set(scope.sessionId, secret);
+      openRouterSecretsByScope.set(scopeKey(scope), secret);
     },
 
     grantRemoteConsent(scope: RevisionScope): void {
       assertScope(scope);
-      remoteConsentBySession.add(scope.sessionId);
+      remoteConsentByScope.add(scopeKey(scope));
     },
 
     cancel(scope: RevisionScope): boolean {
@@ -150,22 +173,32 @@ export function createBackgroundProviderBoundary(
       return clearSession(scope);
     },
 
-    async generate(scope: RevisionScope, provider: SummaryProvider): Promise<ProviderGenerationResult> {
+    async generate(scope: RevisionScope, provider: SummaryProvider, request: SealedSummaryRequest): Promise<ProviderGenerationResult> {
       assertScope(scope);
+      if (
+        !isSealedSummaryRequest(request) ||
+        request.scope.tabId !== scope.tabId ||
+        request.scope.sessionId !== scope.sessionId ||
+        request.scope.revision !== scope.revision ||
+        request.prompt.length === 0 || request.prompt.length > 200_000
+      ) return {status: 'failed'};
       if (provider === 'openrouter') {
-        if (!openRouterSecretsBySession.has(scope.sessionId)) return { status: 'secret-unavailable' };
-        if (!remoteConsentBySession.has(scope.sessionId)) return { status: 'consent-required' };
+        if (!openRouterSecretsByScope.has(scopeKey(scope))) return { status: 'secret-unavailable' };
+        if (!remoteConsentByScope.has(scopeKey(scope))) return { status: 'consent-required' };
+        if (configuration.ensureOptionalHostPermission !== undefined && !(await configuration.ensureOptionalHostPermission('openrouter'))) {
+          return {status: 'permission-required'};
+        }
       }
 
       const controller = new AbortController();
       const key = scopeKey(scope);
       pendingByScope.set(key, controller);
       let timedOut = false;
-      const request = fixedRequest(provider, openRouterSecretsBySession.get(scope.sessionId));
-      const fetchPromise = configuration.fetch(request.endpoint, {
+      const fixed = fixedRequest(provider, openRouterSecretsByScope.get(scopeKey(scope)), request);
+      const fetchPromise = configuration.fetch(fixed.endpoint, {
         method: 'POST',
-        headers: request.headers,
-        body: request.body,
+        headers: fixed.headers,
+        body: fixed.body,
         signal: controller.signal,
       });
       const timeout = timer.set(() => {
@@ -177,7 +210,8 @@ export function createBackgroundProviderBoundary(
         const response = await fetchPromise;
         if (!response.ok) return { status: 'failed' };
         const output = outputFromResponse(await response.json());
-        return output === null ? { status: 'failed' } : { status: 'completed', output };
+        const summary = output === null ? null : parseProviderSummaryOutput(output, request);
+        return summary === null ? { status: 'failed' } : { status: 'completed', summary };
       } catch {
         return timedOut ? { status: 'timeout' } : { status: 'cancelled' };
       } finally {
