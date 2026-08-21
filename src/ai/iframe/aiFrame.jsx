@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { requestOptionalHostPermission } from "./optionalHostPermission";
 
 const NHI_CLOUD_ORIGIN = "https://medcloud2.nhi.gov.tw";
 const SCOPE_MESSAGE = "nihcloudai.ai-frame.scope.v1";
@@ -92,8 +93,10 @@ function AiFrame() {
   }, []);
 
   const requestHost = async (provider) => {
-    const origins = [provider === "ollama" ? "http://127.0.0.1:11434/*" : "https://openrouter.ai/*"];
-    return chrome.permissions?.request ? chrome.permissions.request({origins}) : false;
+    const request = chrome.permissions?.request;
+    return typeof request === "function"
+      ? requestOptionalHostPermission(request.bind(chrome.permissions), provider)
+      : false;
   };
 
   const generate = async (provider) => {
