@@ -76,6 +76,7 @@ import LabTableView from "./tabs/LabTableView";
 import Instructions from "./tabs/Instructions";
 import AdvancedSettings from "./tabs/AdvancedSettings";
 import { ckmProcessor } from "../utils/ckmProcessor";
+import { AI_SUMMARY_TAB_ID } from "../ai/session/tabActivation";
 
 import MedicationIcon from "@mui/icons-material/Medication";
 import ScienceIcon from "@mui/icons-material/Science";
@@ -131,7 +132,7 @@ const TAB_IDS = Object.freeze({
   MEDICATION_DAYS: 6,
   HELP: 7,
   ADVANCED: 8,
-  AI_SUMMARY: 'ai-summary',
+  AI_SUMMARY: AI_SUMMARY_TAB_ID,
 });
 
 const FloatingIcon = () => {

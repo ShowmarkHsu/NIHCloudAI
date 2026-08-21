@@ -221,7 +221,8 @@ test('AI summary tab is an inert append-only shell with no legacy message route'
   const advancedTab = source.indexOf('label="進階"', tabs);
   const aiSummaryTab = source.indexOf('label="AI 摘要"', tabs);
 
-  assert.match(source, /AI_SUMMARY: 'ai-summary'/, 'AI tab must use a non-numeric stable ID');
+  assert.match(source, /import \{ AI_SUMMARY_TAB_ID \} from "\.\.\/ai\/session\/tabActivation";/);
+  assert.match(source, /AI_SUMMARY: AI_SUMMARY_TAB_ID/, 'AI tab must use a non-numeric stable ID');
   assert.ok(advancedTab > tabs, 'legacy Advanced tab must remain present in the tab strip');
   assert.ok(aiSummaryTab > advancedTab, 'AI tab must append after every legacy tab, including conditional Advanced');
   assert.match(source, /<Tab\s+value=\{TAB_IDS\.AI_SUMMARY\}\s+label="AI 摘要"/);
