@@ -121,6 +121,22 @@ describe('background-only Provider boundary', () => {
     expect(requests[0]?.init.body).not.toContain('patientId');
   });
 
+  it('fails closed instead of replacing an in-flight request for the same scope', async () => {
+    const requests: Request[] = [];
+    const fetch = vi.fn((_url: string, init: Request['init']) => new Promise<never>((_, reject) => {
+      requests.push({url: _url, init});
+      init.signal.addEventListener('abort', () => reject(new Error('aborted')));
+    }));
+    const provider = createBackgroundProviderBoundary({fetch: fetch as never});
+
+    const first = provider.generate(scope, 'ollama', request()!);
+    await expect(provider.generate(scope, 'ollama', request()!)).resolves.toEqual({status: 'failed'});
+    expect(requests).toHaveLength(1);
+
+    expect(provider.cancel(scope)).toBe(true);
+    await expect(first).resolves.toEqual({status: 'cancelled'});
+  });
+
   it('requires the optional OpenRouter host grant and pins the route without widening a request', async () => {
     const { fetch, requests } = successfulFetch();
     const ensureOptionalHostPermission = vi.fn(async () => false);

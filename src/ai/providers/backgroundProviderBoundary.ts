@@ -190,8 +190,9 @@ export function createBackgroundProviderBoundary(
         if (!remoteConsentByScope.has(scopeKey(scope))) return { status: 'consent-required' };
       }
 
-      const controller = new AbortController();
       const key = scopeKey(scope);
+      if (pendingByScope.has(key)) return {status: 'failed'};
+      const controller = new AbortController();
       pendingByScope.set(key, controller);
       let timedOut = false;
       const fixed = fixedRequest(provider, openRouterSecretsByScope.get(scopeKey(scope)), request);
