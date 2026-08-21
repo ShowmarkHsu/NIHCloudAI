@@ -22,6 +22,8 @@ Provider execution is background-only. Ollama is fixed to the loopback endpoint 
 
 The minimal AI Summary tab is release-gated by synthetic UI-flow tests: a sealed data state enables a user-initiated generation, output must validate as the fixed five-section schema, each section exposes only source references for review, and copy remains disabled until explicit review. Error, cancellation, session end, revision change, and patient change clear review/copy eligibility. No visual snapshot update is part of this gate.
 
+The synthetic runtime lifecycle tests cover the closed content-to-background capability path: content emits only lifecycle messages after its existing terminal data-fetch event, ends the current scope on patient-switch and page-exit events, and the background clears the matching scope when Chrome reports tab removal. These tests contain no patient payload, credentials, Provider request, screenshot, or session value from a browser.
+
 ## Manual gates required before a clinical or production release
 
 These checks cannot be truthfully performed by repository automation and remain the release owner's responsibility:
