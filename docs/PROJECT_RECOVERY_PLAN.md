@@ -28,7 +28,7 @@
 3. actual extension browser test 證明已載入 iframe 會 fail closed；完整的 NHI-origin content injection 與成功 Provider round trip 仍需受控人工環境。
 4. `package.json` 使用 upstream 版本號，但文件又宣稱 NIHCloudAI 採獨立 SemVer；release identity 尚未定案。
 5. 現有 B6 文件容易讓人誤認已達 release readiness；它只能稱為 engineering gate。
-8. 乾淨 dependency install 後，46 個視覺測試仍有 3 組 baseline 差異：CKM overview 高度、Advanced editor layout、窄螢幕 tab header 像素差。窄螢幕 tab 的鍵盤選取、末端可見性與無重疊 assertions 已通過；不得以更新 golden 掩蓋其餘差異。baseline 建立時尚未提交 lockfile，且早於 append-only AI tab，因此需先人工判讀 expected／actual／diff 再決定是否存在刻意 UI 變更。
+8. 46 個視覺測試已通過。窄螢幕 tab header baseline 已在確認 append-only AI tab 是刻意且可鍵盤到達的最後頁籤後重錄；CKM overview 與 Advanced editor 原本共同的 730px／706px 差異，已由將 AI tab 縮為既有緊湊 tab 寬度修正，避免 desktop 過早 overflow 改變內容可視高度。baseline 建立時尚未提交 lockfile，仍應保持依賴版本鎖定與人工 visual review，不得以日後任意更新 golden 掩蓋回歸。
 
 ## 後續執行順序
 

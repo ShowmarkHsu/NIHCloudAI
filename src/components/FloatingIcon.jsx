@@ -790,6 +790,7 @@ const FloatingIcon = () => {
                 <Tab
                   value={TAB_IDS.AI_SUMMARY}
                   label="AI 摘要"
+                  sx={{ minWidth: "60px", padding: "6px 8px" }}
                 />
               </Tabs>
             </Paper>
