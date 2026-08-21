@@ -121,6 +121,11 @@ export function createClosedBackgroundDataSessionController(
       if (parsed.type === 'content.data-session.revised') {
         const next = coordinator.startNextRevision(scope);
         if (next === null || next.revision !== parsed.revision) return rejected('scope-mismatch');
+        // The coordinator now rejects old scopes; clearing the associated
+        // in-memory snapshot, secret and in-flight provider work makes that
+        // invalidation eager rather than merely unreachable.
+        cancel(scope, 'revision-changed');
+        lastSequenceByScope.set(key(next), parsed.sequence);
         return { accepted: true };
       }
       if (parsed.type === 'content.snapshot.sealed') {

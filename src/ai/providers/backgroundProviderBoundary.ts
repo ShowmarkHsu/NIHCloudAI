@@ -42,7 +42,7 @@ export type BackgroundProviderBoundaryConfiguration = Readonly<{
   fetch: ProviderFetch;
   timeoutMs?: number;
   timer?: Timer;
-  ensureOptionalHostPermission?: (provider: 'openrouter') => Promise<boolean>;
+  ensureOptionalHostPermission?: (provider: SummaryProvider) => Promise<boolean>;
 }>;
 
 export type ProviderGenerationResult =
@@ -125,7 +125,7 @@ function outputFromResponse(value: unknown): string | null {
 
 /**
  * The only Provider execution boundary. Its BYOK vault is an unexported
- * in-memory Map keyed by opaque data-session id; it is neither persisted nor
+ * in-memory Map keyed by an opaque tab/session/revision scope; it is neither persisted nor
  * reachable from content code. Requests cannot choose a URL, model, method,
  * or prompt. It receives only a parsed SealedSummaryRequest, never a DOM node,
  * raw API payload, endpoint, model, header, or free-form request object.
@@ -182,12 +182,12 @@ export function createBackgroundProviderBoundary(
         request.scope.revision !== scope.revision ||
         request.prompt.length === 0 || request.prompt.length > 200_000
       ) return {status: 'failed'};
+      if (configuration.ensureOptionalHostPermission !== undefined && !(await configuration.ensureOptionalHostPermission(provider))) {
+        return {status: 'permission-required'};
+      }
       if (provider === 'openrouter') {
         if (!openRouterSecretsByScope.has(scopeKey(scope))) return { status: 'secret-unavailable' };
         if (!remoteConsentByScope.has(scopeKey(scope))) return { status: 'consent-required' };
-        if (configuration.ensureOptionalHostPermission !== undefined && !(await configuration.ensureOptionalHostPermission('openrouter'))) {
-          return {status: 'permission-required'};
-        }
       }
 
       const controller = new AbortController();

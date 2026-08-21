@@ -29,7 +29,8 @@ function snapshot(revision: number) {
 describe('R1 content-to-background sealed lab snapshot', () => {
   it('only stores an exact active sealed revision and rejects a superseded snapshot', () => {
     const storeSnapshot = vi.fn(() => true);
-    const controller = createClosedBackgroundDataSessionController({storeSnapshot});
+    const cancel = vi.fn();
+    const controller = createClosedBackgroundDataSessionController({storeSnapshot, cancel});
     const first = snapshot(1);
     const second = snapshot(2);
     expect(first).toBeDefined();
@@ -51,6 +52,11 @@ describe('R1 content-to-background sealed lab snapshot', () => {
       schemaVersion: 'ai-capability-message.v1', type: 'content.data-session.revised',
       sessionId, revision: 2, sequence: 3,
     }, sender)).toEqual({accepted: true});
+    expect(cancel).toHaveBeenCalledWith({tabId: 43, sessionId, revision: 1}, 'revision-changed');
+    expect(controller.receive({
+      schemaVersion: 'ai-capability-message.v1', type: 'content.snapshot.sealed',
+      sessionId, revision: 2, sequence: 3, snapshot: second,
+    }, sender)).toEqual({accepted: false, reason: 'sequence-rollback'});
     expect(controller.receive({
       schemaVersion: 'ai-capability-message.v1', type: 'content.snapshot.sealed',
       sessionId, revision: 1, sequence: 4, snapshot: first,

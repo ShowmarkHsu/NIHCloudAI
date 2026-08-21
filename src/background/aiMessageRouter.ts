@@ -4,6 +4,7 @@ import {
   type ContentCapabilityMessage,
   type IframeCapabilityMessage,
 } from '../ai/contracts/messages';
+import type { RouterRejectReason, RouterResult } from './routerResult';
 
 export type RouterSender = {
   tabId?: number;
@@ -23,17 +24,7 @@ type RouterConfiguration = Readonly<{
   activeScopeForTab: (tabId: number) => ActiveRevisionScope | null;
 }>;
 
-type RouterRejectReason =
-  | 'invalid-message'
-  | 'sender-url-mismatch'
-  | 'sender-origin-mismatch'
-  | 'sender-tab-mismatch'
-  | 'scope-mismatch'
-  | 'sequence-rollback';
-
-export type RouterResult =
-  | Readonly<{ accepted: true }>
-  | Readonly<{ accepted: false; reason: RouterRejectReason }>;
+export type { RouterResult } from './routerResult';
 
 type RoutedMessage = ContentCapabilityMessage | IframeCapabilityMessage;
 

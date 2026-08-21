@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Alert, Box, Button, Chip, Divider, Stack, Typography } from "@mui/material";
 
 const EMPTY_VIEW = Object.freeze({
@@ -25,6 +25,23 @@ function coverageCopy(coverage) {
   });
 }
 
+function iframeScope(snapshot) {
+  if (!snapshot || typeof snapshot.frameUrl !== "string" || snapshot.frameUrl.length === 0) return null;
+  if (typeof snapshot.sessionId !== "string" || !Number.isSafeInteger(snapshot.revision) || typeof snapshot.contractVersion !== "string") return null;
+  try {
+    const url = new URL(snapshot.frameUrl);
+    return url.protocol === "chrome-extension:" ? {
+      frameUrl: url.href,
+      targetOrigin: url.origin,
+      sessionId: snapshot.sessionId,
+      revision: snapshot.revision,
+      contractVersion: snapshot.contractVersion,
+    } : null;
+  } catch {
+    return null;
+  }
+}
+
 const STATUS_COPY = Object.freeze({
   "waiting-for-data": "尚未建立可用資料工作階段，無法生成摘要。",
   "ready-to-generate": "資料已就緒。請由使用者主動按下「生成摘要」。",
@@ -49,6 +66,20 @@ export default function AiSummaryTab({
   sourceRefsForSection,
   labSnapshot,
 }) {
+  const frame = iframeScope(labSnapshot);
+  const frameRef = useRef(null);
+  const postScopeToFrame = () => {
+    if (!frame || !frameRef.current?.contentWindow) return;
+    frameRef.current.contentWindow.postMessage({
+      type: "nihcloudai.ai-frame.scope.v1",
+      sessionId: frame.sessionId,
+      revision: frame.revision,
+      contractVersion: frame.contractVersion,
+    }, frame.targetOrigin);
+  };
+  useEffect(() => {
+    postScopeToFrame();
+  }, [frame?.frameUrl, frame?.sessionId, frame?.revision, frame?.contractVersion]);
   const sourcesFor = typeof sourceRefsForSection === "function"
     ? sourceRefsForSection
     : () => [];
@@ -73,15 +104,25 @@ export default function AiSummaryTab({
             </Stack>
           )}
         </Box>
-        <Stack direction="row" spacing={1} flexWrap="wrap">
-          <Button variant="contained" onClick={onGenerate} disabled={!view.generateEnabled}>
-            生成摘要
-          </Button>
-          <Button variant="outlined" onClick={onCancel} disabled={!canCancel}>取消</Button>
-          <Button variant="outlined" onClick={onReview} disabled={!canReview}>確認 review</Button>
-          <Button variant="outlined" onClick={onCopy} disabled={!view.copyEnabled}>複製已 review 摘要</Button>
-        </Stack>
-        {view.sections.map((section, index) => (
+        {frame ? (
+          <iframe
+            ref={frameRef}
+            title="AI 摘要隔離工作區"
+            src={frame.frameUrl}
+            onLoad={postScopeToFrame}
+            data-testid="ai-summary-extension-frame"
+            style={{ border: 0, width: "100%", minHeight: 500 }}
+          />
+        ) : <>
+          <Stack direction="row" spacing={1} flexWrap="wrap">
+            <Button variant="contained" onClick={onGenerate} disabled={!view.generateEnabled}>
+              生成摘要
+            </Button>
+            <Button variant="outlined" onClick={onCancel} disabled={!canCancel}>取消</Button>
+            <Button variant="outlined" onClick={onReview} disabled={!canReview}>確認 review</Button>
+            <Button variant="outlined" onClick={onCopy} disabled={!view.copyEnabled}>複製已 review 摘要</Button>
+          </Stack>
+          {view.sections.map((section, index) => (
           <React.Fragment key={section.heading}>
             <Divider />
             <Typography variant="subtitle1">{section.heading}</Typography>
@@ -90,7 +131,8 @@ export default function AiSummaryTab({
               {sourcesFor(index).map((sourceRef) => <Chip key={sourceRef} size="small" label={sourceRef} />)}
             </Stack>
           </React.Fragment>
-        ))}
+          ))}
+        </>}
       </Stack>
     </Box>
   );

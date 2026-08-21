@@ -23,13 +23,11 @@
 
 ## 目前必須承認的缺口
 
-1. `AiSummaryTab` 在產品中沒有收到 `view` 或操作 callback，因此實際畫面不會進入可生成狀態。
-2. 現有 Provider `generate` interface 不接收 sealed snapshot、clinical facts 或 coverage；固定 request 只有指令文字，沒有病歷內容。
-3. projection adapters 只在合成測試中執行，尚未接到 upstream processor 的逐筆資料 seam。
-4. lifecycle message 已接到 content/background，但 snapshot seal、Provider、UI flow 尚未形成同一條端對端路徑。
-5. 規劃要求 extension-origin iframe，現況卻是 content-script React tab；安全模型與實作不一致。
-6. `package.json` 使用 upstream 版本號，但文件又宣稱 NIHCloudAI 採獨立 SemVer；release identity 尚未定案。
-7. 現有 B6 文件容易讓人誤認已達 release readiness；它只能稱為 engineering gate。
+1. R2/R3 的程式與合成測試已接上，但沒有真實 Ollama、OpenRouter 或受控臨床環境的驗證。
+2. projection adapters 除檢驗外仍只在合成測試中執行，尚未接到其他 upstream source family 的逐筆資料 seam。
+3. actual extension browser test 證明已載入 iframe 會 fail closed；完整的 NHI-origin content injection 與成功 Provider round trip 仍需受控人工環境。
+4. `package.json` 使用 upstream 版本號，但文件又宣稱 NIHCloudAI 採獨立 SemVer；release identity 尚未定案。
+5. 現有 B6 文件容易讓人誤認已達 release readiness；它只能稱為 engineering gate。
 8. 乾淨 dependency install 後，42 個視覺測試有 4 個 baseline 差異（3 個高度／版面差異、1 個窄螢幕 tab strip 像素差）。過去未提交 lockfile，使 React／MUI patch 版本可漂移；在人工判讀前不得更新 golden 掩蓋差異。
 
 ## 後續執行順序
@@ -92,5 +90,16 @@ sealed snapshot 由 background in-memory store 接受，既有 AI tab 僅顯示 
 測試涵蓋正常、quarantine、revision 與 background acceptance；沒有 LLM、PHI
 或 real Provider request。
 
-R2 的下一個本地工作是把同一 sealed request 接到已核定的 extension-origin UI
-boundary；不得為了趕工將 Provider command 加回 content-script tab。
+## 已完成的 R2/R3 local checkpoint（2026-08-21）
+
+已採用 extension-origin iframe。content tab 只將 opaque session/revision 與固定 iframe URL
+交給頁面；iframe 以精確 sender URL 向 background 讀取 coverage／本地 labels，並只以
+sealed snapshot 建立固定 Ollama 或 OpenRouter request。content script 不持有 Provider
+secret、endpoint、model、prompt 或 raw Provider object。OpenRouter 的 BYOK 和 consent
+只在 iframe-to-background 的目前 tab/session/revision 範圍記憶體中存在；optional host
+permission、固定 route、取消與 revision/patient invalidation 都在 background boundary。
+
+合成 integration test 會驗證 iframe 不收到 sourceRef/patient id、source alias round-trip、
+exact iframe sender、session-only BYOK/consent 與舊 revision rejection。`npm run test:extension`
+實際載入 build 後的 MV3 iframe，驗證未 seal scope 被 fail closed。這些不是實際 Provider
+或臨床資料流驗證；成功 generate/review/copy 的人工測試仍需要獲授權的本機／院內環境。

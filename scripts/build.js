@@ -43,6 +43,20 @@ async function bundleContentScript({sourcemap = false, minify = true} = {}) {
       }
     });
 
+    await build({
+      entryPoints: [path.resolve(ROOT, 'src', 'ai', 'iframe', 'aiFrame.jsx')],
+      bundle: true,
+      format: 'iife',
+      target: 'es2020',
+      outfile: path.resolve(ROOT, 'dist', 'ai-frame.js'),
+      minify,
+      sourcemap,
+      jsx: 'automatic',
+      define: {
+        'process.env.NODE_ENV': '"production"'
+      }
+    });
+
     console.log('Content and background scripts bundled successfully');
   } catch (error) {
     console.error('Error bundling scripts:', error);
@@ -91,6 +105,10 @@ function copyExtensionFiles() {
     copyFileSync(
       path.resolve(ROOT, 'public', 'popup.html'),
       path.resolve(ROOT, 'dist', 'popup.html')
+    );
+    copyFileSync(
+      path.resolve(ROOT, 'public', 'ai-frame.html'),
+      path.resolve(ROOT, 'dist', 'ai-frame.html')
     );
 
     // Create images directory if it doesn't exist

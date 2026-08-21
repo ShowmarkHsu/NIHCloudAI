@@ -20,7 +20,9 @@ installContentDataSessionRuntime({
     return `sr_${crypto.randomUUID().replaceAll('-', '')}`;
   },
   onLabSnapshotSealed(presentation) {
-    window.dispatchEvent(new CustomEvent('ai.lab-snapshot.sealed', {detail: presentation}));
+    window.dispatchEvent(new CustomEvent('ai.lab-snapshot.sealed', {
+      detail: {...presentation, frameUrl: chrome.runtime.getURL('ai-frame.html')},
+    }));
   },
   onLabSnapshotInvalidated() {
     window.dispatchEvent(new CustomEvent('ai.lab-snapshot.invalidated'));

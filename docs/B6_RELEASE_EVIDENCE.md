@@ -1,9 +1,9 @@
 # B6 Engineering Gate Evidence
 
 > **狀態說明（2026-08-21）**：本文件只記錄 machine-verifiable engineering gate。
-> 目前產品中的 AI 頁籤尚未接上 UI flow，Provider request 也尚未承載 sealed
-> snapshot／clinical facts，因此不得把本文件解讀為 AI 功能可用、release ready、
-> Provider 端對端通過或臨床驗收完成。完整缺口與復原順序見
+> AI 頁籤已透過 extension-origin iframe 接上 sealed request 與 background-only
+> Provider boundary；但只有合成資料和未連線的固定 request 被驗證。不得把本文件
+> 解讀為 Provider 實際可用、release ready 或臨床驗收完成。完整缺口與復原順序見
 > [`PROJECT_RECOVERY_PLAN.md`](PROJECT_RECOVERY_PLAN.md)。
 
 This branch's B6 deliverable is a reproducible engineering gate. It proves only the build-time boundaries that can be checked without accessing a real patient, a Provider account, or a clinical reviewer.
@@ -14,7 +14,7 @@ Run the complete gate from the repository root:
 npm run verify
 ```
 
-The command verifies the frozen upstream baseline, AI contract suite, TypeScript, lint scope, legacy characterization suite, production build, generated `dist` directory, and the synthetic browser suite. `npm run verify:release` remains the non-browser subset used by CI or constrained environments.
+The command verifies the frozen upstream baseline, AI contract suite, TypeScript, lint scope, legacy characterization suite, production build, generated `dist` directory, the synthetic browser suite, and a browser-loaded MV3 iframe that fails closed without a current sealed scope. `npm run verify:release` remains the non-browser subset used by CI or constrained environments.
 
 The generated-artifact check fails when any of the following occurs:
 
@@ -26,7 +26,7 @@ The generated-artifact check fails when any of the following occurs:
 
 Provider execution is background-only. The code fixes Ollama to the loopback endpoint/model and fixes the OpenRouter request route/model; OpenRouter has only an optional host permission and cannot send until the exact current revision has an in-memory BYOK value, explicit outbound-data consent, and the optional host grant. The release check rejects source maps and secret-shaped values in `dist`; it is not evidence of a real Provider connection, account, model availability, or route acceptance.
 
-R1 additionally exercises one real local product seam: a terminal upstream lab result is normalized and quarantined inside a closed module, sealed with coverage and a local reference vault, accepted by the background store, and rendered in the existing AI tab as coverage plus opaque source aliases. It does not invoke an LLM. The later synthetic summary UI-flow tests verify that a sealed data state can enable user-initiated generation, fixed five-section validation, source review, and copy gating. They do not mean this content-script tab has selected or implemented the required extension-origin Provider UI architecture. Error, cancellation, session end, revision change, and patient change clear review/copy eligibility. No visual snapshot update is part of this gate.
+R1 additionally exercises one real local product seam: a terminal upstream lab result is normalized and quarantined inside a closed module, sealed with coverage and a local reference vault, accepted by the background store, and rendered in the existing AI tab as coverage plus opaque source aliases. It does not invoke an LLM. R2/R3 attach an extension-origin iframe: it receives a scope only, reads public coverage/labels through the background, and can request fixed Ollama or OpenRouter generation. The iframe is the sole secret-entry surface; BYOK, explicit remote consent, optional host grants, request construction, timeout/cancellation, and strict whole-document validation are background-owned. The code and synthetic tests do not prove an installed Ollama, valid OpenRouter account/key, model availability, or successful external request. Error, cancellation, session end, revision change, and patient change clear review/copy eligibility. No visual snapshot update is part of this gate.
 
 The synthetic runtime lifecycle tests cover the closed content-to-background capability path: content emits only lifecycle messages after its existing terminal data-fetch event, ends the current scope on patient-switch and page-exit events, and the background clears the matching scope when Chrome reports tab removal. These tests contain no patient payload, credentials, Provider request, screenshot, or session value from a browser.
 

@@ -67,6 +67,17 @@ const iframeSummaryGenerateMessageSchema = capabilityMessageBaseSchema.extend({
   provider: z.enum(['ollama', 'openrouter']),
 }).strict();
 
+// This capability is intentionally accepted only from the exact extension
+// iframe sender. The content script and the NHI page never receive this value.
+const iframeOpenRouterSessionSecretSetMessageSchema = capabilityMessageBaseSchema.extend({
+  type: z.literal('iframe.openrouter.session-secret.set'),
+  secret: z.string().min(1).max(4_096),
+}).strict();
+
+const iframeOpenRouterConsentGrantMessageSchema = capabilityMessageBaseSchema.extend({
+  type: z.literal('iframe.openrouter.consent.grant'),
+}).strict();
+
 const iframeSummaryDiscardMessageSchema = capabilityMessageBaseSchema.extend({
   type: z.literal('iframe.summary.discard'),
 }).strict();
@@ -82,6 +93,8 @@ const iframeSummaryCopyMessageSchema = capabilityMessageBaseSchema.extend({
 export const iframeCapabilityMessageSchema = z.discriminatedUnion('type', [
   iframeActiveRevisionReadMessageSchema,
   iframeSummaryGenerateMessageSchema,
+  iframeOpenRouterSessionSecretSetMessageSchema,
+  iframeOpenRouterConsentGrantMessageSchema,
   iframeSummaryDiscardMessageSchema,
   iframeSummaryReviewMessageSchema,
   iframeSummaryCopyMessageSchema,

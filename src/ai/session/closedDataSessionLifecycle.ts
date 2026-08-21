@@ -9,7 +9,7 @@ import {
 
 export const NHI_CLOUD_ORIGIN = 'https://medcloud2.nhi.gov.tw' as const;
 
-export type DataSessionEndReason = 'patient-changed' | 'logout' | 'tab-closed';
+export type DataSessionEndReason = 'patient-changed' | 'revision-changed' | 'logout' | 'tab-closed';
 
 type LifecycleMessage = Extract<
   ContentCapabilityMessage,

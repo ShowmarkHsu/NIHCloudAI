@@ -8,12 +8,13 @@ NIHCloudAI 以 **NHITW Cloud Analyzer（更好的健保雲端 2.0）** 為 upstr
 歸屬均予保留。
 
 目前 `main` 是未加入 AI 的穩定 upstream fork 基準；`codex/integration-recovery`
-包含 AI contracts、projection、session lifecycle、Provider skeleton 與頁籤骨架，
-但尚未形成可用的端對端摘要流程，也不具備臨床使用或正式發布條件。現況判讀、
+已建立檢驗資料的 sealed vertical slice，以及由 extension-origin iframe 經 background
+呼叫固定 Provider 的受限流程。這些流程只以合成資料與本機 build 驗證，尚未有真實
+Provider、臨床資料或人工臨床驗收；因此不具備臨床使用或正式發布條件。現況判讀、
 已知缺口與收斂路線見[專案復原計畫](docs/PROJECT_RECOVERY_PLAN.md)。
 
-`npm run verify` 只驗證合成契約、非 AI 回歸、建置與瀏覽器測試；它不是 AI
-功能可用性、Provider 端對端驗證、臨床驗收或部署核准。
+`npm run verify` 只驗證合成契約、非 AI 回歸、建置、browser suite 與已載入的 MV3
+iframe fail-closed browser test；它不是實際 AI Provider、臨床驗收或部署核准。
 
 目前擴充功能的 Chrome build version 仍為 upstream fork 相容所需的
 `26.0702.1`。這不是 NIHCloudAI 的獨立 SemVer release，也沒有任何已指派的

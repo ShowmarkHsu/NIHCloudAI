@@ -13,6 +13,9 @@ type LifecycleEvent = Readonly<{ detail?: unknown }>;
 
 export type LabSnapshotPresentation = Readonly<{
   status: 'sealed';
+  sessionId: string;
+  revision: number;
+  contractVersion: typeof CLINICAL_PROJECTION_CONTRACT_VERSION;
   coverage: LabVerticalSliceResult['sealed']['snapshot']['coverage'];
   sourceAliases: LabVerticalSliceResult['sourceAliases'];
 }>;
@@ -62,6 +65,7 @@ export function installContentDataSessionRuntime(configuration: ContentDataSessi
       return;
     }
     const active = lifecycle.activeScope();
+    if (active !== null) configuration.onLabSnapshotInvalidated?.();
     const scope = active === null
       ? lifecycle.start(configuration.newSessionId(), ++sequence)
       : lifecycle.advanceRevision(++sequence);
@@ -85,7 +89,12 @@ export function installContentDataSessionRuntime(configuration: ContentDataSessi
       if (response !== undefined && (typeof response !== 'object' || response === null || Reflect.get(response, 'accepted') !== true)) return;
       if (lifecycle.activeScope()?.sessionId !== scope.sessionId || lifecycle.activeScope()?.revision !== scope.revision) return;
       configuration.onLabSnapshotSealed?.(Object.freeze({
-        status: 'sealed', coverage: result.sealed.snapshot.coverage, sourceAliases: result.sourceAliases,
+        status: 'sealed',
+        sessionId: scope.sessionId,
+        revision: scope.revision,
+        contractVersion: CLINICAL_PROJECTION_CONTRACT_VERSION,
+        coverage: result.sealed.snapshot.coverage,
+        sourceAliases: result.sourceAliases,
       }));
     }).catch(() => undefined);
   };

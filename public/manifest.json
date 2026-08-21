@@ -49,7 +49,9 @@
     {
       "resources": [
         "drug-images.html",
-        "drug-images.js"
+        "drug-images.js",
+        "ai-frame.html",
+        "ai-frame.js"
       ],
       "matches": [
         "https://medcloud2.nhi.gov.tw/*"

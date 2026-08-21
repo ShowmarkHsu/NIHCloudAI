@@ -109,4 +109,20 @@ describe('closed content/background data-session lifecycle', () => {
     );
     expect(background.activeScopeForTab(17)).toBeNull();
   });
+
+  it('eagerly clears the superseded revision before accepting the next one', () => {
+    const cancel = vi.fn();
+    const background = createClosedBackgroundDataSessionController({cancel});
+    const sender = {tabId: 17, url: `${NHI_CLOUD_ORIGIN}/imu/IMUE1000/IMUE0001`, origin: NHI_CLOUD_ORIGIN};
+    expect(background.receive({
+      schemaVersion: 'ai-capability-message.v1', type: 'content.data-session.started',
+      sessionId: firstSession, revision: 1, sequence: 1,
+    }, sender)).toEqual({accepted: true});
+    expect(background.receive({
+      schemaVersion: 'ai-capability-message.v1', type: 'content.data-session.revised',
+      sessionId: firstSession, revision: 2, sequence: 2,
+    }, sender)).toEqual({accepted: true});
+    expect(cancel).toHaveBeenCalledWith({tabId: 17, sessionId: firstSession, revision: 1}, 'revision-changed');
+    expect(background.activeScopeForTab(17)).toEqual({tabId: 17, sessionId: firstSession, revision: 2});
+  });
 });
