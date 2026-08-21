@@ -6,7 +6,6 @@
   "homepage_url": "https://github.com/leescot/NHITW_cloud_analyzer_react_MUI",
   "permissions": [
     "storage",
-    "scripting",
     "clipboardWrite"
   ],
   "host_permissions": [

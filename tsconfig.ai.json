@@ -32,6 +32,7 @@
     "tests/ai/projection/**/*.ts",
     "tests/ai/session/**/*.ts",
     "tests/ai/security/**/*.ts",
+    "tests/ai/release/**/*.ts",
     "vitest.ai.config.ts"
   ]
 }
