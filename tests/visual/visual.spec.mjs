@@ -182,6 +182,14 @@ test('R1 AI tab renders only sealed lab coverage and opaque source aliases', asy
   await expect(panel).not.toContainText('sr_r1_visual_source_00000001');
 });
 
+test('AI tab is safe-empty before a sealed lab snapshot exists', async ({page}) => {
+  const {dialog, pageErrors} = await openFloating(page, {fixture: 'empty-and-denied'});
+  const panel = await selectTab(dialog, 'AI 摘要');
+  await expect(panel).toContainText('尚未建立可核對的檢驗快照。');
+  await expect(dialog.getByRole('tablist')).toBeVisible();
+  expect(pageErrors).toEqual([]);
+});
+
 test('default overview locks dialog, empty/denied state, tabs and regions', async ({page}) => {
   const {dialog, pageErrors} = await openFloating(page, {fixture: 'empty-and-denied'});
   await assertTabContract(dialog, false);

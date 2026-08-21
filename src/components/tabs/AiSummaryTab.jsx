@@ -14,7 +14,7 @@ const SOURCE_FAMILY_LABELS = Object.freeze({
 });
 
 function coverageCopy(coverage) {
-  if (!coverage) return "尚未建立可核對的檢驗快照。";
+  if (!coverage) return ["尚未建立可核對的檢驗快照。"];
   return Object.entries(SOURCE_FAMILY_LABELS).map(([family, label]) => {
     const state = coverage[family];
     if (!state) return `${label}：未回報`;
