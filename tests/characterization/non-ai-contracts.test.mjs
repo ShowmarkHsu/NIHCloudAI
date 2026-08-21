@@ -215,7 +215,7 @@ test('non-AI tabs retain relative order and Advanced remains conditional', async
   }
 });
 
-test('AI summary tab is an inert append-only shell with no legacy message route', async () => {
+test('AI summary tab is an append-only closed presentation surface with no legacy message route', async () => {
   const source = await readFile(path.join(ROOT, 'src/components/FloatingIcon.jsx'), 'utf8');
   const tabs = source.indexOf('<Tabs');
   const advancedTab = source.indexOf('label="進階"', tabs);
@@ -226,7 +226,8 @@ test('AI summary tab is an inert append-only shell with no legacy message route'
   assert.ok(advancedTab > tabs, 'legacy Advanced tab must remain present in the tab strip');
   assert.ok(aiSummaryTab > advancedTab, 'AI tab must append after every legacy tab, including conditional Advanced');
   assert.match(source, /<Tab\s+value=\{TAB_IDS\.AI_SUMMARY\}\s+label="AI 摘要"/);
-  assert.match(source, /<TabPanel value=\{tabValue\} index=\{TAB_IDS\.AI_SUMMARY\}>\s*<\/TabPanel>/);
+  assert.match(source, /import AiSummaryTab from "\.\/tabs\/AiSummaryTab";/);
+  assert.match(source, /<TabPanel value=\{tabValue\} index=\{TAB_IDS\.AI_SUMMARY\}>\s*<AiSummaryTab\s*\/>\s*<\/TabPanel>/);
   assert.doesNotMatch(source, /iframe|runtime\.sendMessage|chrome\.runtime/);
 });
 

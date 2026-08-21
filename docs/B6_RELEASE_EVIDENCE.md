@@ -5,10 +5,10 @@ This branch's B6 deliverable is a reproducible release-readiness gate. It proves
 Run the complete gate from the repository root:
 
 ```powershell
-npm run verify:release
+npm run verify
 ```
 
-The command verifies the frozen upstream baseline, AI contract suite, TypeScript, lint scope, legacy characterization suite, production build, and the generated `dist` directory.
+The command verifies the frozen upstream baseline, AI contract suite, TypeScript, lint scope, legacy characterization suite, production build, generated `dist` directory, and the synthetic browser suite. `npm run verify:release` remains the non-browser subset used by CI or constrained environments.
 
 The generated-artifact check fails when any of the following occurs:
 
@@ -19,6 +19,8 @@ The generated-artifact check fails when any of the following occurs:
 - A shipped text artifact contains an API-key or bearer-token shaped value.
 
 Provider execution is background-only. Ollama is fixed to the loopback endpoint and model; OpenRouter is fixed to its documented endpoint and model, has only an optional host permission, and cannot send until the current session has both an in-memory BYOK value and explicit outbound-data consent. The release check rejects source maps and secret-shaped values in `dist`; it is not evidence of a real Provider connection.
+
+The minimal AI Summary tab is release-gated by synthetic UI-flow tests: a sealed data state enables a user-initiated generation, output must validate as the fixed five-section schema, each section exposes only source references for review, and copy remains disabled until explicit review. Error, cancellation, session end, revision change, and patient change clear review/copy eligibility. No visual snapshot update is part of this gate.
 
 ## Manual gates required before a clinical or production release
 

@@ -75,6 +75,7 @@ import MedDaysData from "./tabs/MedDaysData";
 import LabTableView from "./tabs/LabTableView";
 import Instructions from "./tabs/Instructions";
 import AdvancedSettings from "./tabs/AdvancedSettings";
+import AiSummaryTab from "./tabs/AiSummaryTab";
 import { ckmProcessor } from "../utils/ckmProcessor";
 import { AI_SUMMARY_TAB_ID } from "../ai/session/tabActivation";
 
@@ -959,6 +960,7 @@ const FloatingIcon = () => {
           )}
 
           <TabPanel value={tabValue} index={TAB_IDS.AI_SUMMARY}>
+            <AiSummaryTab />
           </TabPanel>
         </DialogContent>
       </Dialog>
