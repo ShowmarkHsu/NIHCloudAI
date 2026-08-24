@@ -18,7 +18,7 @@ type ProviderBoundary = Readonly<{
   cancel: (scope: RevisionScope) => boolean;
   generate: (scope: RevisionScope, provider: SummaryProvider, request: NonNullable<ReturnType<typeof createSealedSummaryRequest>>) => Promise<
     | Readonly<{status: 'completed'; summary: FixedFiveSectionSummary}>
-    | Readonly<{status: 'permission-required' | 'consent-required' | 'secret-unavailable' | 'timeout' | 'cancelled' | 'failed' | 'provider-http-failed' | 'validation-failed'}>
+    | Readonly<{status: 'permission-required' | 'consent-required' | 'secret-unavailable' | 'timeout' | 'cancelled' | 'failed' | 'transport-failed' | 'response-unreadable' | 'provider-http-failed' | 'validation-failed'}>
   >;
 }>;
 

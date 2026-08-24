@@ -47,7 +47,7 @@ export type BackgroundProviderBoundaryConfiguration = Readonly<{
 
 export type ProviderGenerationResult =
   | Readonly<{ status: 'completed'; summary: FixedFiveSectionSummary }>
-  | Readonly<{ status: 'permission-required' | 'consent-required' | 'secret-unavailable' | 'timeout' | 'cancelled' | 'failed' | 'provider-http-failed' | 'validation-failed' }>;
+  | Readonly<{ status: 'permission-required' | 'consent-required' | 'secret-unavailable' | 'timeout' | 'cancelled' | 'failed' | 'transport-failed' | 'response-unreadable' | 'provider-http-failed' | 'validation-failed' }>;
 
 function assertScope(scope: RevisionScope): void {
   if (!Number.isSafeInteger(scope.tabId) || scope.tabId < 0) {
@@ -196,26 +196,43 @@ export function createBackgroundProviderBoundary(
       pendingByScope.set(key, controller);
       let timedOut = false;
       const fixed = fixedRequest(provider, openRouterSecretsByScope.get(scopeKey(scope)), request);
-      const fetchPromise = configuration.fetch(fixed.endpoint, {
-        method: 'POST',
-        headers: fixed.headers,
-        body: fixed.body,
-        signal: controller.signal,
-      });
+      let fetchPromise: Promise<ProviderResponse>;
+      try {
+        fetchPromise = configuration.fetch(fixed.endpoint, {
+          method: 'POST',
+          headers: fixed.headers,
+          body: fixed.body,
+          signal: controller.signal,
+        });
+      } catch {
+        pendingByScope.delete(key);
+        return {status: 'transport-failed'};
+      }
       const timeout = timer.set(() => {
         timedOut = true;
         controller.abort();
       }, timeoutMs);
 
       try {
-        const response = await fetchPromise;
+        let response: ProviderResponse;
+        try {
+          response = await fetchPromise;
+        } catch {
+          if (timedOut) return {status: 'timeout'};
+          return controller.signal.aborted ? {status: 'cancelled'} : {status: 'transport-failed'};
+        }
         if (!response.ok) return {status: 'provider-http-failed'};
-        const output = outputFromResponse(await response.json());
+        let payload: unknown;
+        try {
+          payload = await response.json();
+        } catch {
+          return {status: 'response-unreadable'};
+        }
+        const output = outputFromResponse(payload);
         const summary = output === null ? null : parseProviderSummaryOutput(output, request);
         return summary === null ? {status: 'validation-failed'} : {status: 'completed', summary};
       } catch {
-        if (timedOut) return {status: 'timeout'};
-        return controller.signal.aborted ? {status: 'cancelled'} : {status: 'failed'};
+        return {status: 'response-unreadable'};
       } finally {
         timer.clear(timeout);
         pendingByScope.delete(key);

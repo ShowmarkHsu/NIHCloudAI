@@ -121,11 +121,22 @@ describe('background-only Provider boundary', () => {
     expect(requests[0]?.init.body).not.toContain('patientId');
   });
 
-  it('does not label a non-abort Provider failure as a user cancellation', async () => {
+  it('reports a transport failure without exposing its browser error', async () => {
     const fetch = vi.fn(async () => Promise.reject(new Error('synthetic network failure')));
     const provider = createBackgroundProviderBoundary({fetch: fetch as never});
 
-    await expect(provider.generate(scope, 'ollama', request()!)).resolves.toEqual({status: 'failed'});
+    await expect(provider.generate(scope, 'ollama', request()!)).resolves.toEqual({status: 'transport-failed'});
+  });
+
+  it('reports an unreadable provider response without exposing its contents', async () => {
+    const fetch = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => Promise.reject(new Error('synthetic unreadable response')),
+    }));
+    const provider = createBackgroundProviderBoundary({fetch: fetch as never});
+
+    await expect(provider.generate(scope, 'ollama', request()!)).resolves.toEqual({status: 'response-unreadable'});
   });
 
   it('reports an invalid full provider response without exposing its contents', async () => {
