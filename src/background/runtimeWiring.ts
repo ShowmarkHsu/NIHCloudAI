@@ -48,7 +48,9 @@ export type ClosedBackgroundRuntimeChrome = Readonly<{
 export function installClosedBackgroundRuntime(chromeApi: ClosedBackgroundRuntimeChrome) {
   const snapshots = createSealedSnapshotStore();
   const provider = createBackgroundProviderBoundary({
-    fetch: globalThis.fetch,
+    fetch(url, init) {
+      return globalThis.fetch(url, init);
+    },
     ensureOptionalHostPermission(providerName: SummaryProvider) {
       const origin = providerName === 'ollama'
         ? 'http://127.0.0.1:11434/*'
