@@ -23,7 +23,7 @@
 
 ## 目前必須承認的缺口
 
-1. R2/R3 的程式與合成測試已接上；受控 coverage-only synthetic OpenRouter 已完成 fresh-session 重複性、review/copy、取消及 scope 失效觀察，另有一筆真實 fixed-route `has-data` synthetic facts bounded 成功。`has-data` 重複性、臨床品質與簽核仍未完成；真實 Ollama 亦未驗證。
+1. R2/R3 的程式與合成測試已接上；受控 coverage-only synthetic OpenRouter 已完成 fresh-session 重複性、review/copy、取消及 scope 失效觀察，另有一筆真實 fixed-route `has-data` synthetic facts bounded 成功。臨床與藥事已核准 deterministic coverage wording，但 `has-data` 重複性、整體臨床品質與 release acceptance 仍未完成；真實 Ollama 亦未驗證。
 2. projection adapters 除檢驗外仍只在合成測試中執行，尚未接到其他 upstream source family 的逐筆資料 seam。
 3. actual extension browser test 證明已載入 iframe 會 fail closed、可完成 loopback Provider round trip，且 MV3 service worker 重啟後只恢復同 tab 的目前 sealed scope 供 review；真實 Provider 與 NHI-origin 流程仍只可在受控人工環境驗證。
 4. `package.json` 使用 upstream 版本號，但文件又宣稱 NIHCloudAI 採獨立 SemVer；release identity 尚未定案。
@@ -133,8 +133,9 @@ prompt v2 的受控重試仍停在陰性措辭閘門。由於既有 predicate �
 collected facts 的 section 與【資料缺口與待確認】一律由 background 依 sealed coverage
 產生固定文字並清空該節 Provider aliases。有 facts 的 section 仍保留 Provider prose 並
 通過原有完整 validator；沒有放寬陰性詞、metadata、alias、順序、欄位或 180–260 字規則。
-這項臨床內容組裝變更必須重新取得臨床與藥事 reviewer 簽核；即使後續受控
-coverage-only round trip 通過，在 `has-data` 與 reviewer 證據補齊前仍不得解除 release gate。
+這項臨床內容組裝變更已於 2026-08-24 由臨床與藥事 reviewer 依五個合成案例與六個
+reviewer 問題重新核准。該核准只涵蓋 deterministic coverage wording；在 `has-data`
+repeatability、整體臨床驗收與 release owner 決策補齊前仍不得解除 release gate。
 
 2026-08-24，授權操作者在重新載入 prompt v3／local renderer build 後，以 coverage-only
 empty synthetic lab case 完成 fixed-route generation 的 fresh-session 重複觀察。固定格式、
@@ -147,8 +148,9 @@ memory scope 而 fail closed；`983313a` 加入只限同 tab／目前 scope 的 
 內容或 session 識別。前述 coverage-only 人工案例沒有 collected facts，因此單獨不能作為
 真實 fixed-route `has-data` facts 路徑、臨床品質或措辭核准的證據。使用者另回報資安／
 隱私責任者與院方／環境
-所有者均已核准；repository 未收集核准者 identity、簽核參照或受控系統連結。臨床、藥事、
-artifact／provenance 與 release owner 決策仍待完成。
+所有者均已核准；臨床與藥事 reviewer 亦回報 deterministic coverage wording 的五個案例
+全數 pass、六個問題全數核准及最終核准。Repository 未收集核准者 identity、簽核參照或
+受控系統連結。整體臨床 acceptance、artifact／provenance 與 release owner 決策仍待完成。
 
 同日，操作者先確認另一個非空合成 lab scope 為 `has-data`、record count 大於零、只顯示
 opaque local source alias，且沒有 identity、raw source ref 或 raw row，再明確授權一次固定

@@ -1,8 +1,9 @@
 # Deterministic coverage wording 臨床／藥事審閱材料
 
-狀態：待臨床與藥事審閱，不是 clinical acceptance、release approval 或 Provider
-合格證明。本文件只列出 background 依 sealed coverage contract 產生的固定文字；
-Provider 不負責產生、改寫或補充這些 coverage 文字。
+狀態：2026-08-24 臨床與藥事 reviewer 均核准目前 deterministic coverage wording。
+這項核准只涵蓋本文件的固定文字、案例矩陣與 reviewer 問題，不是整體 clinical
+acceptance、release approval 或 Provider 合格證明。本文件只列出 background 依 sealed
+coverage contract 產生的固定文字；Provider 不負責產生、改寫或補充這些 coverage 文字。
 
 ## 審閱邊界
 
@@ -53,11 +54,11 @@ Provider 不負責產生、改寫或補充這些 coverage 文字。
 
 | 案例類別 | 應確認的語意 | 臨床 | 藥事 |
 | --- | --- | --- | --- |
-| lab `has-data`，其餘未收集／超出範圍 | 不得把其他家族描述成陰性、正常或不存在 | 待補 | 待補 |
-| phase-one 全部沒有 `has-data` | 【核對重點】明確禁止任何未提供的臨床推論 | 待補 | 待補 |
-| 同時含 `confirmed-empty` 與其他缺口 | 「無可用資料」與「資料缺口，待確認」可清楚區分且不造成陰性推論 | 待補 | 待補 |
-| 西藥／中藥／過敏全部沒有 `has-data` | 藥事使用者不會把 coverage 狀態誤讀為無用藥或無過敏 | 待補 | 待補 |
-| 達不到 180 字而附加 context | 附加句不造成重複、矛盾或不當臨床暗示 | 待補 | 待補 |
+| lab `has-data`，其餘未收集／超出範圍 | 不得把其他家族描述成陰性、正常或不存在 | pass | pass |
+| phase-one 全部沒有 `has-data` | 【核對重點】明確禁止任何未提供的臨床推論 | pass | pass |
+| 同時含 `confirmed-empty` 與其他缺口 | 「無可用資料」與「資料缺口，待確認」可清楚區分且不造成陰性推論 | pass | pass |
+| 西藥／中藥／過敏全部沒有 `has-data` | 藥事使用者不會把 coverage 狀態誤讀為無用藥或無過敏 | pass | pass |
+| 達不到 180 字而附加 context | 附加句不造成重複、矛盾或不當臨床暗示 | pass | pass |
 
 ## Reviewer 決策
 
@@ -71,6 +72,14 @@ Provider 不負責產生、改寫或補充這些 coverage 文字。
 5. 四句補長 context 是否可接受，且不會讓 coverage 文字看似 Provider 臨床摘要？
 6. 合成案例矩陣是否需要增加特定 coverage 組合，才能做出核准決定？
 
-任何文字變更都必須先更新合成 contract tests、保持完整 validator 與資料邊界，
-再重新執行受控人工驗證。未取得臨床及藥事雙方明確核准前，現有 wording 維持
-「待補」，不得宣稱可供臨床使用。
+## Bounded reviewer 結果 — 2026-08-24
+
+| 角色 | 合成案例 1–5 | 決策問題 1–6 | 最終 wording 決定 |
+| --- | --- | --- | --- |
+| 臨床 reviewer | 全數 pass | 全數核准 | 核准 |
+| 藥事 reviewer | 全數 pass | 全數核准 | 核准 |
+
+Repository 只記錄上述角色與 bounded 結果，未收集 reviewer identity、簽章、受控系統
+內容或簽核參照。任何後續文字變更都必須先更新合成 contract tests、保持完整 validator
+與資料邊界，再重新執行受控人工驗證並取得新的臨床與藥事核准。本次 wording 核准不得
+被解讀為整體摘要臨床驗收、正式 release 決策或可供臨床使用。
