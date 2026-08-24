@@ -5,7 +5,12 @@ import { createClosedBackgroundMessageRouter } from './aiMessageRouter';
 import { createIframeSummaryBroker } from './iframeSummaryBroker';
 import { createSealedSnapshotStore } from './sealedSnapshotStore';
 import { createBackgroundProviderBoundary, type SummaryProvider } from '../ai/providers/backgroundProviderBoundary';
-import { contentCapabilityMessageSchema, iframeCapabilityMessageSchema } from '../ai/contracts/messages';
+import {
+  backgroundActiveSnapshotRecoveryRequestSchema,
+  contentCapabilityMessageSchema,
+  iframeCapabilityMessageSchema,
+} from '../ai/contracts/messages';
+import { NHI_CLOUD_ORIGIN } from '../ai/session/closedDataSessionLifecycle';
 
 type ChromeMessageSender = Readonly<{
   tab?: Readonly<{ id?: number; url?: string }>;
@@ -28,6 +33,7 @@ type ChromeRuntimeEvents = Readonly<{
 
 type ChromeTabEvents = Readonly<{
   onRemoved: Readonly<{ addListener: (listener: (tabId: number) => void) => void }>;
+  sendMessage?: (tabId: number, message: unknown) => Promise<unknown>;
 }>;
 
 type ChromePermissionEvents = Readonly<{
@@ -74,6 +80,65 @@ export function installClosedBackgroundRuntime(chromeApi: ClosedBackgroundRuntim
   });
   const iframe = createIframeSummaryBroker({router, snapshots, provider});
 
+  async function recoverCurrentSnapshot(
+    message: Extract<ReturnType<typeof iframeCapabilityMessageSchema.parse>, {type: 'iframe.summary.review' | 'iframe.summary.copy'}>,
+    sender: ChromeMessageSender,
+  ): Promise<boolean> {
+    const tabId = sender.tab?.id;
+    const contentUrl = sender.tab?.url;
+    if (tabId === undefined || contentUrl === undefined || chromeApi.tabs.sendMessage === undefined) return false;
+    try {
+      if (new URL(contentUrl).origin !== NHI_CLOUD_ORIGIN) return false;
+    } catch {
+      return false;
+    }
+
+    let recoveryInput: unknown;
+    try {
+      recoveryInput = await chromeApi.tabs.sendMessage(tabId, backgroundActiveSnapshotRecoveryRequestSchema.parse({
+        schemaVersion: 'ai-capability-message.v1',
+        type: 'background.active-snapshot.recovery.read',
+      }));
+    } catch {
+      return false;
+    }
+    const recovered = contentCapabilityMessageSchema.safeParse(recoveryInput);
+    if (
+      !recovered.success
+      || recovered.data.type !== 'content.snapshot.sealed'
+      || recovered.data.sessionId !== message.sessionId
+      || recovered.data.revision !== message.revision
+      || recovered.data.sequence <= recovered.data.revision
+    ) return false;
+
+    const contentSender = {tabId, origin: NHI_CLOUD_ORIGIN, url: contentUrl};
+    const startingSequence = recovered.data.sequence - recovered.data.revision;
+    const started = controller.receive({
+      schemaVersion: 'ai-capability-message.v1',
+      type: 'content.data-session.started',
+      sessionId: recovered.data.sessionId,
+      revision: 1,
+      sequence: startingSequence,
+    }, contentSender);
+    if (!started.accepted) return false;
+    for (let revision = 2; revision <= recovered.data.revision; revision += 1) {
+      const revised = controller.receive({
+        schemaVersion: 'ai-capability-message.v1',
+        type: 'content.data-session.revised',
+        sessionId: recovered.data.sessionId,
+        revision,
+        sequence: startingSequence + revision - 1,
+      }, contentSender);
+      if (revised.accepted) continue;
+      controller.closeTab(tabId);
+      return false;
+    }
+    const sealed = controller.receive(recovered.data, contentSender);
+    if (sealed.accepted) return true;
+    controller.closeTab(tabId);
+    return false;
+  }
+
   chromeApi.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const senderUrl = sender.url ?? sender.tab?.url;
     const routerSender = {
@@ -87,11 +152,31 @@ export function installClosedBackgroundRuntime(chromeApi: ClosedBackgroundRuntim
       sendResponse(controller.receive(message, routerSender));
       return true;
     }
-    if (!iframeCapabilityMessageSchema.safeParse(message).success) {
+    const parsedIframeMessage = iframeCapabilityMessageSchema.safeParse(message);
+    if (!parsedIframeMessage.success) {
       sendResponse({accepted: false, reason: 'invalid-message'});
       return true;
     }
-    void iframe.receive(message, routerSender).then(sendResponse, () => {
+    void iframe.receive(parsedIframeMessage.data, routerSender).then(async (response) => {
+      const recoverableMessage = parsedIframeMessage.data.type === 'iframe.summary.review'
+        || parsedIframeMessage.data.type === 'iframe.summary.copy'
+        ? parsedIframeMessage.data
+        : null;
+      const mayRecover =
+        recoverableMessage !== null
+        && typeof response === 'object'
+        && response !== null
+        && Reflect.get(response, 'accepted') === false
+        && Reflect.get(response, 'reason') === 'scope-mismatch';
+      if (!mayRecover) {
+        sendResponse(response);
+        return;
+      }
+      const recovered = await recoverCurrentSnapshot(recoverableMessage, sender);
+      sendResponse(recovered
+        ? await iframe.receive(parsedIframeMessage.data, routerSender)
+        : response);
+    }, () => {
       sendResponse({accepted: false, reason: 'invalid-message'});
     });
     return true;

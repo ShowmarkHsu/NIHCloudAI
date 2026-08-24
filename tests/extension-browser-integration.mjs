@@ -157,6 +157,18 @@ try {
       }]},
     }]}));
   });
+  await liveParent.waitForTimeout(100);
+  await liveParent.evaluate(() => {
+    window.dispatchEvent(new CustomEvent('dataFetchCompleted', {detail: [{
+      status: 'success', dataType: 'labdata', recordCount: 1,
+      data: {rObject: [{
+        hosp: 'Synthetic Lab;outpatient;0000000000', real_inspect_date: '2026/08/24',
+        order_code: 'LAB-001', assay_item_name: 'Synthetic analyte', assay_value: '1.0',
+        unit_data: 'mg/dL', consult_value: '0-2', assay_mark: '0',
+      }]},
+    }]}));
+  });
+  await liveParent.waitForTimeout(100);
   await floatingButton.click();
   await liveParent.getByRole('tab', {name: 'AI 摘要'}).click();
   const liveFrame = liveParent.frameLocator('iframe[title="AI 摘要隔離工作區"]');
@@ -170,6 +182,7 @@ try {
       status: 'success', dataType: 'unrelated', recordCount: 1,
     }]}));
   });
+  await liveParent.waitForTimeout(500);
   await liveFrame.getByText('資料已就緒；請主動選擇 provider。').waitFor({timeout: 15_000});
 
   await liveFrame.getByLabel('本次 session 的 OpenRouter BYOK').fill('synthetic-browser-byok');
@@ -197,6 +210,45 @@ try {
   const providerStatusText = await providerStatus.textContent();
   if (providerStatusText !== '完整摘要已通過固定格式驗證，請 review。') {
     throw new Error(`MV3 OpenRouter transport loop failed closed: ${providerStatusText}`);
+  }
+  const copyButton = liveFrame.getByRole('button', {name: '複製已 review 摘要'});
+  if (await copyButton.isEnabled()) {
+    throw new Error('MV3 summary copy must remain disabled before review');
+  }
+
+  const browser = context.browser();
+  if (browser === null) throw new Error('persistent browser context is unavailable');
+  const cdp = await browser.newBrowserCDPSession();
+  const {targetInfos} = await cdp.send('Target.getTargets');
+  const serviceWorkerTarget = targetInfos.find((target) =>
+    target.type === 'service_worker' && target.url === worker.url());
+  if (serviceWorkerTarget === undefined) {
+    throw new Error('built MV3 service worker target is unavailable');
+  }
+  await cdp.send('Target.closeTarget', {targetId: serviceWorkerTarget.targetId});
+  await cdp.detach();
+
+  await liveFrame.getByRole('button', {name: '確認 review'}).click();
+  const reviewPreserved = await providerStatus.evaluate((element) => new Promise((resolve, reject) => {
+    const deadline = Date.now() + 15_000;
+    const poll = () => {
+      if (element.textContent === '已 review；可複製目前版本。') {
+        resolve(true);
+      } else if (element.textContent === '資料工作階段已變更；舊快照與摘要不可使用。') {
+        resolve(false);
+      } else if (Date.now() >= deadline) {
+        reject(new Error('review did not preserve the completed current summary'));
+      } else {
+        setTimeout(poll, 25);
+      }
+    };
+    poll();
+  }));
+  if (!reviewPreserved) {
+    throw new Error('MV3 service-worker restart made the current summary stale at review');
+  }
+  if (!(await copyButton.isEnabled())) {
+    throw new Error('MV3 summary copy did not become eligible after review');
   }
   const medicationCoverage = await liveFrame.getByLabel('目前用藥與過敏 內容').inputValue();
   if (medicationCoverage !== '西藥：資料缺口，待確認；中藥：資料缺口，待確認；過敏：資料缺口，待確認。') {

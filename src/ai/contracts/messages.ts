@@ -112,6 +112,11 @@ export const backgroundLifecycleStatusMessageSchema = capabilityMessageBaseSchem
   ]),
 }).strict().readonly();
 
+export const backgroundActiveSnapshotRecoveryRequestSchema = z.object({
+  schemaVersion: capabilityMessageSchemaVersionSchema,
+  type: z.literal('background.active-snapshot.recovery.read'),
+}).strict().readonly();
+
 export const capabilityMessageSchema = z.union([
   contentCapabilityMessageSchema,
   iframeCapabilityMessageSchema,
@@ -146,6 +151,9 @@ export type SenderTabId = z.infer<typeof senderTabIdSchema>;
 export type ContentCapabilityMessage = z.infer<typeof contentCapabilityMessageSchema>;
 export type IframeCapabilityMessage = z.infer<typeof iframeCapabilityMessageSchema>;
 export type BackgroundLifecycleStatusMessage = z.infer<typeof backgroundLifecycleStatusMessageSchema>;
+export type BackgroundActiveSnapshotRecoveryRequest = z.infer<
+  typeof backgroundActiveSnapshotRecoveryRequestSchema
+>;
 export type CapabilityMessage = z.infer<typeof capabilityMessageSchema>;
 export type BackgroundBoundCapabilityMessage = z.infer<typeof backgroundBoundCapabilityMessageSchema>;
 export type CapabilitySequenceProgression = z.infer<typeof capabilitySequenceProgressionSchema>;

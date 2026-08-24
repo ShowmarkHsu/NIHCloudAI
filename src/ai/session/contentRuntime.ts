@@ -8,8 +8,13 @@ import {
   type LabVerticalSliceResult,
 } from '../integration/labVerticalSlice';
 import { CLINICAL_PROJECTION_CONTRACT_VERSION } from '../contracts/clinicalProjection';
+import {
+  contentCapabilityMessageSchema,
+  type ContentCapabilityMessage,
+} from '../contracts/messages';
 
 type LifecycleEvent = Readonly<{ detail?: unknown }>;
+type SnapshotMessage = Extract<ContentCapabilityMessage, {type: 'content.snapshot.sealed'}>;
 
 export type LabSnapshotPresentation = Readonly<{
   status: 'sealed';
@@ -43,6 +48,7 @@ export function installContentDataSessionRuntime(configuration: ContentDataSessi
     throw new RangeError('content runtime is limited to the fixed NHI Cloud origin');
   }
   let sequence = 0;
+  let activeSnapshotMessage: SnapshotMessage | null = null;
   const patientIdBySession = new Map<string, string>();
   const labs = createLabVerticalSlice({
     now: configuration.now ?? (() => { throw new Error('R1 runtime requires a clock'); }),
@@ -59,6 +65,7 @@ export function installContentDataSessionRuntime(configuration: ContentDataSessi
       Reflect.get(event.detail, 'switching') === true;
     if (switching) {
       if (lifecycle.activeScope() !== null) {
+        activeSnapshotMessage = null;
         configuration.onLabSnapshotInvalidated?.();
         lifecycle.logout(++sequence);
       }
@@ -67,7 +74,10 @@ export function installContentDataSessionRuntime(configuration: ContentDataSessi
     const terminalLab = terminalLabResultFromFetchEvent(event.detail);
     if (terminalLab === null) return;
     const active = lifecycle.activeScope();
-    if (active !== null) configuration.onLabSnapshotInvalidated?.();
+    if (active !== null) {
+      activeSnapshotMessage = null;
+      configuration.onLabSnapshotInvalidated?.();
+    }
     const scope = active === null
       ? lifecycle.start(configuration.newSessionId(), ++sequence)
       : lifecycle.advanceRevision(++sequence);
@@ -77,14 +87,17 @@ export function installContentDataSessionRuntime(configuration: ContentDataSessi
     patientIdBySession.set(scope.sessionId, patientId);
     const result = labs.ingest({patientId, sessionId: scope.sessionId, revision: scope.revision}, terminalLab);
     if (result === null) return;
-    const snapshotMessage = {
+    const parsedSnapshotMessage = contentCapabilityMessageSchema.parse({
       schemaVersion: 'ai-capability-message.v1',
       type: 'content.snapshot.sealed',
       sessionId: scope.sessionId,
       revision: scope.revision,
       sequence: ++sequence,
       snapshot: result.sealed.snapshot,
-    };
+    });
+    if (parsedSnapshotMessage.type !== 'content.snapshot.sealed') return;
+    const snapshotMessage = parsedSnapshotMessage;
+    activeSnapshotMessage = snapshotMessage;
     void Promise.resolve(configuration.send(snapshotMessage)).then((response) => {
       if (response !== undefined && (typeof response !== 'object' || response === null || Reflect.get(response, 'accepted') !== true)) return;
       if (lifecycle.activeScope()?.sessionId !== scope.sessionId || lifecycle.activeScope()?.revision !== scope.revision) return;
@@ -101,6 +114,7 @@ export function installContentDataSessionRuntime(configuration: ContentDataSessi
   const onPageHide = (): void => {
     const scope = lifecycle.activeScope();
     if (scope !== null) {
+      activeSnapshotMessage = null;
       labs.discardSession(scope.sessionId);
       patientIdBySession.delete(scope.sessionId);
       configuration.onLabSnapshotInvalidated?.();
@@ -112,9 +126,27 @@ export function installContentDataSessionRuntime(configuration: ContentDataSessi
   configuration.addEventListener('pagehide', onPageHide);
 
   return Object.freeze({
+    activeSnapshotRecoveryMessage(): SnapshotMessage | null {
+      const active = lifecycle.activeScope();
+      if (
+        active === null
+        || activeSnapshotMessage === null
+        || active.sessionId !== activeSnapshotMessage.sessionId
+        || active.revision !== activeSnapshotMessage.revision
+      ) return null;
+      const recovered = contentCapabilityMessageSchema.parse({
+        ...activeSnapshotMessage,
+        sequence: ++sequence,
+      });
+      if (recovered.type !== 'content.snapshot.sealed') return null;
+      activeSnapshotMessage = recovered;
+      return recovered;
+    },
+
     dispose(): void {
       const scope = lifecycle.activeScope();
       if (scope !== null) {
+        activeSnapshotMessage = null;
         labs.discardSession(scope.sessionId);
         patientIdBySession.delete(scope.sessionId);
         configuration.onLabSnapshotInvalidated?.();

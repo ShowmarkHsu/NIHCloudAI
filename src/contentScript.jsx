@@ -1,8 +1,9 @@
 import { installContentDataSessionRuntime } from './ai/session/contentRuntime';
+import { backgroundActiveSnapshotRecoveryRequestSchema } from './ai/contracts/messages';
 
 console.log("Content script loaded");
 
-installContentDataSessionRuntime({
+const contentDataSessionRuntime = installContentDataSessionRuntime({
   origin: window.location.origin,
   send(message) {
     return chrome.runtime.sendMessage(message);
@@ -33,6 +34,17 @@ installContentDataSessionRuntime({
   removeEventListener(type, listener) {
     window.removeEventListener(type, listener);
   },
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (!backgroundActiveSnapshotRecoveryRequestSchema.safeParse(message).success) return false;
+  if (
+    sender.id !== chrome.runtime.id
+    || sender.tab !== undefined
+    || sender.url !== chrome.runtime.getURL('background.js')
+  ) return false;
+  sendResponse(contentDataSessionRuntime.activeSnapshotRecoveryMessage());
+  return true;
 });
 
 function initializeExtension() {
