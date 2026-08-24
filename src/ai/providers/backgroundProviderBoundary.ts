@@ -11,6 +11,7 @@ import {
   type SealedSummaryRequest,
 } from '../summary/providerRequest';
 import type { FixedFiveSectionSummary } from '../contracts/summary';
+import { FIXED_FIVE_SECTION_SYSTEM_PROMPT } from './prompt';
 
 export const OLLAMA_GENERATE_ENDPOINT = 'http://127.0.0.1:11434/api/generate' as const;
 export const OPENROUTER_GENERATE_ENDPOINT = OPENROUTER_ENDPOINT;
@@ -86,7 +87,11 @@ function fixedRequest(provider: SummaryProvider, secret: string | undefined, req
     return {
       endpoint: OLLAMA_GENERATE_ENDPOINT,
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ model: OLLAMA_MODEL, prompt: request.prompt, stream: false }),
+      body: JSON.stringify({
+        model: OLLAMA_MODEL,
+        prompt: `${FIXED_FIVE_SECTION_SYSTEM_PROMPT}\n\n${request.prompt}`,
+        stream: false,
+      }),
     };
   }
   if (secret === undefined) throw new TypeError('OpenRouter requires a session secret');
@@ -95,7 +100,10 @@ function fixedRequest(provider: SummaryProvider, secret: string | undefined, req
     headers: { 'content-type': 'application/json', authorization: `Bearer ${secret}` },
     body: JSON.stringify({
       model: OPENROUTER_MODEL,
-      messages: [{ role: 'user', content: request.prompt }],
+      messages: [
+        {role: 'system', content: FIXED_FIVE_SECTION_SYSTEM_PROMPT},
+        {role: 'user', content: request.prompt},
+      ],
       response_format: {
         type: 'json_schema',
         json_schema: {

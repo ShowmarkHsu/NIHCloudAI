@@ -11,6 +11,16 @@ import {
 export const FIXED_FIVE_SECTION_PROMPT_VERSION = CLINICAL_SUMMARY_PROMPT_VERSION;
 export const FIXED_FIVE_SECTION_RULES_VERSION = CLINICAL_RULES_VERSION;
 
+export const FIXED_FIVE_SECTION_COVERAGE_POLICY = Object.freeze({
+  'has-data': 'facts-only',
+  'confirmed-empty': 'confirmed-empty',
+  unauthorized: 'data-gap',
+  'fetch-failure': 'data-gap',
+  'normalization-failure': 'data-gap',
+  'not-collected': 'data-gap',
+  'out-of-scope': 'data-gap',
+} as const);
+
 export const FIXED_FIVE_SECTION_SYSTEM_PROMPT = [
   '你只能依據提供的臨床投影、確定性臨床事實、安全訊號與資料涵蓋狀態整理摘要。',
   '【核對重點】只可摘錄來源已明示且需要優先人工核對的過敏、異常標記、數值變化或資料矛盾。',
@@ -18,9 +28,9 @@ export const FIXED_FIVE_SECTION_SYSTEM_PROMPT = [
   `章節與順序固定為：${FIXED_FIVE_SECTION_HEADINGS.map((heading) => `【${heading}】`).join(' → ')}。`,
   `目前用藥與過敏使用目前可用資料；近期病程與檢查只使用近 90 日；住院、手術與出院只使用近 1 年。`,
   `timeWindows 必須固定為 medicationsAndAllergies=${FIXED_FIVE_SECTION_TIME_WINDOWS.medicationsAndAllergies}、recentCourseAndTests=${FIXED_FIVE_SECTION_TIME_WINDOWS.recentCourseAndTests}、admissionsProceduresAndDischarge=${FIXED_FIVE_SECTION_TIME_WINDOWS.admissionsProceduresAndDischarge}。`,
-  '有明確缺少的類別時，寫「<類別>：無可用資料」；不得把未取得、未授權、取得失敗、正規化失敗或不在範圍寫成陰性、正常、無或未發現。',
-  '未取得、未授權、取得失敗、正規化失敗或不在範圍的資料，必須在【資料缺口與待確認】寫為「<類別>：資料缺口，待確認」。',
+  'coverage status 必須依固定映射處理：has-data 只重述 facts；confirmed-empty 只可寫「<類別>：無可用資料」；unauthorized、fetch-failure、normalization-failure、not-collected、out-of-scope 只可寫「<類別>：資料缺口，待確認」。',
+  '除 confirmed-empty 的固定「無可用資料」外，不得使用「無」、正常、陰性或「未發現」描述 coverage 或缺少的資料。',
   '【資料缺口與待確認】內容必須同時包含「資料缺口」與「待確認」。',
   '只重述來源已明示的事實；不得新增診斷、推測病因或判定控制好壞；不得提出檢查、用藥或治療建議。',
-  '每個 section 的 sourceRefs 只可放來源引用；它們不得出現在 content。內容合計必須是 180–260 個中文字的 UTF-8 純文字；不得輸出來源引用、內部代碼、Provider、model、prompt、schema、Markdown、HTML 或其他中繼資料。',
+  '每個 section 的 sourceAliases 只可放提供的 S 代號；它們不得出現在 content。內容合計必須是 180–260 個中文字的 UTF-8 純文字；不得輸出來源引用、內部代碼、Provider、model、prompt、schema、Markdown、HTML 或其他中繼資料。',
 ].join('\n');

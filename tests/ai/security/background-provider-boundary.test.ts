@@ -299,9 +299,13 @@ describe('background-only Provider boundary', () => {
     });
     expect(sent.response_format.json_schema.schema.properties.sections.items.properties.heading.enum)
       .toEqual(['核對重點', '目前用藥與過敏', '近期病程與檢查', '住院、手術與出院', '資料缺口與待確認']);
+    expect(sent.response_format.json_schema.schema.properties.sections.items.properties.content.description)
+      .toContain('confirmed-empty');
     expect(JSON.stringify(sent.response_format)).not.toContain('sourceRef');
     expect(sent).not.toHaveProperty('route');
-    expect(sent.messages[0].content).not.toContain('pt_provider_patient_00001');
+    expect(sent.messages[0]).toMatchObject({role: 'system'});
+    expect(sent.messages[1]).toMatchObject({role: 'user'});
+    expect(sent.messages[1].content).not.toContain('pt_provider_patient_00001');
   });
 
   it('requires strict structured output so OpenRouter cannot return an unparseable document', async () => {
@@ -326,6 +330,40 @@ describe('background-only Provider boundary', () => {
     await expect(provider.generate(scope, 'openrouter', request()!)).resolves.toMatchObject({
       status: 'completed',
     });
+  });
+
+  it('gives coverage policy system priority so missing data cannot become a negative finding', async () => {
+    const requests: Request[] = [];
+    const fetch = vi.fn(async (url: string, init: Request['init']) => {
+      requests.push({url, init});
+      const sent = JSON.parse(init.body);
+      const systemPolicy = sent.messages?.[0]?.role === 'system' &&
+        sent.messages[0].content.includes('not-collected') &&
+        sent.messages[0].content.includes('資料缺口，待確認');
+      const sealedCoveragePolicy = sent.messages?.[1]?.role === 'user' &&
+        sent.messages[1].content.includes('"coveragePolicy"') &&
+        sent.messages[1].content.includes('"not-collected":"data-gap"');
+      const output = JSON.parse(providerOutput());
+      if (!systemPolicy || !sealedCoveragePolicy) {
+        output.sections[0].content = `未發現用藥資料${'重'.repeat(34)}`;
+      }
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({choices: [{finish_reason: 'stop', message: {content: JSON.stringify(output)}}]}),
+      };
+    });
+    const provider = createBackgroundProviderBoundary({fetch: fetch as never});
+    provider.storeOpenRouterSessionSecret(scope, 'synthetic-byok-value');
+    provider.grantRemoteConsent(scope);
+
+    await expect(provider.generate(scope, 'openrouter', request()!)).resolves.toMatchObject({
+      status: 'completed',
+    });
+    const sent = JSON.parse(requests[0]!.init.body);
+    expect(sent.messages.map((message: {role: string}) => message.role)).toEqual(['system', 'user']);
+    expect(sent.messages[0].content).not.toContain('Synthetic analyte');
+    expect(sent.messages[1].content).not.toContain('pt_provider_patient_00001');
   });
 
   it('does not let an old revision cancel the current revision secret or consent', async () => {

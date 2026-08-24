@@ -45,6 +45,10 @@ describe('sealed provider request and source alias round-trip', () => {
     const {scope, sealed, request} = setup();
     expect(request).not.toBeNull();
     expect(request?.prompt).toContain('S1');
+    expect(request?.prompt).toContain('"coveragePolicy"');
+    expect(request?.prompt).toContain('"confirmed-empty":"confirmed-empty"');
+    expect(request?.prompt).toContain('"not-collected":"data-gap"');
+    expect(request?.prompt).not.toContain('你只能依據提供的臨床投影');
     expect(request?.prompt).not.toContain(scope.patientId);
     expect(request?.prompt).not.toContain(scope.sessionId);
     expect(request?.prompt).not.toContain('sr_r2_provider_source_000001');
