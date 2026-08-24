@@ -159,9 +159,21 @@ describe('background-only Provider boundary', () => {
         },
       },
       {
-        status: 'validation-content-negative-failed',
+        status: 'validation-content-negative-not-found-failed',
         mutate(value: ReturnType<typeof JSON.parse>) {
           value.sections[0].content = `未發現${'重'.repeat(37)}`;
+        },
+      },
+      {
+        status: 'validation-content-negative-normal-failed',
+        mutate(value: ReturnType<typeof JSON.parse>) {
+          value.sections[0].content = `結果正常${'重'.repeat(36)}`;
+        },
+      },
+      {
+        status: 'validation-content-negative-none-word-failed',
+        mutate(value: ReturnType<typeof JSON.parse>) {
+          value.sections[0].content = `無法確認${'重'.repeat(36)}`;
         },
       },
       {

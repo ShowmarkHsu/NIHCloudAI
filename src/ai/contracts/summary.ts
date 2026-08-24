@@ -37,12 +37,14 @@ function countChineseCharacters(text: string): number {
     .length;
 }
 
-function usesMissingAsNegativeFinding(content: string): boolean {
-  return (
-    content.includes('未發現') ||
-    content.includes('正常') ||
-    content.replaceAll('無可用資料', '').includes('無')
-  );
+export type MissingAsNegativeFindingKind = 'not-found' | 'normal' | 'none-word';
+
+export function classifyMissingAsNegativeFinding(
+  content: string,
+): MissingAsNegativeFindingKind | null {
+  if (content.includes('未發現')) return 'not-found';
+  if (content.includes('正常')) return 'normal';
+  return content.replaceAll('無可用資料', '').includes('無') ? 'none-word' : null;
 }
 
 function summaryContentSchema(heading: (typeof FIXED_FIVE_SECTION_HEADINGS)[number]) {
@@ -59,7 +61,7 @@ function summaryContentSchema(heading: (typeof FIXED_FIVE_SECTION_HEADINGS)[numb
           FIXED_FIVE_SECTION_VALIDATION_MESSAGES.forbiddenMetadata,
         )
         .refine(
-          (content) => !usesMissingAsNegativeFinding(content),
+          (content) => classifyMissingAsNegativeFinding(content) === null,
           FIXED_FIVE_SECTION_VALIDATION_MESSAGES.missingAsNegative,
         ),
       sourceRefs: z.array(sourceReferenceSchema).max(100).readonly(),

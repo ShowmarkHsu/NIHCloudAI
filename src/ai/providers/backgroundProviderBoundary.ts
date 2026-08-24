@@ -49,7 +49,7 @@ export type BackgroundProviderBoundaryConfiguration = Readonly<{
 
 export type ProviderGenerationResult =
   | Readonly<{ status: 'completed'; summary: FixedFiveSectionSummary }>
-  | Readonly<{ status: 'permission-required' | 'consent-required' | 'secret-unavailable' | 'timeout' | 'cancelled' | 'failed' | 'transport-failed' | 'response-unreadable' | 'provider-http-failed' | 'provider-output-missing' | 'provider-output-truncated' | 'validation-structure-failed' | 'validation-alias-failed' | 'validation-content-failed' | 'validation-content-metadata-failed' | 'validation-content-negative-failed' | 'validation-content-data-gap-failed' | 'validation-content-bounds-failed' | 'validation-length-failed' }>;
+  | Readonly<{ status: 'permission-required' | 'consent-required' | 'secret-unavailable' | 'timeout' | 'cancelled' | 'failed' | 'transport-failed' | 'response-unreadable' | 'provider-http-failed' | 'provider-output-missing' | 'provider-output-truncated' | 'validation-structure-failed' | 'validation-alias-failed' | 'validation-content-failed' | 'validation-content-metadata-failed' | 'validation-content-negative-failed' | 'validation-content-negative-not-found-failed' | 'validation-content-negative-normal-failed' | 'validation-content-negative-none-word-failed' | 'validation-content-data-gap-failed' | 'validation-content-bounds-failed' | 'validation-length-failed' }>;
 
 function assertScope(scope: RevisionScope): void {
   if (!Number.isSafeInteger(scope.tabId) || scope.tabId < 0) {

@@ -5,6 +5,7 @@ import {
   FIXED_FIVE_SECTION_SCHEMA_VERSION,
   FIXED_FIVE_SECTION_TIME_WINDOWS,
   classifyFixedFiveSectionContentFailure,
+  classifyMissingAsNegativeFinding,
   fixedFiveSectionSummarySchema,
   type FixedFiveSectionSummary,
 } from '../contracts/summary';
@@ -154,7 +155,7 @@ export function isSealedSummaryRequest(value: unknown): value is SealedSummaryRe
 
 export type ProviderSummaryOutputResult =
   | Readonly<{status: 'completed'; summary: FixedFiveSectionSummary}>
-  | Readonly<{status: 'validation-structure-failed' | 'validation-alias-failed' | 'validation-content-failed' | 'validation-content-metadata-failed' | 'validation-content-negative-failed' | 'validation-content-data-gap-failed' | 'validation-content-bounds-failed' | 'validation-length-failed'}>;
+  | Readonly<{status: 'validation-structure-failed' | 'validation-alias-failed' | 'validation-content-failed' | 'validation-content-metadata-failed' | 'validation-content-negative-failed' | 'validation-content-negative-not-found-failed' | 'validation-content-negative-normal-failed' | 'validation-content-negative-none-word-failed' | 'validation-content-data-gap-failed' | 'validation-content-bounds-failed' | 'validation-length-failed'}>;
 
 function isAliasIssuePath(path: readonly PropertyKey[]): boolean {
   const sourceAliasesIndex = path.indexOf('sourceAliases');
@@ -199,7 +200,15 @@ export function validateProviderSummaryOutput(
     if (onlyLengthFailure) return {status: 'validation-length-failed'};
     const contentFailure = classifyFixedFiveSectionContentFailure(summary.error.issues);
     if (contentFailure === 'metadata') return {status: 'validation-content-metadata-failed'};
-    if (contentFailure === 'negative-finding') return {status: 'validation-content-negative-failed'};
+    if (contentFailure === 'negative-finding') {
+      const negativeKind = parsed.data.sections
+        .map((section) => classifyMissingAsNegativeFinding(section.content))
+        .find((kind) => kind !== null);
+      if (negativeKind === 'not-found') return {status: 'validation-content-negative-not-found-failed'};
+      if (negativeKind === 'normal') return {status: 'validation-content-negative-normal-failed'};
+      if (negativeKind === 'none-word') return {status: 'validation-content-negative-none-word-failed'};
+      return {status: 'validation-content-negative-failed'};
+    }
     if (contentFailure === 'data-gap-wording') return {status: 'validation-content-data-gap-failed'};
     if (contentFailure === 'field-bounds') return {status: 'validation-content-bounds-failed'};
     return {status: 'validation-content-failed'};
