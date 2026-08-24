@@ -105,3 +105,8 @@ exact iframe sender、session-only BYOK/consent 與舊 revision rejection。`npm
 artifact 內以 loopback 合成 Provider 驗證 background transport 與完整回應驗證。該測試
 不連線實際 OpenRouter，也不是臨床資料流驗證；固定遠端 route 的成功
 generate/review/copy 人工測試仍需要獲授權的本機／院內環境。
+
+2026-08-24 的受控合成 OpenRouter 重試已越過 transport 與 HTTP 階段，但停在本機完整
+格式閘門。為避免接觸或保存 Provider 回應內容，background 現在只回報 bounded
+fail-closed 類別（缺少輸出、截斷、JSON 結構、來源代號、內容政策或中文字數）；下一次
+人工重試必須以該無敏感資料類別定位根因，尚不得視為 Provider 成功或解除 release gate。
