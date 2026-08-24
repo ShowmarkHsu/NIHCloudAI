@@ -4,7 +4,7 @@
 > bounded controlled manual evidence。
 > AI 頁籤已透過 extension-origin iframe 接上 sealed request 與 background-only
 > Provider boundary；machine-verifiable gate 只使用合成資料與 loopback request。另有
-> 受控 coverage-only synthetic OpenRouter 人工觀察，必須與本文件的自動化證據分開判讀。不得把本文件
+> 受控 coverage-only 與 `has-data` synthetic OpenRouter 人工觀察，必須與本文件的自動化證據分開判讀。不得把本文件
 > 解讀為一般 Provider 可用、release ready 或臨床驗收完成。完整缺口與復原順序見
 > [`PROJECT_RECOVERY_PLAN.md`](PROJECT_RECOVERY_PLAN.md)。
 
@@ -40,7 +40,9 @@ After reloading the prompt-v3/local-renderer build and using a coverage-only emp
 
 The same operator reported bounded PASS results for cancellation, revision change, synthetic-patient change, logout, and tab closure. In every exercised invalidation case the prior summary and review became unavailable, copy was disabled, BYOK and outbound consent were cleared, and generation required a new user action with new session input and consent. Cancellation proves only that the local result and eligibility were discarded; it does not prove that a remote request was never received.
 
-No summary text, Provider request or response, key, raw payload, HAR, log, screenshot, patient/session identifier, or clipboard content was collected. The manual repeatability observation covered a no-collected-facts case; the real fixed-route `has-data` facts path remains unverified. These observations do not establish clinical quality, clinician or pharmacist acceptance, general Provider availability, artifact approval, or release approval.
+The operator then completed a separate non-empty synthetic lab preflight: lab coverage was `has-data` with a positive count, an opaque local source alias was present, and no identity, raw source reference, or raw row was displayed. For one explicitly authorized fixed-route request, the operator reported bounded PASS results for strict whole-document validation, inclusion of at least one collected synthetic lab fact, alias-only attribution, absence of added uncollected facts, diagnoses, or negative inference, deterministic coverage semantics for non-`has-data` families, and review/copy gating.
+
+No summary text, Provider request or response, key, raw payload, HAR, log, screenshot, patient/session identifier, or clipboard content was collected. Fresh-session repeatability was observed only for the no-collected-facts case; the real fixed-route `has-data` path currently has one bounded successful observation. These observations do not establish `has-data` repeatability, clinical quality, clinician or pharmacist acceptance, general Provider availability, artifact approval, or release approval.
 
 The user subsequently reported that the security/privacy owner and the hospital/environment owner approved their respective gates. This repository records only those bounded approval states; no approver identity, signature reference, account detail, environment identifier, or controlled-system link was collected. Clinician, pharmacist, and release-owner decisions remain pending.
 

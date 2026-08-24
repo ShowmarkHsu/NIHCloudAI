@@ -23,7 +23,7 @@
 
 ## 目前必須承認的缺口
 
-1. R2/R3 的程式與合成測試已接上；受控 coverage-only synthetic OpenRouter 已完成 fresh-session 重複性、review/copy、取消及 scope 失效觀察。真實 fixed-route `has-data` facts、臨床品質與簽核仍未完成；真實 Ollama 亦未驗證。
+1. R2/R3 的程式與合成測試已接上；受控 coverage-only synthetic OpenRouter 已完成 fresh-session 重複性、review/copy、取消及 scope 失效觀察，另有一筆真實 fixed-route `has-data` synthetic facts bounded 成功。`has-data` 重複性、臨床品質與簽核仍未完成；真實 Ollama 亦未驗證。
 2. projection adapters 除檢驗外仍只在合成測試中執行，尚未接到其他 upstream source family 的逐筆資料 seam。
 3. actual extension browser test 證明已載入 iframe 會 fail closed、可完成 loopback Provider round trip，且 MV3 service worker 重啟後只恢復同 tab 的目前 sealed scope 供 review；真實 Provider 與 NHI-origin 流程仍只可在受控人工環境驗證。
 4. `package.json` 使用 upstream 版本號，但文件又宣稱 NIHCloudAI 採獨立 SemVer；release identity 尚未定案。
@@ -104,8 +104,9 @@ exact iframe sender、session-only BYOK/consent 與舊 revision rejection。`npm
 實際載入 build 後的 MV3 iframe，驗證未 seal scope 被 fail closed，並在隔離的暫存
 artifact 內以 loopback 合成 Provider 驗證 background transport、完整回應驗證及 service
 worker 重啟後的同 tab review recovery。該測試不連線實際 OpenRouter，也不是臨床資料流
-驗證；受控人工 coverage-only fixed-route generate/review/copy 已通過，但 `has-data` facts
-與臨床品質仍需要獲授權的本機／院內環境及 reviewer。
+驗證；受控人工 coverage-only fixed-route generate/review/copy 已通過，另有一筆
+`has-data` synthetic facts bounded 成功，但 repeatability 與臨床品質仍需要獲授權的
+本機／院內環境及 reviewer。
 
 2026-08-24 的受控合成 OpenRouter 重試已越過 transport 與 HTTP 階段，但停在本機完整
 格式閘門。為避免接觸或保存 Provider 回應內容，background 現在只回報 bounded
@@ -143,7 +144,15 @@ memory scope 而 fail closed；`983313a` 加入只限同 tab／目前 scope 的 
 後，人工 review/copy 重測與 built-extension restart regression 均通過。
 
 本 repository 未收集摘要、request／response、key、payload、HAR、log、screenshot、clipboard
-內容或 session 識別。人工案例沒有 collected facts，因此不能作為真實 fixed-route `has-data`
-facts 路徑、臨床品質或措辭核准的證據。使用者另回報資安／隱私責任者與院方／環境
+內容或 session 識別。前述 coverage-only 人工案例沒有 collected facts，因此單獨不能作為
+真實 fixed-route `has-data` facts 路徑、臨床品質或措辭核准的證據。使用者另回報資安／
+隱私責任者與院方／環境
 所有者均已核准；repository 未收集核准者 identity、簽核參照或受控系統連結。臨床、藥事、
 artifact／provenance 與 release owner 決策仍待完成。
+
+同日，操作者先確認另一個非空合成 lab scope 為 `has-data`、record count 大於零、只顯示
+opaque local source alias，且沒有 identity、raw source ref 或 raw row，再明確授權一次固定
+OpenRouter／`openai/gpt-oss-120b`／DeepInfra no-fallback request。操作者只回報 bounded PASS：
+完整 validator、至少一項 collected synthetic fact、alias-only attribution、沒有新增未收集事實／
+診斷／陰性推論、其他家族的 deterministic coverage 語意，以及 review 前後 copy gating。
+未收集任何摘要或 Provider 內容；這是一筆成功觀察，不是 `has-data` repeatability 或臨床驗收。
