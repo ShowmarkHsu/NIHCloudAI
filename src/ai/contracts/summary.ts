@@ -24,6 +24,12 @@ export const FIXED_FIVE_SECTION_CHINESE_CHARACTER_LIMITS = Object.freeze({
   maximum: 260,
 } as const);
 
+export const FIXED_FIVE_SECTION_VALIDATION_MESSAGES = Object.freeze({
+  forbiddenMetadata: 'summary content must not contain internal references, provenance, or Markdown',
+  missingAsNegative: 'summary content must not express missing data as a negative finding',
+  dataGapWording: 'data-gap section must use the fixed data-gap and confirmation wording',
+} as const);
+
 const FORBIDDEN_COPY_METADATA = /(?:\b(?:sr|pt|ds)_[A-Za-z0-9_-]+\b|source(?:Ref|Reference)|patientId|sessionId|\bprovider\b|\bprompt\b|\bschema\b|\bmodel\b|S[1-6]|<\/?[A-Za-z][^>]*>|```|(?:^|\n)\s*(?:#|[-*+]\s|\d+\.\s))/iu;
 
 function countChineseCharacters(text: string): number {
@@ -50,11 +56,11 @@ function summaryContentSchema(heading: (typeof FIXED_FIVE_SECTION_HEADINGS)[numb
         .max(800)
         .refine(
           (content) => !FORBIDDEN_COPY_METADATA.test(content),
-          'summary content must not contain internal references, provenance, or Markdown',
+          FIXED_FIVE_SECTION_VALIDATION_MESSAGES.forbiddenMetadata,
         )
         .refine(
           (content) => !usesMissingAsNegativeFinding(content),
-          'summary content must not express missing data as a negative finding',
+          FIXED_FIVE_SECTION_VALIDATION_MESSAGES.missingAsNegative,
         ),
       sourceRefs: z.array(sourceReferenceSchema).max(100).readonly(),
     })
@@ -86,7 +92,7 @@ const fixedFiveSectionSchema = z
     summaryContentSchema(FIXED_FIVE_SECTION_HEADINGS[4]).refine(
       (section) =>
         section.content.includes('資料缺口') && section.content.includes('待確認'),
-      'data-gap section must use the fixed data-gap and confirmation wording',
+      FIXED_FIVE_SECTION_VALIDATION_MESSAGES.dataGapWording,
     ),
   ])
   .readonly();
@@ -121,6 +127,33 @@ export const fixedFiveSectionSummarySchema = fixedFiveSectionSummaryObjectSchema
 
 export function parseFixedFiveSectionSummary(value: unknown): FixedFiveSectionSummary {
   return fixedFiveSectionSummarySchema.parse(value);
+}
+
+export type FixedFiveSectionContentFailure =
+  | 'metadata'
+  | 'negative-finding'
+  | 'data-gap-wording'
+  | 'field-bounds'
+  | 'other';
+
+/** Maps validation issues to a bounded reason without returning issue details. */
+export function classifyFixedFiveSectionContentFailure(
+  issues: readonly Readonly<{code: string; message: string; path: readonly PropertyKey[]}>[],
+): FixedFiveSectionContentFailure {
+  if (issues.some((issue) => issue.message === FIXED_FIVE_SECTION_VALIDATION_MESSAGES.missingAsNegative)) {
+    return 'negative-finding';
+  }
+  if (issues.some((issue) => issue.message === FIXED_FIVE_SECTION_VALIDATION_MESSAGES.forbiddenMetadata)) {
+    return 'metadata';
+  }
+  if (issues.some((issue) => issue.message === FIXED_FIVE_SECTION_VALIDATION_MESSAGES.dataGapWording)) {
+    return 'data-gap-wording';
+  }
+  if (issues.some((issue) =>
+    issue.path.at(-1) === 'content' && (issue.code === 'too_small' || issue.code === 'too_big'))) {
+    return 'field-bounds';
+  }
+  return 'other';
 }
 
 export type FixedFiveSectionSummary = z.infer<

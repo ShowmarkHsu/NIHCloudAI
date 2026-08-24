@@ -212,6 +212,10 @@ function AiFrame() {
       status === "provider-output-truncated" ? "Provider 回應未完整結束；沒有可複製內容。" :
       status === "validation-structure-failed" ? "Provider 回應的 JSON 結構未通過驗證；沒有可複製內容。" :
       status === "validation-alias-failed" ? "Provider 回應的來源代號未通過驗證；沒有可複製內容。" :
+      status === "validation-content-metadata-failed" ? "Provider 回應含有禁止的內部代號或格式標記；沒有可複製內容。" :
+      status === "validation-content-negative-failed" ? "Provider 將缺少的資料寫成陰性結果；沒有可複製內容。" :
+      status === "validation-content-data-gap-failed" ? "Provider 回應未使用固定的資料缺口與待確認措辭；沒有可複製內容。" :
+      status === "validation-content-bounds-failed" ? "Provider 回應的單節內容長度未通過驗證；沒有可複製內容。" :
       status === "validation-content-failed" ? "Provider 回應的內容政策未通過驗證；沒有可複製內容。" :
       status === "validation-length-failed" ? "Provider 回應的中文字數未通過驗證；沒有可複製內容。" :
       status === "stale" ? "資料工作階段已變更；舊快照與摘要不可使用。" : "生成失敗，沒有可複製內容。"}</p>
