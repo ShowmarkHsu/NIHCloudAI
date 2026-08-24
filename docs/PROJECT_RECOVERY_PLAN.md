@@ -108,5 +108,7 @@ generate/review/copy 人工測試仍需要獲授權的本機／院內環境。
 
 2026-08-24 的受控合成 OpenRouter 重試已越過 transport 與 HTTP 階段，但停在本機完整
 格式閘門。為避免接觸或保存 Provider 回應內容，background 現在只回報 bounded
-fail-closed 類別（缺少輸出、截斷、JSON 結構、來源代號、內容政策或中文字數）；下一次
-人工重試必須以該無敏感資料類別定位根因，尚不得視為 Provider 成功或解除 release gate。
+fail-closed 類別（缺少輸出、截斷、JSON 結構、來源代號、內容政策或中文字數）。後續重試
+已定位到內容政策層，因此再以固定代碼細分為禁止的內部標記／格式、把缺資料寫成陰性、
+資料缺口固定措辭及單節欄位長度；人工重試只可回報這些無敏感資料類別，尚不得視為
+Provider 成功或解除 release gate。
