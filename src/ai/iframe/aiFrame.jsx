@@ -205,6 +205,8 @@ function AiFrame() {
       status === "cancelled" ? "已取消生成；沒有可複製內容。" :
       status === "permission-required" ? "未授予所選 provider 的可選主機權限。" :
       status === "remote-authorization-required" ? "遠端摘要需要本次 session 的 BYOK 與明確同意。" :
+      status === "provider-http-failed" ? "Provider 拒絕請求；沒有可複製內容。" :
+      status === "validation-failed" ? "Provider 回應未通過完整格式驗證；沒有可複製內容。" :
       status === "stale" ? "資料工作階段已變更；舊快照與摘要不可使用。" : "生成失敗，沒有可複製內容。"}</p>
     <section aria-label="目前快照 coverage">
       <strong>Coverage</strong><p>{coverageCopy(view?.coverage)}</p>

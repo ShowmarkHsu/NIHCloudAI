@@ -128,6 +128,28 @@ describe('background-only Provider boundary', () => {
     await expect(provider.generate(scope, 'ollama', request()!)).resolves.toEqual({status: 'failed'});
   });
 
+  it('reports an invalid full provider response without exposing its contents', async () => {
+    const fetch = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({response: '{"sections":[]}'}),
+    }));
+    const provider = createBackgroundProviderBoundary({fetch: fetch as never});
+
+    await expect(provider.generate(scope, 'ollama', request()!)).resolves.toEqual({status: 'validation-failed'});
+  });
+
+  it('reports a provider HTTP rejection without exposing its status or body', async () => {
+    const fetch = vi.fn(async () => ({
+      ok: false,
+      status: 401,
+      json: async () => ({error: 'synthetic provider rejection'}),
+    }));
+    const provider = createBackgroundProviderBoundary({fetch: fetch as never});
+
+    await expect(provider.generate(scope, 'ollama', request()!)).resolves.toEqual({status: 'provider-http-failed'});
+  });
+
   it('fails closed instead of replacing an in-flight request for the same scope', async () => {
     const requests: Request[] = [];
     const fetch = vi.fn((_url: string, init: Request['init']) => new Promise<never>((_, reject) => {

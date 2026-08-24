@@ -47,7 +47,7 @@ export type BackgroundProviderBoundaryConfiguration = Readonly<{
 
 export type ProviderGenerationResult =
   | Readonly<{ status: 'completed'; summary: FixedFiveSectionSummary }>
-  | Readonly<{ status: 'permission-required' | 'consent-required' | 'secret-unavailable' | 'timeout' | 'cancelled' | 'failed' }>;
+  | Readonly<{ status: 'permission-required' | 'consent-required' | 'secret-unavailable' | 'timeout' | 'cancelled' | 'failed' | 'provider-http-failed' | 'validation-failed' }>;
 
 function assertScope(scope: RevisionScope): void {
   if (!Number.isSafeInteger(scope.tabId) || scope.tabId < 0) {
@@ -209,10 +209,10 @@ export function createBackgroundProviderBoundary(
 
       try {
         const response = await fetchPromise;
-        if (!response.ok) return { status: 'failed' };
+        if (!response.ok) return {status: 'provider-http-failed'};
         const output = outputFromResponse(await response.json());
         const summary = output === null ? null : parseProviderSummaryOutput(output, request);
-        return summary === null ? { status: 'failed' } : { status: 'completed', summary };
+        return summary === null ? {status: 'validation-failed'} : {status: 'completed', summary};
       } catch {
         if (timedOut) return {status: 'timeout'};
         return controller.signal.aborted ? {status: 'cancelled'} : {status: 'failed'};
