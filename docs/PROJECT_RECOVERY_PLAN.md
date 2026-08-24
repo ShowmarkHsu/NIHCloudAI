@@ -101,5 +101,7 @@ permission、固定 route、取消與 revision/patient invalidation 都在 backg
 
 合成 integration test 會驗證 iframe 不收到 sourceRef/patient id、source alias round-trip、
 exact iframe sender、session-only BYOK/consent 與舊 revision rejection。`npm run test:extension`
-實際載入 build 後的 MV3 iframe，驗證未 seal scope 被 fail closed。這些不是實際 Provider
-或臨床資料流驗證；成功 generate/review/copy 的人工測試仍需要獲授權的本機／院內環境。
+實際載入 build 後的 MV3 iframe，驗證未 seal scope 被 fail closed，並在隔離的暫存
+artifact 內以 loopback 合成 Provider 驗證 background transport 與完整回應驗證。該測試
+不連線實際 OpenRouter，也不是臨床資料流驗證；固定遠端 route 的成功
+generate/review/copy 人工測試仍需要獲授權的本機／院內環境。

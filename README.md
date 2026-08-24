@@ -16,8 +16,10 @@ Provider、臨床資料或人工臨床驗收；因此不具備臨床使用或正
 [受控人工驗證 Runbook](docs/CONTROLLED_MANUAL_VALIDATION_RUNBOOK.md) 執行；通過該
 流程不表示 release ready 或可臨床使用。
 
-`npm run verify` 只驗證合成契約、非 AI 回歸、建置、browser suite 與已載入的 MV3
-iframe fail-closed browser test；它不是實際 AI Provider、臨床驗收或部署核准。
+`npm run verify` 只驗證合成契約、非 AI 回歸、建置、browser suite，以及已載入的
+MV3 iframe fail-closed 與本機合成 Provider transport browser test；測試會使用隔離的
+暫存 artifact 將固定 endpoint 改寫至 loopback，不會連線實際 OpenRouter。它不是
+實際 AI Provider、臨床驗收或部署核准。
 
 目前擴充功能的 Chrome build version 仍為 upstream fork 相容所需的
 `26.0702.1`。這不是 NIHCloudAI 的獨立 SemVer release，也沒有任何已指派的
