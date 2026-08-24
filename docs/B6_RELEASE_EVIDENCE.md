@@ -2,8 +2,9 @@
 
 > **狀態說明（2026-08-21）**：本文件只記錄 machine-verifiable engineering gate。
 > AI 頁籤已透過 extension-origin iframe 接上 sealed request 與 background-only
-> Provider boundary；但只有合成資料和未連線的固定 request 被驗證。不得把本文件
-> 解讀為 Provider 實際可用、release ready 或臨床驗收完成。完整缺口與復原順序見
+> Provider boundary；machine-verifiable gate 只使用合成資料與 loopback request。另有一筆
+> 受控 synthetic OpenRouter 人工成功觀察，必須與本文件的自動化證據分開判讀。不得把本文件
+> 解讀為一般 Provider 可用、release ready 或臨床驗收完成。完整缺口與復原順序見
 > [`PROJECT_RECOVERY_PLAN.md`](PROJECT_RECOVERY_PLAN.md)。
 
 This branch's B6 deliverable is a reproducible engineering gate. It proves only the build-time boundaries that can be checked without accessing a real patient, a Provider account, or a clinical reviewer.
@@ -31,6 +32,10 @@ After a controlled synthetic OpenRouter attempt reached the local whole-document
 The bounded category then identified non-canonical `無` wording. A stronger `clinical-summary-prompt.v2` still did not make the fixed OpenRouter model/route reliably obey that semantic rule, so the authorized implementation no longer delegates coverage prose to the Provider. Under `clinical-summary-prompt.v3`, OpenRouter receives immutable policy in a `system` message and only the sealed coverage/facts projection in a separate `user` message; its task is limited to `has-data` facts. A local deterministic coverage renderer replaces every fully uncovered section and the fixed data-gap section from the sealed coverage contract, clears Provider aliases from those replaced sections, and adds only fixed coverage context when needed to meet the unchanged 180–260 Chinese-character gate. Provider prose retained for sections with collected facts remains subject to the unchanged local negative-finding, metadata, alias, ordering, wording, field-bound, and total-length validators.
 
 Synthetic regressions cover a lab-only snapshot whose Provider response uses non-canonical gap prose, a snapshot with no collected facts, and the fact-only outbound contract. The built MV3 loopback test additionally asserts the rendered medication/allergy and admission/procedure/discharge text in the iframe. These tests do not constitute clinical approval of the new deterministic wording; clinician and pharmacist re-review remains mandatory.
+
+## Controlled manual observation — 2026-08-24
+
+After reloading the prompt-v3/local-renderer build and starting a fresh sealed synthetic lab session, the authorized operator reported the bounded UI result `完整摘要已通過固定格式驗證`. No response text, request text, key, payload, HAR, log, screenshot, patient/session identifier, or copy content was collected. This confirms one real fixed-route OpenRouter round trip reached the local whole-document success state; it does not establish repeatability, review/copy acceptance, cancellation and invalidation coverage, clinical quality, artifact provenance, or release approval.
 
 R1 additionally exercises one real local product seam: a terminal upstream lab result is normalized and quarantined inside a closed module, sealed with coverage and a local reference vault, accepted by the background store, and rendered in the existing AI tab as coverage plus opaque source aliases. It does not invoke an LLM. R2/R3 attach an extension-origin iframe: it receives a scope only, reads public coverage/labels through the background, and can request fixed Ollama or OpenRouter generation. The iframe is the sole secret-entry surface; BYOK, explicit remote consent, optional host grants, request construction, timeout/cancellation, and strict whole-document validation are background-owned. The code and synthetic tests do not prove an installed Ollama, valid OpenRouter account/key, model availability, or successful external request. Error, cancellation, session end, revision change, and patient change clear review/copy eligibility. No visual snapshot update is part of this gate.
 

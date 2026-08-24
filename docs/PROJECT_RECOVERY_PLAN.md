@@ -23,7 +23,7 @@
 
 ## 目前必須承認的缺口
 
-1. R2/R3 的程式與合成測試已接上，但沒有真實 Ollama、OpenRouter 或受控臨床環境的驗證。
+1. R2/R3 的程式與合成測試已接上；一筆受控 synthetic lab OpenRouter round trip 已到達完整格式驗證成功，但尚未完成重複性、review/copy、取消／失效、臨床品質與簽核。真實 Ollama 仍未驗證。
 2. projection adapters 除檢驗外仍只在合成測試中執行，尚未接到其他 upstream source family 的逐筆資料 seam。
 3. actual extension browser test 證明已載入 iframe 會 fail closed；完整的 NHI-origin content injection 與成功 Provider round trip 仍需受控人工環境。
 4. `package.json` 使用 upstream 版本號，但文件又宣稱 NIHCloudAI 採獨立 SemVer；release identity 尚未定案。
@@ -133,3 +133,9 @@ collected facts 的 section 與【資料缺口與待確認】一律由 backgroun
 通過原有完整 validator；沒有放寬陰性詞、metadata、alias、順序、欄位或 180–260 字規則。
 這項臨床內容組裝變更必須重新取得臨床與藥事 reviewer 簽核，新的受控 round trip 通過前
 仍不得解除 release gate。
+
+2026-08-24，授權操作者在重新載入 prompt v3／local renderer build 並建立 fresh sealed
+synthetic lab session 後，回報 UI 到達「完整摘要已通過固定格式驗證」。本 repository
+未收集摘要、request／response、key、payload、HAR、log、screenshot 或 session 識別。
+這只完成一筆 fixed-route round trip 的格式成功觀察；repeatability、review/copy、取消與
+scope invalidation、臨床／藥事重新簽核及 release owner 決策仍待完成。
