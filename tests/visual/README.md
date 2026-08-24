@@ -18,6 +18,12 @@ npx playwright install chromium
 npm run test:visual
 ```
 
+The npm command first runs a bounded single-case lifecycle regression. Its
+runner then owns the Vite child process directly, waits for the synthetic
+harness to become ready, forwards Playwright's exit status, and shuts down only
+the server it started. This avoids relying on Playwright's Windows process-tree
+teardown and leaves no managed server running after the command exits.
+
 The legacy browser Mocha suite is also available without an interactive
 browser or a lingering server process through `npm run test:browser`.
 

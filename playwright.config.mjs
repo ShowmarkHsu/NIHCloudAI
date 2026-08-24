@@ -33,10 +33,4 @@ export default defineConfig({
     {name: 'desktop-1440x900', use: {viewport: {width: 1440, height: 900}}},
     {name: 'desktop-1024x768', use: {viewport: {width: 1024, height: 768}}},
   ],
-  webServer: {
-    command: 'npm run visual:serve',
-    url: 'http://127.0.0.1:4174/tests/visual/index.html',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
 });

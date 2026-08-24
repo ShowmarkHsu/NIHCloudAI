@@ -7,6 +7,7 @@ test('B1 lint scope includes every current characterization and visual source', 
   assert.ok(targets.includes('tests/characterization/non-ai-contracts.test.mjs'));
   assert.ok(targets.includes('tests/visual/visual.spec.mjs'));
   assert.ok(targets.includes('tests/visual/src/main.jsx'));
+  assert.ok(targets.includes('scripts/run-visual-tests.mjs'));
 });
 
 test('new maintained B1 and AI files cannot silently escape their gates', () => {

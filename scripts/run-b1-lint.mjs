@@ -9,6 +9,7 @@ export const directLintFiles = [
   'playwright.config.mjs',
   'vite.visual.config.js',
   'scripts/run-b1-lint.mjs',
+  'scripts/run-visual-tests.mjs',
   'scripts/verify-upstream-baseline.mjs',
   'tests/lint/b1-lint-scope.test.mjs',
   'tests/run-browser-mocha.mjs',
