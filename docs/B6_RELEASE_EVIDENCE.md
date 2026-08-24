@@ -42,6 +42,8 @@ The same operator reported bounded PASS results for cancellation, revision chang
 
 No summary text, Provider request or response, key, raw payload, HAR, log, screenshot, patient/session identifier, or clipboard content was collected. The manual repeatability observation covered a no-collected-facts case; the real fixed-route `has-data` facts path remains unverified. These observations do not establish clinical quality, clinician or pharmacist acceptance, general Provider availability, artifact approval, or release approval.
 
+The user subsequently reported that the security/privacy owner and the hospital/environment owner approved their respective gates. This repository records only those bounded approval states; no approver identity, signature reference, account detail, environment identifier, or controlled-system link was collected. Clinician, pharmacist, and release-owner decisions remain pending.
+
 R1 additionally exercises one real local product seam: a terminal upstream lab result is normalized and quarantined inside a closed module, sealed with coverage and a local reference vault, accepted by the background store, and rendered in the existing AI tab as coverage plus opaque source aliases. It does not invoke an LLM. R2/R3 attach an extension-origin iframe: it receives a scope only, reads public coverage/labels through the background, and can request fixed Ollama or OpenRouter generation. The iframe is the sole secret-entry surface; BYOK, explicit remote consent, optional host grants, request construction, timeout/cancellation, and strict whole-document validation are background-owned. The code and synthetic tests do not prove an installed Ollama, valid OpenRouter account/key, model availability, or successful external request. Error, cancellation, session end, revision change, and patient change clear review/copy eligibility. No visual snapshot update is part of this gate.
 
 The synthetic runtime lifecycle tests cover the closed content-to-background capability path: content emits only lifecycle messages after its existing terminal data-fetch event, ends the current scope on patient-switch and page-exit events, and the background clears the matching scope when Chrome reports tab removal. These tests contain no patient payload, credentials, Provider request, screenshot, or session value from a browser.
@@ -50,9 +52,11 @@ The synthetic runtime lifecycle tests cover the closed content-to-background cap
 
 These checks cannot be truthfully performed by repository automation and remain the release owner's responsibility:
 
-- A qualified clinician and pharmacist review and sign off on the synthetic clinical acceptance cases.
+- A qualified clinician and pharmacist review and sign off on the synthetic clinical acceptance cases; both remain pending.
 - An authorized operator verifies the intended Chrome build against approved test patients only; no real data, screenshot, request body, key, or session value may enter this repository.
 - Before any remote Provider connection, the owner records the exact endpoint/model/version, asks for outbound-data consent for that session, confirms the optional host grant, validates session-only secret handling, and re-runs the gate with the least-privilege permission policy.
 - The release owner completes the developer-mode install, update, removal, Provider and data-handling checklist in [`CONTROLLED_MANUAL_VALIDATION_RUNBOOK.md`](CONTROLLED_MANUAL_VALIDATION_RUNBOOK.md) (with [`DEVELOPER_MODE_DISTRIBUTION.md`](DEVELOPER_MODE_DISTRIBUTION.md) as the installation summary).
+
+Security/privacy and hospital/environment approval were reported on 2026-08-24 without repository-held signature references. Those approvals reduce two external governance gaps but do not substitute for the pending clinical, pharmacy, artifact, provenance, or release decisions.
 
 Passing `verify:release` is evidence of code and artifact hygiene, not a clinical validation, deployment approval, or provider end-to-end certification.

@@ -144,5 +144,6 @@ memory scope 而 fail closed；`983313a` 加入只限同 tab／目前 scope 的 
 
 本 repository 未收集摘要、request／response、key、payload、HAR、log、screenshot、clipboard
 內容或 session 識別。人工案例沒有 collected facts，因此不能作為真實 fixed-route `has-data`
-facts 路徑、臨床品質或措辭核准的證據；臨床／藥事、資安／隱私、院方環境與 release owner
-決策仍待完成。
+facts 路徑、臨床品質或措辭核准的證據。使用者另回報資安／隱私責任者與院方／環境
+所有者均已核准；repository 未收集核准者 identity、簽核參照或受控系統連結。臨床、藥事、
+artifact／provenance 與 release owner 決策仍待完成。
