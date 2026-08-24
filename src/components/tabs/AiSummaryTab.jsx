@@ -83,6 +83,9 @@ export default function AiSummaryTab({
   const sourcesFor = typeof sourceRefsForSection === "function"
     ? sourceRefsForSection
     : () => [];
+  const statusCopy = frame
+    ? "已建立隔離資料工作階段；請在下方工作區選擇 provider。"
+    : (STATUS_COPY[view.status] || STATUS_COPY["waiting-for-data"]);
   const canReview = view.status === "ready-for-review";
   const canCancel = view.status === "generating";
 
@@ -91,7 +94,7 @@ export default function AiSummaryTab({
       <Stack spacing={1.5}>
         <Typography variant="h6">AI 摘要（需 review）</Typography>
         <Alert severity={view.status === "generation-failed" ? "error" : "info"}>
-          {STATUS_COPY[view.status] || STATUS_COPY["waiting-for-data"]}
+          {statusCopy}
         </Alert>
         <Box data-testid="ai-lab-snapshot-coverage">
           <Typography variant="subtitle2">檢驗資料快照（未使用 LLM）</Typography>

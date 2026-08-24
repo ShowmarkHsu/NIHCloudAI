@@ -101,6 +101,10 @@ try {
   await liveParent.getByRole('tab', {name: 'AI 摘要'}).click();
   const liveFrame = liveParent.frameLocator('iframe[title="AI 摘要隔離工作區"]');
   await liveFrame.getByText('資料已就緒；請主動選擇 provider。').waitFor({timeout: 15_000});
+  if (await liveParent.getByText('尚未建立可用資料工作階段，無法生成摘要。').count() !== 0) {
+    throw new Error('AI tab must not show a missing-session state while its isolated iframe is ready');
+  }
+  await liveParent.getByText('已建立隔離資料工作階段；請在下方工作區選擇 provider。').waitFor({timeout: 15_000});
   await liveParent.evaluate(() => {
     window.dispatchEvent(new CustomEvent('dataFetchCompleted', {detail: [{
       status: 'success', dataType: 'unrelated', recordCount: 1,
