@@ -214,7 +214,8 @@ export function createBackgroundProviderBoundary(
         const summary = output === null ? null : parseProviderSummaryOutput(output, request);
         return summary === null ? { status: 'failed' } : { status: 'completed', summary };
       } catch {
-        return timedOut ? { status: 'timeout' } : { status: 'cancelled' };
+        if (timedOut) return {status: 'timeout'};
+        return controller.signal.aborted ? {status: 'cancelled'} : {status: 'failed'};
       } finally {
         timer.clear(timeout);
         pendingByScope.delete(key);

@@ -121,6 +121,13 @@ describe('background-only Provider boundary', () => {
     expect(requests[0]?.init.body).not.toContain('patientId');
   });
 
+  it('does not label a non-abort Provider failure as a user cancellation', async () => {
+    const fetch = vi.fn(async () => Promise.reject(new Error('synthetic network failure')));
+    const provider = createBackgroundProviderBoundary({fetch: fetch as never});
+
+    await expect(provider.generate(scope, 'ollama', request()!)).resolves.toEqual({status: 'failed'});
+  });
+
   it('fails closed instead of replacing an in-flight request for the same scope', async () => {
     const requests: Request[] = [];
     const fetch = vi.fn((_url: string, init: Request['init']) => new Promise<never>((_, reject) => {
