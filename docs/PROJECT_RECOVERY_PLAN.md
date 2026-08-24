@@ -124,3 +124,12 @@ prompt v2 的受控重試仍停在陰性措辭閘門。由於既有 predicate �
 「正常」及除固定「無可用資料」外的任何「無」，目前證據還不能區分模型產生陰性臨床
 結論或只是使用「無法確認」一類非固定 gap 措辭。下一輪只回報上述固定詞類，不回傳
 句子、章節位置或任何 Provider payload；在詞類確認前不得放寬 validator。
+
+後續固定詞類已確認為非 canonical 的「無」字措辭；prompt v2 仍無法使固定模型／route
+穩定遵循，因此已取得明確授權改採 deterministic local coverage renderer。新的
+`clinical-summary-prompt.v3` 將 Provider 任務限縮為只摘要 `has-data` facts；完全沒有
+collected facts 的 section 與【資料缺口與待確認】一律由 background 依 sealed coverage
+產生固定文字並清空該節 Provider aliases。有 facts 的 section 仍保留 Provider prose 並
+通過原有完整 validator；沒有放寬陰性詞、metadata、alias、順序、欄位或 180–260 字規則。
+這項臨床內容組裝變更必須重新取得臨床與藥事 reviewer 簽核，新的受控 round trip 通過前
+仍不得解除 release gate。

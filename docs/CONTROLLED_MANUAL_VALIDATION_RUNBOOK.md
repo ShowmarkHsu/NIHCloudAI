@@ -71,6 +71,9 @@ permission-denied、timeout 與 cancel 路徑並記錄為「外部資源未提�
 3. 只有操作者有授權 key 時，於當前合成 session 輸入 BYOK、勾選同意、主動生成。
    確認固定 route 行為成功或受控失敗；不要保存 request body、response、key、
    raw payload、HAR 或 screenshot。
+   對 lab-only 案例另確認【目前用藥與過敏】、【住院、手術與出院】及
+   【資料缺口與待確認】只使用已核准的本機 deterministic coverage wording；Provider
+   只摘要 `has-data` facts。不得用 Provider payload、log 或 screenshot 作為證據。
 4. 按取消、切換合成病人、推進 revision、登出與關閉 tab 各驗一次。每次後先前
    BYOK、同意、摘要、review 與 copy 都必須不可用；回到新 scope 必須重新輸入 key
    並重新同意。不得依賴 persistent storage 恢復它們。

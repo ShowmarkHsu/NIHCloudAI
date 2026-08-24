@@ -34,6 +34,7 @@ console／proxy／HAR／錄影／screenshot／剪貼簿歷史等可能保存敏�
 | Ollama：exact loopback grant、timeout、取消與完整五段輸出驗證 | | |
 | OpenRouter：拒絕 exact optional permission 時 fail closed | | |
 | OpenRouter：session-only BYOK、明確 consent、固定 route | | |
+| OpenRouter：Provider 僅摘要 has-data facts，本機 deterministic coverage wording 符合核准案例 | | |
 | OpenRouter：取消、revision、病人切換、登出／關閉 tab 後 secret 與 consent 失效 | | |
 | 未保存 PHI、secret、raw payload、request body、response、HAR 或 screenshot | | |
 
