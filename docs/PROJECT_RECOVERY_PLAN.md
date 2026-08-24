@@ -112,3 +112,10 @@ fail-closed 類別（缺少輸出、截斷、JSON 結構、來源代號、內容
 已定位到內容政策層，因此再以固定代碼細分為禁止的內部標記／格式、把缺資料寫成陰性、
 資料缺口固定措辭及單節欄位長度；人工重試只可回報這些無敏感資料類別，尚不得視為
 Provider 成功或解除 release gate。
+
+下一次分類已確認 Provider 把缺少資料寫成陰性結果。根因是 OpenRouter request 將政策與
+facts 合併為單一 user message，且 coverage mapping 不具可機讀優先級；不是本機閘門
+誤判的證據。因此 `clinical-summary-prompt.v2` 將固定政策提升為 system message，sealed
+coverage／facts 留在獨立 user message，並加入封閉的 status-to-wording mapping 與相同的
+structured-output description。本機陰性詞閘門沒有放寬；仍需受控人工 round trip 證明
+固定 DeepInfra route 的實際模型遵循新契約。
