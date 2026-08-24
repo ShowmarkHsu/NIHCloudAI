@@ -5,6 +5,7 @@ import {
 import { OLLAMA_MODEL, OPENROUTER_ENDPOINT, OPENROUTER_MODEL, OPENROUTER_ROUTE } from '../release/runtimeManifest';
 import type { RevisionScope } from '../session/coordinator';
 import {
+  FIXED_FIVE_SECTION_PROVIDER_JSON_SCHEMA,
   parseProviderSummaryOutput,
   isSealedSummaryRequest,
   type SealedSummaryRequest,
@@ -95,6 +96,14 @@ function fixedRequest(provider: SummaryProvider, secret: string | undefined, req
     body: JSON.stringify({
       model: OPENROUTER_MODEL,
       messages: [{ role: 'user', content: request.prompt }],
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'fixed_five_section_clinical_summary',
+          strict: true,
+          schema: FIXED_FIVE_SECTION_PROVIDER_JSON_SCHEMA,
+        },
+      },
       stream: false,
       temperature: 0,
       top_p: 1,

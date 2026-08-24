@@ -36,6 +36,65 @@ const providerSummarySchema = z.object({
   ]),
 }).strict();
 
+const providerSectionJsonSchema = Object.freeze({
+  type: 'object',
+  additionalProperties: false,
+  properties: Object.freeze({
+    heading: Object.freeze({type: 'string', enum: FIXED_FIVE_SECTION_HEADINGS}),
+    content: Object.freeze({type: 'string'}),
+    sourceAliases: Object.freeze({
+      type: 'array',
+      items: Object.freeze({type: 'string'}),
+    }),
+  }),
+  required: Object.freeze(['heading', 'content', 'sourceAliases']),
+});
+
+/**
+ * OpenRouter-compatible structural constraint. The local Zod contract remains
+ * authoritative for section order, wording, character limits, and aliases.
+ */
+export const FIXED_FIVE_SECTION_PROVIDER_JSON_SCHEMA = Object.freeze({
+  type: 'object',
+  additionalProperties: false,
+  properties: Object.freeze({
+    schemaVersion: Object.freeze({
+      type: 'string',
+      enum: Object.freeze([FIXED_FIVE_SECTION_SCHEMA_VERSION]),
+    }),
+    timeWindows: Object.freeze({
+      type: 'object',
+      additionalProperties: false,
+      properties: Object.freeze({
+        medicationsAndAllergies: Object.freeze({
+          type: 'string',
+          enum: Object.freeze([FIXED_FIVE_SECTION_TIME_WINDOWS.medicationsAndAllergies]),
+        }),
+        recentCourseAndTests: Object.freeze({
+          type: 'string',
+          enum: Object.freeze([FIXED_FIVE_SECTION_TIME_WINDOWS.recentCourseAndTests]),
+        }),
+        admissionsProceduresAndDischarge: Object.freeze({
+          type: 'string',
+          enum: Object.freeze([FIXED_FIVE_SECTION_TIME_WINDOWS.admissionsProceduresAndDischarge]),
+        }),
+      }),
+      required: Object.freeze([
+        'medicationsAndAllergies',
+        'recentCourseAndTests',
+        'admissionsProceduresAndDischarge',
+      ]),
+    }),
+    sections: Object.freeze({
+      type: 'array',
+      items: providerSectionJsonSchema,
+      minItems: 5,
+      maxItems: 5,
+    }),
+  }),
+  required: Object.freeze(['schemaVersion', 'timeWindows', 'sections']),
+});
+
 export type SealedSummaryRequest = Readonly<{
   scope: SummaryReviewScopeInput;
   prompt: string;
