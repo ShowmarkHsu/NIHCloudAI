@@ -64,14 +64,14 @@ export function installContentDataSessionRuntime(configuration: ContentDataSessi
       }
       return;
     }
+    const terminalLab = terminalLabResultFromFetchEvent(event.detail);
+    if (terminalLab === null) return;
     const active = lifecycle.activeScope();
     if (active !== null) configuration.onLabSnapshotInvalidated?.();
     const scope = active === null
       ? lifecycle.start(configuration.newSessionId(), ++sequence)
       : lifecycle.advanceRevision(++sequence);
     if (scope === null) return;
-    const terminalLab = terminalLabResultFromFetchEvent(event.detail);
-    if (terminalLab === null) return;
     const patientId = patientIdBySession.get(scope.sessionId) ?? configuration.newPatientId?.();
     if (patientId === undefined) return;
     patientIdBySession.set(scope.sessionId, patientId);

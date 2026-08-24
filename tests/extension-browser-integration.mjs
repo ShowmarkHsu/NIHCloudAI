@@ -82,6 +82,32 @@ try {
   });
   await embeddedFrame.getByText('資料工作階段已變更；舊快照與摘要不可使用。').waitFor({timeout: 15_000});
   if (parentErrors.length > 0) throw new Error(`extension parent page errors: ${parentErrors.join('; ')}`);
+
+  const liveParent = parent;
+  await liveParent.goto('https://medcloud2.nhi.gov.tw/controlled-content-runtime-test');
+  const floatingButton = liveParent.locator('#nhi-floating-root button').filter({has: liveParent.locator('img[alt="NHI Extractor"]')});
+  await floatingButton.waitFor({timeout: 15_000});
+  await liveParent.evaluate(() => {
+    window.dispatchEvent(new CustomEvent('dataFetchCompleted', {detail: [{
+      status: 'success', dataType: 'labdata', recordCount: 1,
+      data: {rObject: [{
+        hosp: 'Synthetic Lab;outpatient;0000000000', real_inspect_date: '2026/08/24',
+        order_code: 'LAB-001', assay_item_name: 'Synthetic analyte', assay_value: '1.0',
+        unit_data: 'mg/dL', consult_value: '0-2', assay_mark: '0',
+      }]},
+    }]}));
+  });
+  await floatingButton.click();
+  await liveParent.getByRole('tab', {name: 'AI 摘要'}).click();
+  const liveFrame = liveParent.frameLocator('iframe[title="AI 摘要隔離工作區"]');
+  await liveFrame.getByText('資料已就緒；請主動選擇 provider。').waitFor({timeout: 15_000});
+  await liveParent.evaluate(() => {
+    window.dispatchEvent(new CustomEvent('dataFetchCompleted', {detail: [{
+      status: 'success', dataType: 'unrelated', recordCount: 1,
+    }]}));
+  });
+  await liveFrame.getByText('資料已就緒；請主動選擇 provider。').waitFor({timeout: 15_000});
+  if (parentErrors.length > 0) throw new Error(`extension content runtime page errors: ${parentErrors.join('; ')}`);
   console.log('Extension iframe browser integration: built MV3 iframe ignored an untrusted scope and rejected an unsealed scope from an actual NHI-origin parent.');
 } finally {
   await context?.close();
