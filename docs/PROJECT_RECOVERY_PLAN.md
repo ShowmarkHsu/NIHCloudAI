@@ -119,3 +119,8 @@ facts 合併為單一 user message，且 coverage mapping 不具可機讀優先�
 coverage／facts 留在獨立 user message，並加入封閉的 status-to-wording mapping 與相同的
 structured-output description。本機陰性詞閘門沒有放寬；仍需受控人工 round trip 證明
 固定 DeepInfra route 的實際模型遵循新契約。
+
+prompt v2 的受控重試仍停在陰性措辭閘門。由於既有 predicate 同時涵蓋「未發現」、
+「正常」及除固定「無可用資料」外的任何「無」，目前證據還不能區分模型產生陰性臨床
+結論或只是使用「無法確認」一類非固定 gap 措辭。下一輪只回報上述固定詞類，不回傳
+句子、章節位置或任何 Provider payload；在詞類確認前不得放寬 validator。
