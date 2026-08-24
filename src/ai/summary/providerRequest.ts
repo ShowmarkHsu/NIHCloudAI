@@ -145,22 +145,62 @@ export function isSealedSummaryRequest(value: unknown): value is SealedSummaryRe
     Reflect.get(value, sealedSummaryRequestBrand) === true;
 }
 
+export type ProviderSummaryOutputResult =
+  | Readonly<{status: 'completed'; summary: FixedFiveSectionSummary}>
+  | Readonly<{status: 'validation-structure-failed' | 'validation-alias-failed' | 'validation-content-failed' | 'validation-length-failed'}>;
+
+function isAliasIssuePath(path: readonly PropertyKey[]): boolean {
+  const sourceAliasesIndex = path.indexOf('sourceAliases');
+  return sourceAliasesIndex >= 0 && typeof path[sourceAliasesIndex + 1] === 'number';
+}
+
+/**
+ * Classifies only a bounded validation stage. It never returns parsed provider
+ * output, Zod issues, aliases, character counts, or any other response detail.
+ */
+export function validateProviderSummaryOutput(
+  output: unknown,
+  request: SealedSummaryRequest,
+): ProviderSummaryOutputResult {
+  if (typeof output !== 'string') return {status: 'validation-structure-failed'};
+  let document: unknown;
+  try {
+    document = JSON.parse(output);
+  } catch {
+    return {status: 'validation-structure-failed'};
+  }
+
+  const parsed = providerSummarySchema.safeParse(document);
+  if (!parsed.success) {
+    return parsed.error.issues.some((issue) => isAliasIssuePath(issue.path))
+      ? {status: 'validation-alias-failed'}
+      : {status: 'validation-structure-failed'};
+  }
+
+  const sections = parsed.data.sections.map((section) => {
+    const sourceRefs = section.sourceAliases.map((alias) => request.sourceAliases[alias]);
+    return {heading: section.heading, content: section.content, sourceRefs};
+  });
+  if (sections.some((section) => section.sourceRefs.some((sourceRef) => sourceRef === undefined))) {
+    return {status: 'validation-alias-failed'};
+  }
+
+  const summary = fixedFiveSectionSummarySchema.safeParse({...parsed.data, sections});
+  if (!summary.success) {
+    const onlyLengthFailure = summary.error.issues.every((issue) =>
+      issue.path.length === 1 && issue.path[0] === 'sections');
+    return onlyLengthFailure
+      ? {status: 'validation-length-failed'}
+      : {status: 'validation-content-failed'};
+  }
+  return {status: 'completed', summary: summary.data};
+}
+
 /** Fails closed unless a complete provider JSON document maps to local aliases. */
 export function parseProviderSummaryOutput(
   output: unknown,
   request: SealedSummaryRequest,
 ): FixedFiveSectionSummary | null {
-  if (typeof output !== 'string') return null;
-  try {
-    const parsed = providerSummarySchema.parse(JSON.parse(output));
-    const sections = parsed.sections.map((section) => {
-      const sourceRefs = section.sourceAliases.map((alias) => request.sourceAliases[alias]);
-      if (sourceRefs.some((sourceRef) => sourceRef === undefined)) throw new TypeError('unknown source alias');
-      return {heading: section.heading, content: section.content, sourceRefs};
-    });
-    const summary = fixedFiveSectionSummarySchema.safeParse({...parsed, sections});
-    return summary.success ? summary.data : null;
-  } catch {
-    return null;
-  }
+  const result = validateProviderSummaryOutput(output, request);
+  return result.status === 'completed' ? result.summary : null;
 }

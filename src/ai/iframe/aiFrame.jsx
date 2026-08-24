@@ -208,7 +208,12 @@ function AiFrame() {
       status === "transport-failed" ? "無法連線至 Provider；沒有可複製內容。" :
       status === "response-unreadable" ? "Provider 回應無法安全讀取；沒有可複製內容。" :
       status === "provider-http-failed" ? "Provider 拒絕請求；沒有可複製內容。" :
-      status === "validation-failed" ? "Provider 回應未通過完整格式驗證；沒有可複製內容。" :
+      status === "provider-output-missing" ? "Provider 未回傳可驗證的摘要內容；沒有可複製內容。" :
+      status === "provider-output-truncated" ? "Provider 回應未完整結束；沒有可複製內容。" :
+      status === "validation-structure-failed" ? "Provider 回應的 JSON 結構未通過驗證；沒有可複製內容。" :
+      status === "validation-alias-failed" ? "Provider 回應的來源代號未通過驗證；沒有可複製內容。" :
+      status === "validation-content-failed" ? "Provider 回應的內容政策未通過驗證；沒有可複製內容。" :
+      status === "validation-length-failed" ? "Provider 回應的中文字數未通過驗證；沒有可複製內容。" :
       status === "stale" ? "資料工作階段已變更；舊快照與摘要不可使用。" : "生成失敗，沒有可複製內容。"}</p>
     <section aria-label="目前快照 coverage">
       <strong>Coverage</strong><p>{coverageCopy(view?.coverage)}</p>

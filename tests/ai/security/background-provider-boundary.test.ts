@@ -139,7 +139,7 @@ describe('background-only Provider boundary', () => {
     await expect(provider.generate(scope, 'ollama', request()!)).resolves.toEqual({status: 'response-unreadable'});
   });
 
-  it('reports an invalid full provider response without exposing its contents', async () => {
+  it('classifies an invalid provider document without exposing its contents', async () => {
     const fetch = vi.fn(async () => ({
       ok: true,
       status: 200,
@@ -147,7 +147,76 @@ describe('background-only Provider boundary', () => {
     }));
     const provider = createBackgroundProviderBoundary({fetch: fetch as never});
 
-    await expect(provider.generate(scope, 'ollama', request()!)).resolves.toEqual({status: 'validation-failed'});
+    await expect(provider.generate(scope, 'ollama', request()!)).resolves.toEqual({status: 'validation-structure-failed'});
+  });
+
+  it('classifies local alias, content-policy, and character-count failures without returning output', async () => {
+    const cases = [
+      {
+        status: 'validation-alias-failed',
+        mutate(value: ReturnType<typeof JSON.parse>) {
+          value.sections[0].sourceAliases = ['S2'];
+        },
+      },
+      {
+        status: 'validation-content-failed',
+        mutate(value: ReturnType<typeof JSON.parse>) {
+          value.sections[0].content = `未發現${'重'.repeat(37)}`;
+        },
+      },
+      {
+        status: 'validation-length-failed',
+        mutate(value: ReturnType<typeof JSON.parse>) {
+          value.sections[0].content = '重'.repeat(100);
+        },
+      },
+    ] as const;
+
+    for (const testCase of cases) {
+      const output = JSON.parse(providerOutput());
+      testCase.mutate(output);
+      const fetch = vi.fn(async () => ({
+        ok: true,
+        status: 200,
+        json: async () => ({choices: [{message: {content: JSON.stringify(output)}}]}),
+      }));
+      const provider = createBackgroundProviderBoundary({fetch: fetch as never});
+      provider.storeOpenRouterSessionSecret(scope, 'synthetic-byok-value');
+      provider.grantRemoteConsent(scope);
+
+      const result = await provider.generate(scope, 'openrouter', request()!);
+      expect(result).toEqual({status: testCase.status});
+      expect(JSON.stringify(result)).not.toContain('sections');
+      expect(JSON.stringify(result)).not.toContain('未發現');
+    }
+  });
+
+  it('classifies a missing or truncated output from safe envelope metadata only', async () => {
+    const responses = [
+      {
+        expected: 'provider-output-missing',
+        payload: {choices: [{finish_reason: 'stop', message: {content: null}}]},
+      },
+      {
+        expected: 'provider-output-truncated',
+        payload: {choices: [{finish_reason: 'length', message: {content: providerOutput()}}]},
+      },
+    ] as const;
+
+    for (const response of responses) {
+      const fetch = vi.fn(async () => ({
+        ok: true,
+        status: 200,
+        json: async () => response.payload,
+      }));
+      const provider = createBackgroundProviderBoundary({fetch: fetch as never});
+      provider.storeOpenRouterSessionSecret(scope, 'synthetic-byok-value');
+      provider.grantRemoteConsent(scope);
+
+      await expect(provider.generate(scope, 'openrouter', request()!)).resolves.toEqual({
+        status: response.expected,
+      });
+    }
   });
 
   it('reports a provider HTTP rejection without exposing its status or body', async () => {

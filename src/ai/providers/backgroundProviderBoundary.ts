@@ -6,8 +6,8 @@ import { OLLAMA_MODEL, OPENROUTER_ENDPOINT, OPENROUTER_MODEL, OPENROUTER_ROUTE }
 import type { RevisionScope } from '../session/coordinator';
 import {
   FIXED_FIVE_SECTION_PROVIDER_JSON_SCHEMA,
-  parseProviderSummaryOutput,
   isSealedSummaryRequest,
+  validateProviderSummaryOutput,
   type SealedSummaryRequest,
 } from '../summary/providerRequest';
 import type { FixedFiveSectionSummary } from '../contracts/summary';
@@ -48,7 +48,7 @@ export type BackgroundProviderBoundaryConfiguration = Readonly<{
 
 export type ProviderGenerationResult =
   | Readonly<{ status: 'completed'; summary: FixedFiveSectionSummary }>
-  | Readonly<{ status: 'permission-required' | 'consent-required' | 'secret-unavailable' | 'timeout' | 'cancelled' | 'failed' | 'transport-failed' | 'response-unreadable' | 'provider-http-failed' | 'validation-failed' }>;
+  | Readonly<{ status: 'permission-required' | 'consent-required' | 'secret-unavailable' | 'timeout' | 'cancelled' | 'failed' | 'transport-failed' | 'response-unreadable' | 'provider-http-failed' | 'provider-output-missing' | 'provider-output-truncated' | 'validation-structure-failed' | 'validation-alias-failed' | 'validation-content-failed' | 'validation-length-failed' }>;
 
 function assertScope(scope: RevisionScope): void {
   if (!Number.isSafeInteger(scope.tabId) || scope.tabId < 0) {
@@ -119,17 +119,26 @@ function fixedRequest(provider: SummaryProvider, secret: string | undefined, req
   };
 }
 
-function outputFromResponse(value: unknown): string | null {
-  if (typeof value !== 'object' || value === null) return null;
+type ProviderOutputResult =
+  | Readonly<{status: 'completed'; output: string}>
+  | Readonly<{status: 'provider-output-missing' | 'provider-output-truncated'}>;
+
+function outputFromResponse(value: unknown): ProviderOutputResult {
+  if (typeof value !== 'object' || value === null) return {status: 'provider-output-missing'};
   const ollamaOutput = Reflect.get(value, 'response');
-  if (typeof ollamaOutput === 'string' && ollamaOutput.length > 0) return ollamaOutput;
+  if (typeof ollamaOutput === 'string' && ollamaOutput.length > 0) return {status: 'completed', output: ollamaOutput};
   const completion = Reflect.get(value, 'completion');
-  if (typeof completion === 'string' && completion.length > 0) return completion;
+  if (typeof completion === 'string' && completion.length > 0) return {status: 'completed', output: completion};
   const choices = Reflect.get(value, 'choices');
-  if (!Array.isArray(choices) || choices.length !== 1 || typeof choices[0] !== 'object' || choices[0] === null) return null;
+  if (!Array.isArray(choices) || choices.length !== 1 || typeof choices[0] !== 'object' || choices[0] === null) {
+    return {status: 'provider-output-missing'};
+  }
+  if (Reflect.get(choices[0], 'finish_reason') === 'length') return {status: 'provider-output-truncated'};
   const message = Reflect.get(choices[0], 'message');
   const output = typeof message === 'object' && message !== null ? Reflect.get(message, 'content') : null;
-  return typeof output === 'string' && output.length > 0 ? output : null;
+  return typeof output === 'string' && output.length > 0
+    ? {status: 'completed', output}
+    : {status: 'provider-output-missing'};
 }
 
 /**
@@ -238,8 +247,9 @@ export function createBackgroundProviderBoundary(
           return {status: 'response-unreadable'};
         }
         const output = outputFromResponse(payload);
-        const summary = output === null ? null : parseProviderSummaryOutput(output, request);
-        return summary === null ? {status: 'validation-failed'} : {status: 'completed', summary};
+        return output.status === 'completed'
+          ? validateProviderSummaryOutput(output.output, request)
+          : output;
       } catch {
         return {status: 'response-unreadable'};
       } finally {
