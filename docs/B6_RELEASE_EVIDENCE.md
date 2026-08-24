@@ -59,6 +59,34 @@ These checks cannot be truthfully performed by repository automation and remain 
 - Before any remote Provider connection, the owner records the exact endpoint/model/version, asks for outbound-data consent for that session, confirms the optional host grant, validates session-only secret handling, and re-runs the gate with the least-privilege permission policy.
 - The release owner completes the developer-mode install, update, removal, Provider and data-handling checklist in [`CONTROLLED_MANUAL_VALIDATION_RUNBOOK.md`](CONTROLLED_MANUAL_VALIDATION_RUNBOOK.md) (with [`DEVELOPER_MODE_DISTRIBUTION.md`](DEVELOPER_MODE_DISTRIBUTION.md) as the installation summary).
 
-Security/privacy and hospital/environment approval, plus clinical and pharmacy approval of deterministic coverage wording, were reported on 2026-08-24 without repository-held signature references. Those approvals do not substitute for pending overall clinical acceptance, artifact provenance, or release-owner decisions.
+Security/privacy and hospital/environment approval, plus clinical and pharmacy approval of deterministic coverage wording, were reported on 2026-08-24 without repository-held signature references. Those approvals do not substitute for pending overall clinical acceptance or artifact provenance, and they do not override the release-owner rejection recorded below.
+
+## Release owner decision — 2026-08-24
+
+The release-owner audit was performed against source commit `6e29265`. A clean offline `npm ci`
+completed with zero reported vulnerabilities; `npm run verify` passed; the formal visual run passed
+45 cases with one expected conditional skip and no golden updates; and 23 generated `dist` artifacts
+were byte-identical across consecutive builds. The fixed upstream baseline, license hash, local remote
+topology, minimal MV3 permissions, optional origins, source-map prohibition, and secret-shaped-value
+gate also passed.
+
+The repository nevertheless has no NIHCloudAI release identity or independent SemVer, annotated
+release tag, immutable release ZIP, instantiated release manifest, artifact hash record, or complete
+provider/clinical evidence hashes. The current extension version `26.0702.1` remains an upstream-fork
+compatibility version. `has-data` fixed-route evidence has only one bounded successful observation,
+overall clinical acceptance is incomplete, real Ollama evidence is unavailable, and the formal
+developer-mode install/update/removal record is incomplete.
+
+The authorized release owner reported the following bounded decision:
+
+| Decision area | Result |
+| --- | --- |
+| Artifact | Rejected; immutable artifact and instantiated manifest required |
+| Provenance | Pending |
+| Publication | Formal release rejected; continued controlled development validation allowed |
+
+No release-owner identity, signature, controlled-system content, or approval reference was collected.
+Permission to continue controlled development validation is not deployment approval, clinical-use
+approval, a standing authorization for external data transfer, or permission to push this branch.
 
 Passing `verify:release` is evidence of code and artifact hygiene, not a clinical validation, deployment approval, or provider end-to-end certification.

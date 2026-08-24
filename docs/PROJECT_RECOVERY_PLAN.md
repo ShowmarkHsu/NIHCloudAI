@@ -150,7 +150,7 @@ memory scope 而 fail closed；`983313a` 加入只限同 tab／目前 scope 的 
 隱私責任者與院方／環境
 所有者均已核准；臨床與藥事 reviewer 亦回報 deterministic coverage wording 的五個案例
 全數 pass、六個問題全數核准及最終核准。Repository 未收集核准者 identity、簽核參照或
-受控系統連結。整體臨床 acceptance、artifact／provenance 與 release owner 決策仍待完成。
+受控系統連結。整體臨床 acceptance 仍待完成。
 
 同日，操作者先確認另一個非空合成 lab scope 為 `has-data`、record count 大於零、只顯示
 opaque local source alias，且沒有 identity、raw source ref 或 raw row，再明確授權一次固定
@@ -158,3 +158,12 @@ OpenRouter／`openai/gpt-oss-120b`／DeepInfra no-fallback request。操作者�
 完整 validator、至少一項 collected synthetic fact、alias-only attribution、沒有新增未收集事實／
 診斷／陰性推論、其他家族的 deterministic coverage 語意，以及 review 前後 copy gating。
 未收集任何摘要或 Provider 內容；這是一筆成功觀察，不是 `has-data` repeatability 或臨床驗收。
+
+2026-08-24 的 release-owner 稽核綁定 source commit `6e29265`。離線乾淨 `npm ci`、完整
+`npm run verify`、45 passed／1 expected skip 的正式 visual run、23 個 `dist` artifact
+連續 build byte-identical，以及 baseline／license／permission／secret／source-map gates 均
+通過。但目前沒有 NIHCloudAI release identity、獨立 SemVer、annotated tag、immutable ZIP、
+實體 release manifest 或完整 evidence hashes；`has-data` repeatability、整體 clinical
+acceptance、真實 Ollama 與 developer-mode install/update/removal record 亦未完成。Release
+owner 因此決定 artifact 拒絕、provenance 待補、正式發布拒絕，只允許持續受控開發驗證。
+這不是部署、臨床使用、永久外送或 push 授權。
