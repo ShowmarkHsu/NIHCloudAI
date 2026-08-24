@@ -23,12 +23,12 @@
 
 ## 目前必須承認的缺口
 
-1. R2/R3 的程式與合成測試已接上；一筆受控 synthetic lab OpenRouter round trip 已到達完整格式驗證成功，但尚未完成重複性、review/copy、取消／失效、臨床品質與簽核。真實 Ollama 仍未驗證。
+1. R2/R3 的程式與合成測試已接上；受控 coverage-only synthetic OpenRouter 已完成 fresh-session 重複性、review/copy、取消及 scope 失效觀察。真實 fixed-route `has-data` facts、臨床品質與簽核仍未完成；真實 Ollama 亦未驗證。
 2. projection adapters 除檢驗外仍只在合成測試中執行，尚未接到其他 upstream source family 的逐筆資料 seam。
-3. actual extension browser test 證明已載入 iframe 會 fail closed；完整的 NHI-origin content injection 與成功 Provider round trip 仍需受控人工環境。
+3. actual extension browser test 證明已載入 iframe 會 fail closed、可完成 loopback Provider round trip，且 MV3 service worker 重啟後只恢復同 tab 的目前 sealed scope 供 review；真實 Provider 與 NHI-origin 流程仍只可在受控人工環境驗證。
 4. `package.json` 使用 upstream 版本號，但文件又宣稱 NIHCloudAI 採獨立 SemVer；release identity 尚未定案。
 5. 現有 B6 文件容易讓人誤認已達 release readiness；它只能稱為 engineering gate。
-8. 46 個視覺測試已通過。窄螢幕 tab header baseline 已在確認 append-only AI tab 是刻意且可鍵盤到達的最後頁籤後重錄；CKM overview 與 Advanced editor 原本共同的 730px／706px 差異，已由將 AI tab 縮為既有緊湊 tab 寬度修正，避免 desktop 過早 overflow 改變內容可視高度。baseline 建立時尚未提交 lockfile，仍應保持依賴版本鎖定與人工 visual review，不得以日後任意更新 golden 掩蓋回歸。
+8. 正式 visual run 為 45 passed、1 個窄 tab strip 條件式 expected skip，且沒有 golden 更新。先前 Playwright 在 Windows teardown 卡住，是 managed Vite child process 關閉依賴受限的 `taskkill /T /F`；visual runner 現在自行擁有 server lifecycle 並可乾淨結束。窄螢幕 tab header baseline 已在確認 append-only AI tab 是刻意且可鍵盤到達的最後頁籤後重錄；CKM overview 與 Advanced editor golden 未更新，日後仍不得以任意更新 golden 掩蓋回歸。
 
 ## 後續執行順序
 
@@ -102,9 +102,10 @@ permission、固定 route、取消與 revision/patient invalidation 都在 backg
 合成 integration test 會驗證 iframe 不收到 sourceRef/patient id、source alias round-trip、
 exact iframe sender、session-only BYOK/consent 與舊 revision rejection。`npm run test:extension`
 實際載入 build 後的 MV3 iframe，驗證未 seal scope 被 fail closed，並在隔離的暫存
-artifact 內以 loopback 合成 Provider 驗證 background transport 與完整回應驗證。該測試
-不連線實際 OpenRouter，也不是臨床資料流驗證；固定遠端 route 的成功
-generate/review/copy 人工測試仍需要獲授權的本機／院內環境。
+artifact 內以 loopback 合成 Provider 驗證 background transport、完整回應驗證及 service
+worker 重啟後的同 tab review recovery。該測試不連線實際 OpenRouter，也不是臨床資料流
+驗證；受控人工 coverage-only fixed-route generate/review/copy 已通過，但 `has-data` facts
+與臨床品質仍需要獲授權的本機／院內環境及 reviewer。
 
 2026-08-24 的受控合成 OpenRouter 重試已越過 transport 與 HTTP 階段，但停在本機完整
 格式閘門。為避免接觸或保存 Provider 回應內容，background 現在只回報 bounded
@@ -131,11 +132,17 @@ prompt v2 的受控重試仍停在陰性措辭閘門。由於既有 predicate �
 collected facts 的 section 與【資料缺口與待確認】一律由 background 依 sealed coverage
 產生固定文字並清空該節 Provider aliases。有 facts 的 section 仍保留 Provider prose 並
 通過原有完整 validator；沒有放寬陰性詞、metadata、alias、順序、欄位或 180–260 字規則。
-這項臨床內容組裝變更必須重新取得臨床與藥事 reviewer 簽核，新的受控 round trip 通過前
-仍不得解除 release gate。
+這項臨床內容組裝變更必須重新取得臨床與藥事 reviewer 簽核；即使後續受控
+coverage-only round trip 通過，在 `has-data` 與 reviewer 證據補齊前仍不得解除 release gate。
 
-2026-08-24，授權操作者在重新載入 prompt v3／local renderer build 並建立 fresh sealed
-synthetic lab session 後，回報 UI 到達「完整摘要已通過固定格式驗證」。本 repository
-未收集摘要、request／response、key、payload、HAR、log、screenshot 或 session 識別。
-這只完成一筆 fixed-route round trip 的格式成功觀察；repeatability、review/copy、取消與
-scope invalidation、臨床／藥事重新簽核及 release owner 決策仍待完成。
+2026-08-24，授權操作者在重新載入 prompt v3／local renderer build 後，以 coverage-only
+empty synthetic lab case 完成 fixed-route generation 的 fresh-session 重複觀察。固定格式、
+deterministic coverage 語意、review 前後 copy gating、取消、revision、合成病人切換、登出
+與 tab 關閉均回報 bounded PASS。首次 review 曾因 MV3 service worker 重啟遺失 background
+memory scope 而 fail closed；`983313a` 加入只限同 tab／目前 scope 的 sealed snapshot recovery
+後，人工 review/copy 重測與 built-extension restart regression 均通過。
+
+本 repository 未收集摘要、request／response、key、payload、HAR、log、screenshot、clipboard
+內容或 session 識別。人工案例沒有 collected facts，因此不能作為真實 fixed-route `has-data`
+facts 路徑、臨床品質或措辭核准的證據；臨床／藥事、資安／隱私、院方環境與 release owner
+決策仍待完成。
