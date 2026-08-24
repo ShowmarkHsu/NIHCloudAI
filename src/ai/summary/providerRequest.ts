@@ -9,8 +9,10 @@ import {
   fixedFiveSectionSummarySchema,
   type FixedFiveSectionSummary,
 } from '../contracts/summary';
+import type { SnapshotCoverage } from '../contracts/coverage';
 import { type SealedPatientSnapshot, sealVersionedPatientSnapshot } from '../projection/builder';
 import { FIXED_FIVE_SECTION_COVERAGE_POLICY } from '../providers/prompt';
+import { renderDeterministicCoverageSections } from './coverageRenderer';
 import type { SummaryReviewScopeInput } from './stateMachine';
 
 const sourceAliasSchema = z.string().regex(/^S[1-9]\d{0,3}$/);
@@ -45,7 +47,7 @@ const providerSectionJsonSchema = Object.freeze({
     heading: Object.freeze({type: 'string', enum: FIXED_FIVE_SECTION_HEADINGS}),
     content: Object.freeze({
       type: 'string',
-      description: '純文字；has-data 只重述 facts；confirmed-empty 只可用「<類別>：無可用資料」；其他 coverage status 只可用「<類別>：資料缺口，待確認」。不得使用正常、陰性、未發現或其他含「無」的缺資料敘述。',
+      description: '只摘要 has-data facts。local-rendered coverage 不得由 Provider 描述；沒有 has-data facts 或資料缺口 section 可輸出空字串。本機將依 sealed coverage 產生固定文字。',
     }),
     sourceAliases: Object.freeze({
       type: 'array',
@@ -103,6 +105,7 @@ export const FIXED_FIVE_SECTION_PROVIDER_JSON_SCHEMA = Object.freeze({
 export type SealedSummaryRequest = Readonly<{
   scope: SummaryReviewScopeInput;
   prompt: string;
+  coverage: SnapshotCoverage;
   sourceAliases: Readonly<Record<string, string>>;
 }> & Readonly<{[sealedSummaryRequestBrand]: true}>;
 
@@ -143,7 +146,10 @@ export function createSealedSummaryRequest(
       facts,
     });
   return Object.freeze({
-    scope: Object.freeze({...scope}), prompt, sourceAliases: Object.freeze(sourceAliases),
+    scope: Object.freeze({...scope}),
+    prompt,
+    coverage: rebuilt.snapshot.coverage,
+    sourceAliases: Object.freeze(sourceAliases),
     [sealedSummaryRequestBrand]: true as const,
   });
 }
@@ -185,7 +191,11 @@ export function validateProviderSummaryOutput(
       : {status: 'validation-structure-failed'};
   }
 
-  const sections = parsed.data.sections.map((section) => {
+  const renderedSections = renderDeterministicCoverageSections(
+    parsed.data.sections,
+    request.coverage,
+  );
+  const sections = renderedSections.map((section) => {
     const sourceRefs = section.sourceAliases.map((alias) => request.sourceAliases[alias]);
     return {heading: section.heading, content: section.content, sourceRefs};
   });

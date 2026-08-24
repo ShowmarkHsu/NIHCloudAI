@@ -13,12 +13,12 @@ export const FIXED_FIVE_SECTION_RULES_VERSION = CLINICAL_RULES_VERSION;
 
 export const FIXED_FIVE_SECTION_COVERAGE_POLICY = Object.freeze({
   'has-data': 'facts-only',
-  'confirmed-empty': 'confirmed-empty',
-  unauthorized: 'data-gap',
-  'fetch-failure': 'data-gap',
-  'normalization-failure': 'data-gap',
-  'not-collected': 'data-gap',
-  'out-of-scope': 'data-gap',
+  'confirmed-empty': 'local-rendered',
+  unauthorized: 'local-rendered',
+  'fetch-failure': 'local-rendered',
+  'normalization-failure': 'local-rendered',
+  'not-collected': 'local-rendered',
+  'out-of-scope': 'local-rendered',
 } as const);
 
 export const FIXED_FIVE_SECTION_SYSTEM_PROMPT = [
@@ -28,9 +28,9 @@ export const FIXED_FIVE_SECTION_SYSTEM_PROMPT = [
   `章節與順序固定為：${FIXED_FIVE_SECTION_HEADINGS.map((heading) => `【${heading}】`).join(' → ')}。`,
   `目前用藥與過敏使用目前可用資料；近期病程與檢查只使用近 90 日；住院、手術與出院只使用近 1 年。`,
   `timeWindows 必須固定為 medicationsAndAllergies=${FIXED_FIVE_SECTION_TIME_WINDOWS.medicationsAndAllergies}、recentCourseAndTests=${FIXED_FIVE_SECTION_TIME_WINDOWS.recentCourseAndTests}、admissionsProceduresAndDischarge=${FIXED_FIVE_SECTION_TIME_WINDOWS.admissionsProceduresAndDischarge}。`,
-  'coverage status 必須依固定映射處理：has-data 只重述 facts；confirmed-empty 只可寫「<類別>：無可用資料」；unauthorized、fetch-failure、normalization-failure、not-collected、out-of-scope 只可寫「<類別>：資料缺口，待確認」。',
-  '除 confirmed-empty 的固定「無可用資料」外，不得使用「無」、正常、陰性或「未發現」描述 coverage 或缺少的資料。',
-  '【資料缺口與待確認】內容必須同時包含「資料缺口」與「待確認」。',
+  'Provider 只摘要 has-data facts；confirmed-empty、unauthorized、fetch-failure、normalization-failure、not-collected、out-of-scope 全部標記為 local-rendered，由本機 coverage renderer 產生固定文字。',
+  '不得撰寫空資料、缺資料、正常、陰性、「未發現」或任何含「無」的 coverage 敘述；沒有 has-data facts 的 section 可輸出空 content 與空 sourceAliases。',
+  '【資料缺口與待確認】由本機完整取代；Provider 必須輸出空 content 與空 sourceAliases。',
   '只重述來源已明示的事實；不得新增診斷、推測病因或判定控制好壞；不得提出檢查、用藥或治療建議。',
   '每個 section 的 sourceAliases 只可放提供的 S 代號；它們不得出現在 content。內容合計必須是 180–260 個中文字的 UTF-8 純文字；不得輸出來源引用、內部代碼、Provider、model、prompt、schema、Markdown、HTML 或其他中繼資料。',
 ].join('\n');

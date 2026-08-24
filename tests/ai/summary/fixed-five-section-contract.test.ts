@@ -140,8 +140,9 @@ describe('fixed five-section rules prompt', () => {
     expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain('目前可用資料');
     expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain('近 90 日');
     expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain('近 1 年');
-    expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain('「<類別>：無可用資料」');
-    expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain('資料缺口，待確認');
+    expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain('只摘要 has-data facts');
+    expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain('local-rendered');
+    expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain('由本機完整取代');
     expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain('不得新增診斷');
     expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain('不得提出檢查、用藥或治療建議');
     expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain('過敏、異常標記、數值變化或資料矛盾');

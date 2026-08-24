@@ -198,6 +198,14 @@ try {
   if (providerStatusText !== '完整摘要已通過固定格式驗證，請 review。') {
     throw new Error(`MV3 OpenRouter transport loop failed closed: ${providerStatusText}`);
   }
+  const medicationCoverage = await liveFrame.getByLabel('目前用藥與過敏 內容').inputValue();
+  if (medicationCoverage !== '西藥：資料缺口，待確認；中藥：資料缺口，待確認；過敏：資料缺口，待確認。') {
+    throw new Error('MV3 summary did not use the deterministic local medication/allergy coverage rendering');
+  }
+  const dischargeCoverage = await liveFrame.getByLabel('住院、手術與出院 內容').inputValue();
+  if (dischargeCoverage !== '就醫：資料缺口，待確認；處置：資料缺口，待確認；出院：資料缺口，待確認。') {
+    throw new Error('MV3 summary did not use the deterministic local admission/procedure/discharge coverage rendering');
+  }
   if (!receivedSyntheticProviderRequest) {
     throw new Error('OpenRouter request did not leave the MV3 background service worker');
   }

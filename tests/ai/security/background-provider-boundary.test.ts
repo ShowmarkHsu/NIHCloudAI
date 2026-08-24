@@ -52,6 +52,22 @@ function request(revision: number = scope.revision) {
   }, sealed);
 }
 
+function emptyRequest() {
+  const vertical = createLabVerticalSlice({
+    now: () => '2026-08-21T00:00:00.000Z',
+    issueSourceReference: () => 'sr_provider_unused_source_0001',
+  });
+  const sealed = vertical.ingest({
+    patientId: 'pt_provider_patient_00001', sessionId: scope.sessionId, revision: scope.revision,
+  }, {
+    status: 'nodata', dataType: 'labdata', recordCount: 0,
+  })?.sealed;
+  return createSealedSummaryRequest({
+    tabId: scope.tabId, patientId: 'pt_provider_patient_00001', sessionId: scope.sessionId,
+    revision: scope.revision, contractVersion: 'clinical-projection.v1',
+  }, sealed);
+}
+
 type Request = { url: string; init: { body: string; signal: AbortSignal } };
 
 function successfulFetch() {
@@ -183,12 +199,6 @@ describe('background-only Provider boundary', () => {
         },
       },
       {
-        status: 'validation-content-data-gap-failed',
-        mutate(value: ReturnType<typeof JSON.parse>) {
-          value.sections[4].content = `待確認：${'核'.repeat(80)}`;
-        },
-      },
-      {
         status: 'validation-content-bounds-failed',
         mutate(value: ReturnType<typeof JSON.parse>) {
           value.sections[0].content = '重'.repeat(801);
@@ -197,7 +207,7 @@ describe('background-only Provider boundary', () => {
       {
         status: 'validation-length-failed',
         mutate(value: ReturnType<typeof JSON.parse>) {
-          value.sections[0].content = '重'.repeat(100);
+          value.sections[0].content = '重'.repeat(200);
         },
       },
     ] as const;
@@ -312,7 +322,7 @@ describe('background-only Provider boundary', () => {
     expect(sent.response_format.json_schema.schema.properties.sections.items.properties.heading.enum)
       .toEqual(['核對重點', '目前用藥與過敏', '近期病程與檢查', '住院、手術與出院', '資料缺口與待確認']);
     expect(sent.response_format.json_schema.schema.properties.sections.items.properties.content.description)
-      .toContain('confirmed-empty');
+      .toContain('local-rendered');
     expect(JSON.stringify(sent.response_format)).not.toContain('sourceRef');
     expect(sent).not.toHaveProperty('route');
     expect(sent.messages[0]).toMatchObject({role: 'system'});
@@ -344,17 +354,17 @@ describe('background-only Provider boundary', () => {
     });
   });
 
-  it('gives coverage policy system priority so missing data cannot become a negative finding', async () => {
+  it('keeps the Provider task fact-only while local rendering owns coverage wording', async () => {
     const requests: Request[] = [];
     const fetch = vi.fn(async (url: string, init: Request['init']) => {
       requests.push({url, init});
       const sent = JSON.parse(init.body);
       const systemPolicy = sent.messages?.[0]?.role === 'system' &&
         sent.messages[0].content.includes('not-collected') &&
-        sent.messages[0].content.includes('資料缺口，待確認');
+        sent.messages[0].content.includes('local-rendered');
       const sealedCoveragePolicy = sent.messages?.[1]?.role === 'user' &&
         sent.messages[1].content.includes('"coveragePolicy"') &&
-        sent.messages[1].content.includes('"not-collected":"data-gap"');
+        sent.messages[1].content.includes('"not-collected":"local-rendered"');
       const output = JSON.parse(providerOutput());
       if (!systemPolicy || !sealedCoveragePolicy) {
         output.sections[0].content = `未發現用藥資料${'重'.repeat(34)}`;
@@ -375,7 +385,106 @@ describe('background-only Provider boundary', () => {
     const sent = JSON.parse(requests[0]!.init.body);
     expect(sent.messages.map((message: {role: string}) => message.role)).toEqual(['system', 'user']);
     expect(sent.messages[0].content).not.toContain('Synthetic analyte');
+    expect(sent.messages[0].content).toContain('只摘要 has-data facts');
     expect(sent.messages[1].content).not.toContain('pt_provider_patient_00001');
+  });
+
+  it('renders lab-only coverage sections locally instead of accepting Provider gap prose', async () => {
+    const output = JSON.parse(providerOutput());
+    output.sections[0].content = '重'.repeat(45);
+    output.sections[1] = {
+      heading: '目前用藥與過敏', content: `無法確認${'要'.repeat(35)}`, sourceAliases: ['S1'],
+    };
+    output.sections[2].content = '點'.repeat(45);
+    output.sections[3] = {
+      heading: '住院、手術與出院', content: `無法確認${'資'.repeat(35)}`, sourceAliases: ['S1'],
+    };
+    output.sections[4] = {
+      heading: '資料缺口與待確認',
+      content: `資料缺口：無法確認；待確認：${'核'.repeat(70)}`,
+      sourceAliases: ['S1'],
+    };
+    const fetch = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({choices: [{finish_reason: 'stop', message: {content: JSON.stringify(output)}}]}),
+    }));
+    const provider = createBackgroundProviderBoundary({fetch: fetch as never});
+    provider.storeOpenRouterSessionSecret(scope, 'synthetic-byok-value');
+    provider.grantRemoteConsent(scope);
+
+    await expect(provider.generate(scope, 'openrouter', request()!)).resolves.toEqual({
+      status: 'completed',
+      summary: expect.objectContaining({
+        sections: expect.arrayContaining([
+          {
+            heading: '目前用藥與過敏',
+            content: '西藥：資料缺口，待確認；中藥：資料缺口，待確認；過敏：資料缺口，待確認。',
+            sourceRefs: [],
+          },
+          {
+            heading: '住院、手術與出院',
+            content: '就醫：資料缺口，待確認；處置：資料缺口，待確認；出院：資料缺口，待確認。',
+            sourceRefs: [],
+          },
+          {
+            heading: '資料缺口與待確認',
+            content: '就醫、西藥、中藥、過敏、影像、處置、出院、成人健檢、癌症篩檢、B/C 型肝炎及 CKM 衍生資料：資料缺口，待確認。',
+            sourceRefs: [],
+          },
+        ]),
+      }),
+    });
+  });
+
+  it('renders every section locally when the sealed snapshot has no collected facts', async () => {
+    const output = JSON.parse(providerOutput());
+    for (const section of output.sections) {
+      section.content = `無法確認${'待'.repeat(42)}`;
+      section.sourceAliases = [];
+    }
+    const fetch = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({choices: [{finish_reason: 'stop', message: {content: JSON.stringify(output)}}]}),
+    }));
+    const provider = createBackgroundProviderBoundary({fetch: fetch as never});
+    provider.storeOpenRouterSessionSecret(scope, 'synthetic-byok-value');
+    provider.grantRemoteConsent(scope);
+
+    const result = await provider.generate(scope, 'openrouter', emptyRequest()!);
+    expect(result).toEqual({
+      status: 'completed',
+      summary: expect.objectContaining({
+        sections: [
+          {
+            heading: '核對重點',
+            content: '目前僅有資料涵蓋狀態，未提供可供核對的已收集臨床事實；所有類別均須依固定資料缺口規則由人工確認，不得據此推定任何未提供的臨床結論。',
+            sourceRefs: [],
+          },
+          {
+            heading: '目前用藥與過敏',
+            content: '西藥：資料缺口，待確認；中藥：資料缺口，待確認；過敏：資料缺口，待確認。',
+            sourceRefs: [],
+          },
+          {
+            heading: '近期病程與檢查',
+            content: '就醫：資料缺口，待確認；檢驗：無可用資料；影像：資料缺口，待確認。',
+            sourceRefs: [],
+          },
+          {
+            heading: '住院、手術與出院',
+            content: '就醫：資料缺口，待確認；處置：資料缺口，待確認；出院：資料缺口，待確認。',
+            sourceRefs: [],
+          },
+          {
+            heading: '資料缺口與待確認',
+            content: '檢驗：無可用資料；就醫、西藥、中藥、過敏、影像、處置、出院、成人健檢、癌症篩檢、B/C 型肝炎及 CKM 衍生資料：資料缺口，待確認。',
+            sourceRefs: [],
+          },
+        ],
+      }),
+    });
   });
 
   it('does not let an old revision cancel the current revision secret or consent', async () => {
