@@ -3,10 +3,10 @@ import {
   createClosedDataSessionLifecycle,
 } from './closedDataSessionLifecycle';
 import {
-  createLabVerticalSlice,
-  terminalLabResultFromFetchEvent,
-  type LabVerticalSliceResult,
-} from '../integration/labVerticalSlice';
+  createClinicalSnapshotCollector,
+  terminalClinicalResultsFromFetchEvent,
+  type ClinicalSnapshotCollectorResult,
+} from '../integration/clinicalSnapshotCollector';
 import { CLINICAL_PROJECTION_CONTRACT_VERSION } from '../contracts/clinicalProjection';
 import {
   contentCapabilityMessageSchema,
@@ -21,8 +21,8 @@ export type LabSnapshotPresentation = Readonly<{
   sessionId: string;
   revision: number;
   contractVersion: typeof CLINICAL_PROJECTION_CONTRACT_VERSION;
-  coverage: LabVerticalSliceResult['sealed']['snapshot']['coverage'];
-  sourceAliases: LabVerticalSliceResult['sourceAliases'];
+  coverage: ClinicalSnapshotCollectorResult['sealed']['snapshot']['coverage'];
+  sourceAliases: ClinicalSnapshotCollectorResult['sourceAliases'];
 }>;
 
 export type ContentDataSessionRuntimeConfiguration = Readonly<{
@@ -50,7 +50,7 @@ export function installContentDataSessionRuntime(configuration: ContentDataSessi
   let sequence = 0;
   let activeSnapshotMessage: SnapshotMessage | null = null;
   const patientIdBySession = new Map<string, string>();
-  const labs = createLabVerticalSlice({
+  const collector = createClinicalSnapshotCollector({
     now: configuration.now ?? (() => { throw new Error('R1 runtime requires a clock'); }),
     issueSourceReference: configuration.issueSourceReference ?? (() => { throw new Error('R1 runtime requires a source-reference issuer'); }),
   });
@@ -71,8 +71,8 @@ export function installContentDataSessionRuntime(configuration: ContentDataSessi
       }
       return;
     }
-    const terminalLab = terminalLabResultFromFetchEvent(event.detail);
-    if (terminalLab === null) return;
+    const terminalResults = terminalClinicalResultsFromFetchEvent(event.detail);
+    if (terminalResults === null) return;
     const active = lifecycle.activeScope();
     if (active !== null) {
       activeSnapshotMessage = null;
@@ -85,7 +85,10 @@ export function installContentDataSessionRuntime(configuration: ContentDataSessi
     const patientId = patientIdBySession.get(scope.sessionId) ?? configuration.newPatientId?.();
     if (patientId === undefined) return;
     patientIdBySession.set(scope.sessionId, patientId);
-    const result = labs.ingest({patientId, sessionId: scope.sessionId, revision: scope.revision}, terminalLab);
+    const result = collector.ingest(
+      {patientId, sessionId: scope.sessionId, revision: scope.revision},
+      terminalResults,
+    );
     if (result === null) return;
     const parsedSnapshotMessage = contentCapabilityMessageSchema.parse({
       schemaVersion: 'ai-capability-message.v1',
@@ -115,7 +118,7 @@ export function installContentDataSessionRuntime(configuration: ContentDataSessi
     const scope = lifecycle.activeScope();
     if (scope !== null) {
       activeSnapshotMessage = null;
-      labs.discardSession(scope.sessionId);
+      collector.discardSession(scope.sessionId);
       patientIdBySession.delete(scope.sessionId);
       configuration.onLabSnapshotInvalidated?.();
     }
@@ -147,7 +150,7 @@ export function installContentDataSessionRuntime(configuration: ContentDataSessi
       const scope = lifecycle.activeScope();
       if (scope !== null) {
         activeSnapshotMessage = null;
-        labs.discardSession(scope.sessionId);
+        collector.discardSession(scope.sessionId);
         patientIdBySession.delete(scope.sessionId);
         configuration.onLabSnapshotInvalidated?.();
       }

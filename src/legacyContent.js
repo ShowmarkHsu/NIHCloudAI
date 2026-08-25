@@ -288,10 +288,10 @@ function fetchAllDataTypes() {
     if (authorized.has(type)) {
       return fetchSingleDataType(type).catch(err => {
         console.error(`獲取 ${type} 資料時發生錯誤:`, err);
-        return createEmptyDataResult(type);
+        return createFailureDataResult(type, err);
       });
     }
-    return Promise.resolve(createEmptyDataResult(type));
+    return Promise.resolve(createUnauthorizedDataResult(type));
   });
 
   const specialTypes = ["adultHealthCheck", "cancerScreening", "hbcvdata", "labdraw"];
@@ -352,7 +352,9 @@ function fetchSingleDataType(dataType) {
   })
     .then(response => {
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const error = new Error(`HTTP error! status: ${response.status}`);
+        error.status = response.status;
+        throw error;
       }
       return response.json();
     })
@@ -417,6 +419,38 @@ function createEmptyDataResult(dataType) {
     window[varName] = emptyData;
   }
   return { status: "nodata", recordCount: 0, dataType, data: emptyData };
+}
+
+function clearDataForTerminalResult(dataType) {
+  const emptyData = { rObject: [] };
+  const varName = DATA_VAR_MAP.get(dataType);
+  if (varName) {
+    window[varName] = emptyData;
+  }
+}
+
+function createUnauthorizedDataResult(dataType) {
+  clearDataForTerminalResult(dataType);
+  return {
+    status: "unauthorized",
+    recordCount: 0,
+    dataType,
+    reasonCode: "SOURCE_UNAUTHORIZED",
+  };
+}
+
+function createFailureDataResult(dataType, error) {
+  clearDataForTerminalResult(dataType);
+  const status = Number(error?.status);
+  if (status === 401 || status === 403) {
+    return createUnauthorizedDataResult(dataType);
+  }
+  return {
+    status: "failure",
+    recordCount: 0,
+    dataType,
+    reasonCode: error?.name === "TimeoutError" ? "SOURCE_TIMEOUT" : "SOURCE_REQUEST_FAILED",
+  };
 }
 
 function saveToLocalStorage() {

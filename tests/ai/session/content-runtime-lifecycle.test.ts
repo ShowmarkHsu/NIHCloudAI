@@ -1,3 +1,5 @@
+import {readFileSync} from 'node:fs';
+
 import { describe, expect, it, vi } from 'vitest';
 
 import { installContentDataSessionRuntime } from '../../../src/ai/session/contentRuntime';
@@ -5,11 +7,12 @@ import { NHI_CLOUD_ORIGIN } from '../../../src/ai/session/closedDataSessionLifec
 import { createClosedBackgroundDataSessionController } from '../../../src/background/closedDataSessionController';
 
 describe('content runtime data-session lifecycle', () => {
-  it('keeps a freshly sealed terminal lab revision active when a later fetch is unrelated', async () => {
+  it('seals the maintained seven-source product batch once and keeps it active after unrelated events', async () => {
     const listeners = new Map<string, (event: { detail?: unknown }) => void>();
     const storeSnapshot = vi.fn(() => true);
     const controller = createClosedBackgroundDataSessionController({storeSnapshot});
     const onLabSnapshotSealed = vi.fn();
+    let sourceReference = 0;
     const runtime = installContentDataSessionRuntime({
       origin: NHI_CLOUD_ORIGIN,
       send(message) {
@@ -22,20 +25,23 @@ describe('content runtime data-session lifecycle', () => {
       newSessionId: () => 'ds_content_runtime_fresh_lab_00001',
       newPatientId: () => 'pt_content_runtime_fresh_lab_00001',
       now: () => '2026-08-24T00:00:00.000Z',
-      issueSourceReference: () => 'sr_content_runtime_fresh_lab_00001',
+      issueSourceReference: () => `sr_content_runtime_source_${String(++sourceReference).padStart(8, '0')}`,
       onLabSnapshotSealed,
       addEventListener(type, listener) { listeners.set(type, listener); },
       removeEventListener(type) { listeners.delete(type); },
     });
 
-    listeners.get('dataFetchCompleted')?.({detail: [{
-      status: 'success', dataType: 'labdata', recordCount: 1,
-      data: {rObject: [{
-        hosp: 'Synthetic Lab;outpatient;0000000000', real_inspect_date: '2026/08/24',
-        order_code: 'LAB-001', assay_item_name: 'Synthetic analyte', assay_value: '1.0',
-        unit_data: 'mg/dL', consult_value: '0-2', assay_mark: '0',
-      }]},
-    }]});
+    const fixture = JSON.parse(readFileSync(
+      new URL('../../test_data/demoPatient_on_NHIcloud2_240414.json', import.meta.url),
+      'utf8',
+    )) as Record<string, {readonly rObject?: readonly unknown[]}>;
+    listeners.get('dataFetchCompleted')?.({detail: ([
+      ['medication', 'medication'], ['chinesemed', 'chinesemed'], ['allergy', 'allergy'],
+      ['labdata', 'lab'], ['imaging', 'imaging'], ['surgery', 'surgery'], ['discharge', 'discharge'],
+    ] as const).map(([dataType, fixtureKey]) => ({
+      status: 'success', dataType, recordCount: fixture[fixtureKey]?.rObject?.length ?? 0,
+      data: {rObject: fixture[fixtureKey]?.rObject ?? []},
+    }))});
     listeners.get('dataFetchCompleted')?.({detail: {status: 'success', dataType: 'unrelated'}});
     await Promise.resolve();
     await Promise.resolve();
@@ -45,6 +51,18 @@ describe('content runtime data-session lifecycle', () => {
     });
     expect(storeSnapshot).toHaveBeenCalledOnce();
     expect(onLabSnapshotSealed).toHaveBeenCalledOnce();
+    expect(onLabSnapshotSealed).toHaveBeenCalledWith(expect.objectContaining({
+      coverage: expect.objectContaining({
+        encounter: expect.objectContaining({status: 'not-collected'}),
+        'western-medication': expect.objectContaining({status: 'has-data'}),
+        'chinese-medication': expect.objectContaining({status: 'has-data'}),
+        allergy: expect.objectContaining({status: 'has-data'}),
+        lab: expect.objectContaining({status: 'has-data'}),
+        imaging: expect.objectContaining({status: 'has-data'}),
+        procedure: expect.objectContaining({status: 'has-data'}),
+        discharge: expect.objectContaining({status: 'has-data'}),
+      }),
+    }));
     runtime.dispose();
   });
 

@@ -45,6 +45,32 @@ function triggerDataFetchCompleted(dataType) {
   }, 100);
 }
 
+function triggerClinicalDataFetchCompleted(jsonData) {
+  const clinicalDataTypes = new Map([
+    ['medication', 'medication'],
+    ['chinesemed', 'chinesemed'],
+    ['allergy', 'allergy'],
+    ['lab', 'labdata'],
+    ['imaging', 'imaging'],
+    ['surgery', 'surgery'],
+    ['discharge', 'discharge'],
+  ]);
+  const terminalResults = [];
+  for (const [sourceKey, dataType] of clinicalDataTypes.entries()) {
+    const source = jsonData[sourceKey];
+    if (!source || !Array.isArray(source.rObject)) continue;
+    terminalResults.push({
+      status: 'success',
+      dataType,
+      recordCount: source.rObject.length,
+      data: {rObject: source.rObject},
+    });
+  }
+  if (terminalResults.length > 0) {
+    window.dispatchEvent(new CustomEvent('dataFetchCompleted', {detail: terminalResults}));
+  }
+}
+
 /**
  * 通知擴充功能資料已載入
  * @param {string} source - 資料來源
@@ -212,6 +238,7 @@ export async function processLocalData(jsonData, filename) {
         handler();
       }
     }
+    triggerClinicalDataFetchCompleted(jsonData);
 
     // 讀取 JSON 頂層的使用者資訊（若有），供 FloatingIcon 顯示
     window._localUserInfo = {
