@@ -90,6 +90,8 @@ function fixedRequest(provider: SummaryProvider, secret: string | undefined, req
       body: JSON.stringify({
         model: OLLAMA_MODEL,
         prompt: `${FIXED_FIVE_SECTION_SYSTEM_PROMPT}\n\n${request.prompt}`,
+        format: FIXED_FIVE_SECTION_PROVIDER_JSON_SCHEMA,
+        options: {temperature: 0, seed: 0},
         stream: false,
       }),
     };

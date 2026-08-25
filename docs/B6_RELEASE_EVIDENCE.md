@@ -4,7 +4,8 @@
 > bounded controlled manual evidence。
 > AI 頁籤已透過 extension-origin iframe 接上 sealed request 與 background-only
 > Provider boundary；machine-verifiable gate 只使用合成資料與 loopback request。另有
-> 受控 coverage-only 與 `has-data` synthetic OpenRouter 人工觀察，必須與本文件的自動化證據分開判讀。不得把本文件
+> 受控 coverage-only 與 `has-data` synthetic OpenRouter 人工觀察，以及後續固定本機
+> Ollama coverage-only CLI seam，必須與本文件的自動化證據分開判讀。不得把本文件
 > 解讀為一般 Provider 可用、release ready 或臨床驗收完成。完整缺口與復原順序見
 > [`PROJECT_RECOVERY_PLAN.md`](PROJECT_RECOVERY_PLAN.md)。
 
@@ -26,7 +27,7 @@ The generated-artifact check fails when any of the following occurs:
 - A source map or source-map reference is shipped.
 - A shipped text artifact contains an API-key or bearer-token shaped value.
 
-Provider execution is background-only. The code fixes Ollama to the loopback endpoint/model and fixes the OpenRouter request route/model; OpenRouter has only an optional host permission and cannot send until the exact current revision has an in-memory BYOK value, explicit outbound-data consent, and the optional host grant. The fixed OpenRouter request includes a strict closed JSON schema plus `require_parameters: true`; the local Zod contract remains authoritative and rejects invalid section order, wording, character limits, or source aliases without exposing response content. The MV3 regression additionally verifies that the runtime calls worker-global `fetch` with its required receiver instead of passing it as an unbound function. The release check rejects source maps and secret-shaped values in `dist`; neither that check nor the loopback transport test is evidence of a real Provider connection, account, model availability, or route acceptance.
+Provider execution is background-only. The code fixes Ollama to the loopback endpoint/model and fixes the OpenRouter request route/model; OpenRouter has only an optional host permission and cannot send until the exact current revision has an in-memory BYOK value, explicit outbound-data consent, and the optional host grant. Both Provider requests now carry the same strict closed JSON schema; Ollama also fixes `temperature: 0` and `seed: 0`, while OpenRouter additionally fixes `require_parameters: true`. The local Zod contract remains authoritative and rejects invalid section order, wording, character limits, or source aliases without exposing response content. The MV3 regression additionally verifies that the runtime calls worker-global `fetch` with its required receiver instead of passing it as an unbound function. The release check rejects source maps and secret-shaped values in `dist`; neither that check nor the loopback transport test is evidence of a real Provider connection, account, model availability, or route acceptance.
 
 After a controlled synthetic OpenRouter attempt reached the local whole-document gate, the previous single `validation-failed` state was split into bounded fail-closed categories: missing output, truncated output, JSON structure, source alias, content policy, and Chinese-character count. A subsequent controlled attempt reached the content-policy category, which is further divided into forbidden metadata/formatting, missing-data-as-negative wording, fixed data-gap wording, and per-field bounds. These categories contain no response text, request text, aliases, counts, HTTP details, Zod issues, or Provider payload. They are diagnostic evidence only; the later coverage-only successful observations below do not extend them into `has-data` or clinical acceptance evidence.
 
@@ -45,6 +46,23 @@ The operator then completed a separate non-empty synthetic lab preflight: lab co
 No summary text, Provider request or response, key, raw payload, HAR, log, screenshot, patient/session identifier, or clipboard content was collected. Fresh-session repeatability was observed only for the no-collected-facts case; the real fixed-route `has-data` path currently has one bounded successful observation. These observations do not establish `has-data` repeatability, overall clinical quality, general Provider availability, artifact approval, or release approval. Separate clinical and pharmacy approval of the deterministic coverage wording is recorded below and does not broaden these runtime observations.
 
 The user subsequently reported that the security/privacy owner and the hospital/environment owner approved their respective gates. Clinical and pharmacy reviewers then independently reported all five wording cases passing, all six reviewer questions approved, and a final approval of the current deterministic coverage wording. This repository records only those bounded approval states; no approver identity, signature reference, account detail, environment identifier, or controlled-system link was collected. Overall clinical acceptance and the release-owner decision remain pending.
+
+## Controlled local Ollama CLI observation — 2026-08-25
+
+An explicitly authorized local-only preflight confirmed the fixed loopback service and pinned
+`gemma4:e2b-it-qat` model/digest were available. The first fixed boundary attempt reproduced the
+operator's bounded `validation-structure-failed` UI state without exposing Provider output. The
+Ollama request had not carried the existing fixed JSON schema; a red boundary regression captured
+that omission before the request was changed to include the schema and deterministic sampling.
+
+The same real fixed coverage-only synthetic seam then completed twice through the unchanged full
+validator and deterministic coverage renderer. The test records only PASS and the final bounded
+`completed` state; it does not print or retain request/response bodies, summary text, source aliases,
+session identifiers, logs, HAR, screenshots, or clipboard content. Exploratory `has-data` runs moved
+past structure but were rejected by the unchanged semantic gates, including negative-wording,
+metadata, and field-bound categories. Therefore this evidence proves only repeatable local
+coverage-only CLI completion. It does not prove Ollama `has-data` acceptance, extension-UI retest,
+general model quality, clinical acceptance, artifact approval, or release approval.
 
 R1 additionally exercises one real local product seam: a terminal upstream lab result is normalized and quarantined inside a closed module, sealed with coverage and a local reference vault, accepted by the background store, and rendered in the existing AI tab as coverage plus opaque source aliases. It does not invoke an LLM. R2/R3 attach an extension-origin iframe: it receives a scope only, reads public coverage/labels through the background, and can request fixed Ollama or OpenRouter generation. The iframe is the sole secret-entry surface; BYOK, explicit remote consent, optional host grants, request construction, timeout/cancellation, and strict whole-document validation are background-owned. The code and synthetic tests do not prove an installed Ollama, valid OpenRouter account/key, model availability, or successful external request. Error, cancellation, session end, revision change, and patient change clear review/copy eligibility. No visual snapshot update is part of this gate.
 
@@ -88,5 +106,8 @@ The authorized release owner reported the following bounded decision:
 No release-owner identity, signature, controlled-system content, or approval reference was collected.
 Permission to continue controlled development validation is not deployment approval, clinical-use
 approval, a standing authorization for external data transfer, or permission to push this branch.
+
+The later 2026-08-25 coverage-only Ollama CLI evidence narrows one Provider gap but does not change
+the release owner's artifact rejection, pending provenance decision, or formal publication rejection.
 
 Passing `verify:release` is evidence of code and artifact hygiene, not a clinical validation, deployment approval, or provider end-to-end certification.

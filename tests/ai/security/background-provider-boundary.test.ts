@@ -5,7 +5,10 @@ import {
   OPENROUTER_GENERATE_ENDPOINT,
   createBackgroundProviderBoundary,
 } from '../../../src/ai/providers/backgroundProviderBoundary';
-import { createSealedSummaryRequest } from '../../../src/ai/summary/providerRequest';
+import {
+  FIXED_FIVE_SECTION_PROVIDER_JSON_SCHEMA,
+  createSealedSummaryRequest,
+} from '../../../src/ai/summary/providerRequest';
 import { createLabVerticalSlice } from '../../../src/ai/integration/labVerticalSlice';
 
 const scope = {
@@ -350,6 +353,29 @@ describe('background-only Provider boundary', () => {
     provider.grantRemoteConsent(scope);
 
     await expect(provider.generate(scope, 'openrouter', request()!)).resolves.toMatchObject({
+      status: 'completed',
+    });
+  });
+
+  it('requires schema-constrained output so Ollama cannot return an unparseable document', async () => {
+    const fetch = vi.fn(async (_url: string, init: Request['init']) => {
+      const sent = JSON.parse(init.body);
+      const hasFixedRequest = JSON.stringify(sent.format) ===
+          JSON.stringify(FIXED_FIVE_SECTION_PROVIDER_JSON_SCHEMA) &&
+        sent.options?.temperature === 0 && sent.options?.seed === 0;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          response: hasFixedRequest
+            ? providerOutput()
+            : `\`\`\`json\n${providerOutput()}\n\`\`\``,
+        }),
+      };
+    });
+    const provider = createBackgroundProviderBoundary({fetch: fetch as never});
+
+    await expect(provider.generate(scope, 'ollama', request()!)).resolves.toMatchObject({
       status: 'completed',
     });
   });
