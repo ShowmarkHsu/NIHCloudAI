@@ -55,7 +55,7 @@ export const encounterRecordSchema = z
     date: localDateSchema,
     facility: boundedTextSchema,
     encounterType: z.enum(['outpatient', 'emergency', 'inpatient', 'pharmacy']),
-    diagnosis: diagnosisSchema,
+    diagnosis: diagnosisSchema.nullable(),
   })
   .strict()
   .readonly();

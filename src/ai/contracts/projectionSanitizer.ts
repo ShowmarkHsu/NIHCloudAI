@@ -140,8 +140,12 @@ function collectClinicalText(record: PhaseOneSourceRecord): readonly string[] {
         record.date,
         record.facility,
         record.encounterType,
-        record.diagnosis.name,
-        ...(record.diagnosis.code === null ? [] : [record.diagnosis.code]),
+        ...(record.diagnosis === null
+          ? []
+          : [
+              record.diagnosis.name,
+              ...(record.diagnosis.code === null ? [] : [record.diagnosis.code]),
+            ]),
       ]);
     case 'western-medication':
     case 'chinese-medication':

@@ -112,10 +112,12 @@ describe('revision-wide clinical snapshot collector', () => {
       allergy: {status: 'unauthorized', recordCount: 0, reasonCode: 'SOURCE_UNAUTHORIZED'},
       imaging: {status: 'fetch-failure', recordCount: 0, reasonCode: 'SOURCE_REQUEST_FAILED'},
       lab: {status: 'has-data', recordCount: 1},
-      encounter: {status: 'not-collected', recordCount: 0, reasonCode: 'SOURCE_NOT_COLLECTED'},
+      encounter: {status: 'has-data', recordCount: 1},
     });
-    expect(result?.sealed.snapshot.records).toHaveLength(1);
-    expect(result?.sealed.snapshot.records[0]?.sourceFamily).toBe('lab');
+    expect(result?.sealed.snapshot.records).toHaveLength(2);
+    expect(result?.sealed.snapshot.records.map((record) => record.sourceFamily)).toEqual([
+      'encounter', 'lab',
+    ]);
   });
 
   it('rejects duplicate family results and requires a newer revision with fresh references', () => {
@@ -155,13 +157,36 @@ describe('revision-wide clinical snapshot collector', () => {
       ([family, coverage]) => [family, coverage.status],
     ))).toMatchObject({
       'western-medication': 'has-data', 'chinese-medication': 'has-data',
-      allergy: 'has-data', lab: 'has-data', imaging: 'has-data', procedure: 'has-data',
+      encounter: 'has-data', allergy: 'has-data', lab: 'has-data', imaging: 'has-data', procedure: 'has-data',
       discharge: 'has-data',
     });
-    expect(result?.sealed.snapshot.coverage.encounter.status).toBe('not-collected');
+    expect(result?.sealed.snapshot.coverage.encounter).toEqual({status: 'has-data', recordCount: 34});
+    expect(result?.sealed.snapshot.records.filter(
+      (record) => record.sourceFamily === 'encounter' && record.diagnosis === null,
+    )).not.toHaveLength(0);
     const serialized = JSON.stringify(result?.sealed.snapshot);
     for (const forbidden of ['hosp_id', 'mds_file', 'mds_pdf_file', 'ipl_case_seq_no', 'drug_ing_code']) {
       expect(serialized).not.toContain(forbidden);
     }
+  });
+
+  it('does not seal a partial claims encounter family when one required claim source is unauthorized', () => {
+    const result = collector().ingest(scope, [
+      success('medication', {
+        drug_date: '2026/08/20', hosp: 'Synthetic Clinic;門診',
+        drug_ename: 'Synthetic medicine', qty: 1, drug_fre: 'QD', day: 1,
+        icd_code: 'Z00.0', icd_cname: 'Synthetic diagnosis',
+      }),
+      {
+        status: 'unauthorized', dataType: 'chinesemed', recordCount: 0,
+        reasonCode: 'SOURCE_UNAUTHORIZED',
+      },
+    ]);
+
+    expect(result?.sealed.snapshot.coverage.encounter).toEqual({
+      status: 'unauthorized', recordCount: 0, reasonCode: 'SOURCE_UNAUTHORIZED',
+    });
+    expect(result?.sealed.snapshot.coverage['western-medication'].status).toBe('has-data');
+    expect(result?.sealed.snapshot.records.some((record) => record.sourceFamily === 'encounter')).toBe(false);
   });
 });

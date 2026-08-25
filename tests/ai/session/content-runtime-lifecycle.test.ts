@@ -53,7 +53,7 @@ describe('content runtime data-session lifecycle', () => {
     expect(onLabSnapshotSealed).toHaveBeenCalledOnce();
     expect(onLabSnapshotSealed).toHaveBeenCalledWith(expect.objectContaining({
       coverage: expect.objectContaining({
-        encounter: expect.objectContaining({status: 'not-collected'}),
+        encounter: expect.objectContaining({status: 'has-data', recordCount: 34}),
         'western-medication': expect.objectContaining({status: 'has-data'}),
         'chinese-medication': expect.objectContaining({status: 'has-data'}),
         allergy: expect.objectContaining({status: 'has-data'}),

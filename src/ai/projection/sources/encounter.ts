@@ -9,8 +9,16 @@ const normalizedEncounterSchema = z.object({
   facility: z.string().min(1).max(256),
   encounterType: z.enum(['outpatient', 'emergency', 'inpatient', 'pharmacy']),
   diagnosisCode: z.string().min(1).max(64).nullable(),
-  diagnosisName: z.string().min(1).max(256),
-}).strict();
+  diagnosisName: z.string().min(1).max(256).nullable(),
+}).strict().superRefine((value, context) => {
+  if (value.diagnosisName === null && value.diagnosisCode !== null) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'diagnosis code cannot be present without a diagnosis name',
+      path: ['diagnosisCode'],
+    });
+  }
+});
 
 export function projectEncounterSourceFamily(
   normalizedRecords: unknown,
@@ -32,7 +40,9 @@ export function projectEncounterSourceFamily(
     records.push({
       sourceFamily: 'encounter', sourceRef, date: normalized.date, facility: normalized.facility,
       encounterType: normalized.encounterType,
-      diagnosis: {code: normalized.diagnosisCode, name: normalized.diagnosisName},
+      diagnosis: normalized.diagnosisName === null
+        ? null
+        : {code: normalized.diagnosisCode, name: normalized.diagnosisName},
     });
   }
 

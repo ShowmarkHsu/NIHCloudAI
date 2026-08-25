@@ -4,7 +4,11 @@ import {
   CLINICAL_PROJECTION_CONTRACT_VERSION,
   type PhaseOneSourceRecord,
 } from '../contracts/clinicalProjection';
-import {type PhaseOneSourceFamily, type SnapshotCoverage} from '../contracts/coverage';
+import {
+  type PhaseOneCoverage,
+  type PhaseOneSourceFamily,
+  type SnapshotCoverage,
+} from '../contracts/coverage';
 import {
   dataSessionIdSchema,
   opaquePatientIdSchema,
@@ -178,17 +182,22 @@ function encounterType(record: Record<string, unknown>): 'outpatient' | 'emergen
   return null;
 }
 
-function normalizeEncounterRow(value: unknown): unknown | null {
+function normalizeEncounterRowForDateKeys(value: unknown, dateKeys: readonly string[]): unknown | null {
   if (!isPlainRecord(value)) return null;
-  const date = rowDate(value, ['date', 'func_date', 'visit_date']);
+  const date = rowDate(value, dateKeys);
   const sourceFacility = facility(value);
   const sourceEncounterType = encounterType(value);
   const diagnosisName = firstString(value, ['diagnosis_name', 'icd_cname']);
-  if (date === null || sourceFacility === null || sourceEncounterType === null || diagnosisName === null) return null;
+  if (date === null || sourceFacility === null || sourceEncounterType === null) return null;
   return Object.freeze({
     date, facility: sourceFacility, encounterType: sourceEncounterType,
-    diagnosisCode: firstString(value, ['diagnosis_code', 'icd_code']), diagnosisName,
+    diagnosisCode: diagnosisName === null ? null : firstString(value, ['diagnosis_code', 'icd_code']),
+    diagnosisName,
   });
+}
+
+function normalizeEncounterRow(value: unknown): unknown | null {
+  return normalizeEncounterRowForDateKeys(value, ['date', 'func_date', 'visit_date']);
 }
 
 const DAILY_FREQUENCIES = Object.freeze(new Map<string, number>([
@@ -389,6 +398,95 @@ function projectSuccess(
   return definition.project(normalized, knownDirectIdentifiers, issueSourceReference);
 }
 
+type ClaimsEncounterOutcome = Readonly<{
+  coverage: PhaseOneCoverage;
+  records: readonly PhaseOneSourceRecord[];
+}>;
+
+/**
+ * Projects only explicit visit-header fields already present on both claim
+ * sources. Both western and Chinese claim terminals must be available so the
+ * encounter family is never presented as complete from a partial source set.
+ */
+function claimsEncounterOutcome(
+  terminals: readonly TerminalSourceResult[],
+  knownDirectIdentifiers: unknown,
+  issueSourceReference: () => unknown,
+): ClaimsEncounterOutcome | null {
+  if (terminals.some((terminal) => terminal.dataType === 'encounter')) return null;
+  const claimTerminals = terminals.filter((terminal) =>
+    terminal.dataType === 'medication' || terminal.dataType === 'chinesemed',
+  );
+  if (claimTerminals.length !== 2) return null;
+
+  const failed = claimTerminals.find((terminal) => terminal.status === 'failure');
+  if (failed?.status === 'failure') {
+    return Object.freeze({
+      coverage: {
+        status: 'fetch-failure', recordCount: 0, reasonCode: failed.reasonCode,
+      },
+      records: Object.freeze([]),
+    });
+  }
+  if (claimTerminals.some((terminal) => terminal.status === 'unauthorized')) {
+    return Object.freeze({
+      coverage: {
+        status: 'unauthorized', recordCount: 0, reasonCode: 'SOURCE_UNAUTHORIZED',
+      },
+      records: Object.freeze([]),
+    });
+  }
+
+  const normalized: unknown[] = [];
+  for (const terminal of claimTerminals) {
+    if (terminal.status !== 'success') continue;
+    if (terminal.recordCount !== undefined && terminal.recordCount !== terminal.data.rObject.length) {
+      return Object.freeze({
+        coverage: {
+          status: 'normalization-failure', recordCount: 0, reasonCode: 'SOURCE_SCHEMA_REJECTED',
+        },
+        records: Object.freeze([]),
+      });
+    }
+    const dateKeys = terminal.dataType === 'medication'
+      ? ['drug_date', 'PER_DATE', 'date']
+      : ['func_date', 'date'];
+    const familyRows = terminal.data.rObject.map((row) =>
+      normalizeEncounterRowForDateKeys(row, dateKeys),
+    );
+    if (familyRows.some((row) => row === null)) {
+      return Object.freeze({
+        coverage: {
+          status: 'normalization-failure', recordCount: 0, reasonCode: 'SOURCE_SCHEMA_REJECTED',
+        },
+        records: Object.freeze([]),
+      });
+    }
+    normalized.push(...familyRows);
+  }
+
+  const deduplicated = [...new Map(normalized.map((row) => [JSON.stringify(row), row])).values()];
+  const projected = projectEncounterSourceFamily(
+    deduplicated,
+    knownDirectIdentifiers,
+    issueSourceReference,
+  );
+  if (projected.status === 'quarantined') {
+    return Object.freeze({
+      coverage: {
+        status: 'normalization-failure', recordCount: 0, reasonCode: projected.reasonCode,
+      },
+      records: Object.freeze([]),
+    });
+  }
+  return Object.freeze({
+    coverage: projected.records.length === 0
+      ? {status: 'confirmed-empty', recordCount: 0}
+      : {status: 'has-data', recordCount: projected.records.length},
+    records: projected.records,
+  });
+}
+
 /**
  * The revision-wide deep module. Its caller supplies one terminal source batch
  * and a closed scope; source allowlists, normalization, family quarantine,
@@ -407,6 +505,15 @@ export function createClinicalSnapshotCollector(configuration: ClinicalSnapshotC
       const coverage = baselineCoverage();
       const records: PhaseOneSourceRecord[] = [];
       const identifiers = configuration.knownDirectIdentifiers?.() ?? [];
+      const claimsEncounter = claimsEncounterOutcome(
+        terminals,
+        identifiers,
+        configuration.issueSourceReference,
+      );
+      if (claimsEncounter !== null) {
+        coverage.encounter = claimsEncounter.coverage;
+        records.push(...claimsEncounter.records);
+      }
       for (const terminal of terminals) {
         const family = DATA_TYPE_TO_FAMILY[terminal.dataType];
         if (terminal.status === 'success') {
