@@ -9,7 +9,7 @@ const presentAllergySchema = z.object({
   facility: z.string().min(1).max(256),
   status: z.literal('present'),
   allergen: z.string().min(1).max(256),
-  reaction: z.string().min(1).max(256).nullable(),
+  reaction: z.string().min(1).max(8_000).nullable(),
   severity: z.string().min(1).max(256).nullable(),
 }).strict();
 

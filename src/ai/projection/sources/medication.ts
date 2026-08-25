@@ -10,7 +10,7 @@ const normalizedMedicationSchema = z.object({
   medicationName: z.string().min(1).max(256),
   ingredient: z.string().min(1).max(256).nullable(),
   dosePerAdministration: z.union([z.number().finite().nonnegative(), z.literal('source-stated-special')]),
-  doseUnit: z.string().min(1).max(256),
+  doseUnit: z.string().min(1).max(256).nullable(),
   frequency: z.string().min(1).max(256),
   days: z.number().int().positive().max(365),
 }).strict();

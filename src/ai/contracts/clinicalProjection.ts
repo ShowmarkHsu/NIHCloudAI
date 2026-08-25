@@ -24,6 +24,11 @@ const boundedTextSchema = z
   .min(1)
   .max(CLINICAL_CONTRACT_LIMITS.boundedText);
 const nullableBoundedTextSchema = boundedTextSchema.nullable();
+const nullableFreeTextSchema = z
+  .string()
+  .min(1)
+  .max(CLINICAL_CONTRACT_LIMITS.freeText)
+  .nullable();
 const codeSchema = z.string().min(1).max(CLINICAL_CONTRACT_LIMITS.code);
 const nullableCodeSchema = codeSchema.nullable();
 const localDateSchema = z.string().date();
@@ -67,7 +72,7 @@ const westernMedicationRecordObjectSchema = z
       nonNegativeFiniteNumberSchema,
       z.literal('source-stated-special'),
     ]),
-    doseUnit: boundedTextSchema,
+    doseUnit: nullableBoundedTextSchema,
     frequency: boundedTextSchema,
     days: z.number().int().positive().max(365),
   })
@@ -88,7 +93,7 @@ const chineseMedicationRecordObjectSchema = z
       nonNegativeFiniteNumberSchema,
       z.literal('source-stated-special'),
     ]),
-    doseUnit: boundedTextSchema,
+    doseUnit: nullableBoundedTextSchema,
     frequency: boundedTextSchema,
     days: z.number().int().positive().max(365),
   })
@@ -105,7 +110,7 @@ const presentAllergyRecordObjectSchema = z
     facility: boundedTextSchema,
     status: z.literal('present'),
     allergen: boundedTextSchema,
-    reaction: nullableBoundedTextSchema,
+    reaction: nullableFreeTextSchema,
     severity: nullableBoundedTextSchema,
   })
   .strict();
@@ -181,10 +186,10 @@ export const dischargeRecordSchema = z
   .object({
     sourceFamily: z.literal('discharge'),
     sourceRef: sourceReferenceSchema,
-    admissionDate: localDateSchema,
+    admissionDate: localDateSchema.nullable(),
     dischargeDate: localDateSchema,
     facility: boundedTextSchema,
-    diagnosis: diagnosisSchema,
+    diagnosis: diagnosisSchema.nullable(),
     summaryText: z
       .string()
       .min(1)

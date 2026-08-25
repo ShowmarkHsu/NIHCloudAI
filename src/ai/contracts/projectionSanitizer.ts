@@ -149,8 +149,8 @@ function collectClinicalText(record: PhaseOneSourceRecord): readonly string[] {
         record.date,
         record.facility,
         record.medicationName,
-        record.doseUnit,
         record.frequency,
+        ...(record.doseUnit === null ? [] : [record.doseUnit]),
         ...(record.ingredient === null ? [] : [record.ingredient]),
       ]);
     case 'allergy':
@@ -205,11 +205,15 @@ function collectClinicalText(record: PhaseOneSourceRecord): readonly string[] {
       ]);
     case 'discharge':
       return Object.freeze([
-        record.admissionDate,
+        ...(record.admissionDate === null ? [] : [record.admissionDate]),
         record.dischargeDate,
         record.facility,
-        record.diagnosis.name,
-        ...(record.diagnosis.code === null ? [] : [record.diagnosis.code]),
+        ...(record.diagnosis === null
+          ? []
+          : [
+              record.diagnosis.name,
+              ...(record.diagnosis.code === null ? [] : [record.diagnosis.code]),
+            ]),
         ...(record.summaryText === null ? [] : [record.summaryText]),
       ]);
   }

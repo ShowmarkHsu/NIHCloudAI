@@ -19,6 +19,7 @@ const boundedTextSchema = z
   .string()
   .min(1)
   .max(CLINICAL_CONTRACT_LIMITS.boundedText);
+const nullableBoundedTextSchema = boundedTextSchema.nullable();
 const codeSchema = z.string().min(1).max(CLINICAL_CONTRACT_LIMITS.code);
 const nullableCodeSchema = codeSchema.nullable();
 
@@ -30,7 +31,7 @@ const diagnosisSchema = z
   .strict();
 
 const dischargeCoreSchema = z.object({
-  admissionDate: z.string().date(),
+  admissionDate: z.string().date().nullable(),
   dischargeDate: z.string().date(),
   facility: boundedTextSchema,
   summaryText: z
@@ -43,13 +44,22 @@ const dischargeCoreSchema = z.object({
 const normalizedDischargeFlatSchema = dischargeCoreSchema
   .extend({
     diagnosisCode: nullableCodeSchema,
-    diagnosisName: boundedTextSchema,
+    diagnosisName: nullableBoundedTextSchema,
   })
-  .strict();
+  .strict()
+  .superRefine((value, context) => {
+    if (value.diagnosisName === null && value.diagnosisCode !== null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'diagnosis code cannot be present without a diagnosis name',
+        path: ['diagnosisCode'],
+      });
+    }
+  });
 
 const normalizedDischargeNestedSchema = dischargeCoreSchema
   .extend({
-    diagnosis: diagnosisSchema,
+    diagnosis: diagnosisSchema.nullable(),
   })
   .strict();
 
@@ -62,8 +72,9 @@ type NormalizedDischarge = z.infer<typeof normalizedDischargeSchema>;
 
 function dischargeDiagnosis(
   normalized: NormalizedDischarge,
-): {readonly code: string | null; readonly name: string} {
+): {readonly code: string | null; readonly name: string} | null {
   if ('diagnosis' in normalized) return normalized.diagnosis;
+  if (normalized.diagnosisName === null) return null;
   return {
     code: normalized.diagnosisCode,
     name: normalized.diagnosisName,
@@ -78,8 +89,7 @@ function dischargeTextFailure(
   return canonicalTextFailure(
     [
       normalized.facility,
-      diagnosis.code,
-      diagnosis.name,
+      ...(diagnosis === null ? [] : [diagnosis.code, diagnosis.name]),
       normalized.summaryText,
     ],
     knownDirectIdentifiers,
