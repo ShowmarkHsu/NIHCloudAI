@@ -61,8 +61,14 @@ validator and deterministic coverage renderer. The test records only PASS and th
 session identifiers, logs, HAR, screenshots, or clipboard content. Exploratory `has-data` runs moved
 past structure but were rejected by the unchanged semantic gates, including negative-wording,
 metadata, and field-bound categories. Therefore this evidence proves only repeatable local
-coverage-only CLI completion. It does not prove Ollama `has-data` acceptance, extension-UI retest,
-general model quality, clinical acceptance, artifact approval, or release approval.
+coverage-only CLI completion.
+
+After rebuilding and reloading the extension, the authorized operator then reported bounded PASS
+for the matching real Ollama coverage-only UI generation, fixed five-section/full-validator state,
+copy remaining disabled before review, and copy becoming enabled only after explicit review. No UI
+content or screenshot was collected. This extends the observation to one built-extension UI retest;
+it does not prove Ollama `has-data` acceptance or repeatability, general model quality, clinical
+acceptance, artifact approval, or release approval.
 
 R1 additionally exercises one real local product seam: a terminal upstream lab result is normalized and quarantined inside a closed module, sealed with coverage and a local reference vault, accepted by the background store, and rendered in the existing AI tab as coverage plus opaque source aliases. It does not invoke an LLM. R2/R3 attach an extension-origin iframe: it receives a scope only, reads public coverage/labels through the background, and can request fixed Ollama or OpenRouter generation. The iframe is the sole secret-entry surface; BYOK, explicit remote consent, optional host grants, request construction, timeout/cancellation, and strict whole-document validation are background-owned. The code and synthetic tests do not prove an installed Ollama, valid OpenRouter account/key, model availability, or successful external request. Error, cancellation, session end, revision change, and patient change clear review/copy eligibility. No visual snapshot update is part of this gate.
 

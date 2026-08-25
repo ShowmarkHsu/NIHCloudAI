@@ -23,7 +23,7 @@
 
 ## 目前必須承認的缺口
 
-1. R2/R3 的程式與合成測試已接上；受控 coverage-only synthetic OpenRouter 已完成 fresh-session 重複性、review/copy、取消及 scope 失效觀察，另有一筆真實 fixed-route `has-data` synthetic facts bounded 成功。固定本機 Ollama coverage-only CLI seam 已連續兩次完成，但 `has-data` Ollama 仍被完整語意 validator 拒絕，extension UI 亦待重測。臨床與藥事已核准 deterministic coverage wording，但 `has-data` 重複性、整體臨床品質與 release acceptance 仍未完成。
+1. R2/R3 的程式與合成測試已接上；受控 coverage-only synthetic OpenRouter 已完成 fresh-session 重複性、review/copy、取消及 scope 失效觀察，另有一筆真實 fixed-route `has-data` synthetic facts bounded 成功。固定本機 Ollama coverage-only CLI seam 已連續兩次完成，built-extension UI generation／完整 validator／review-copy gating 重測亦通過；但 `has-data` Ollama 仍被完整語意 validator 拒絕。臨床與藥事已核准 deterministic coverage wording，但 `has-data` 重複性、整體臨床品質與 release acceptance 仍未完成。
 2. projection adapters 除檢驗外仍只在合成測試中執行，尚未接到其他 upstream source family 的逐筆資料 seam。
 3. actual extension browser test 證明已載入 iframe 會 fail closed、可完成 loopback Provider round trip，且 MV3 service worker 重啟後只恢復同 tab 的目前 sealed scope 供 review；真實 Provider 與 NHI-origin 流程仍只可在受控人工環境驗證。
 4. `package.json` 使用 upstream 版本號，但文件又宣稱 NIHCloudAI 採獨立 SemVer；release identity 尚未定案。
@@ -174,5 +174,8 @@ owner 因此決定 artifact 拒絕、provenance 待補、正式發布拒絕，�
 validator 與 deterministic coverage renderer。測試只記錄 bounded PASS／`completed`，未保存
 request、response、摘要、alias、session、log、HAR、screenshot 或 clipboard 內容。另行探索的
 `has-data` Ollama 執行雖越過結構驗證，仍被原有陰性措辭、metadata 或欄位 bounds gate
-fail closed，因此不得把 coverage-only 成功延伸為 Ollama `has-data`、臨床品質、UI 或 release
-驗收。這項後續證據不變更 release owner 已記錄的 artifact 拒絕、provenance 待補與正式發布拒絕。
+ fail closed，因此不得把 coverage-only 成功延伸為 Ollama `has-data`／`has-data` UI、臨床品質
+或 release 驗收。其後操作者重新載入 built extension，回報相同 coverage-only UI generation、固定五段／
+完整 validator、review 前 copy disabled 與 review 後 copy enabled 四項全數 PASS；未收集 UI
+內容或 screenshot。這項後續證據仍不變更 release owner 已記錄的 artifact 拒絕、provenance
+待補與正式發布拒絕。
