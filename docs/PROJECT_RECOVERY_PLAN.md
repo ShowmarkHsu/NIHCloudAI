@@ -24,7 +24,7 @@
 ## 目前必須承認的缺口
 
 1. R2/R3 的程式與合成測試已接上；受控 coverage-only synthetic OpenRouter 已完成 fresh-session 重複性、review/copy、取消及 scope 失效觀察，另有一筆真實 fixed-route `has-data` synthetic facts bounded 成功。固定本機 Ollama coverage-only CLI seam 已連續兩次完成，built-extension UI generation／完整 validator／review-copy gating 重測亦通過；但 `has-data` Ollama 仍被完整語意 validator 拒絕。臨床與藥事已核准 deterministic coverage wording，但 `has-data` 重複性、整體臨床品質與 release acceptance 仍未完成。
-2. revision-wide collector 已接上現行產品可提供的西藥、中藥、過敏、檢驗、影像、手術／處置與出院終態結果；就醫仍缺少獨立、結構化 upstream source，不能把 HTML `patientsummary` 或用藥列臆造成 encounter。
+2. revision-wide collector 已接上八個 Phase 1 家族。就醫目前只取西／中藥 claim 上明確存在的日期、院所、門診／藥局類型與來源診斷並去重，不解析 HTML `patientsummary`，也不從藥名推論；這個 claims encounter provenance 仍需在新 build 上完成 NHI-origin 人工重測。
 3. actual extension browser test 證明已載入 iframe 會 fail closed、可完成 loopback Provider round trip，且 MV3 service worker 重啟後只恢復同 tab 的目前 sealed scope 供 review；真實 Provider 與 NHI-origin 流程仍只可在受控人工環境驗證。
 4. `package.json` 使用 upstream 版本號，但文件又宣稱 NIHCloudAI 採獨立 SemVer；release identity 尚未定案。
 5. 現有 B6 文件容易讓人誤認已達 release readiness；它只能稱為 engineering gate。
@@ -186,14 +186,18 @@ content runtime 不再只挑出 `labdata`。一個 revision-wide deep module 現
 `dataFetchCompleted` 批次，於同一 interface 內完成來源白名單 normalization、逐家族
 quarantine、coverage、opaque aliases、reference vault、revision continuity 與一次性 seal。
 現行產品的 `medication`、`chinesemed`、`allergy`、`labdata`、`imaging`、`surgery`、
-`discharge` 已映射到七個 Phase 1 家族；R1 lab-only interface 保留為相容 adapter。
+`discharge` 已映射到七個直接來源家族；同一 collector 另從西／中藥 claim header 的
+明確日期、院所、門診／藥局類型與來源診斷建立去重 encounter。診斷未提供時保留
+`diagnosis: null`，不丟棄事件或補造診斷。R1 lab-only interface 保留為相容 adapter。
 
 上游批次也不再把未授權或 request failure 偽裝成 `nodata`：未授權、抓取失敗、
-成功零筆及 normalization failure 會產生不同 coverage。維護中的產品 fixture 證明七個
-實際來源形狀均可產生 `has-data`，且 sealed snapshot 不含院所內碼、檔案 handle、影像
+成功零筆及 normalization failure 會產生不同 coverage。維護中的產品 fixture 證明八個
+Phase 1 家族均可產生 `has-data`，且 sealed snapshot 不含院所內碼、檔案 handle、影像
 case identifier 或藥品內碼。出院索引若只提供出院日與院所，契約以明確 `null` 表示
 未提供的入院日、診斷與摘要，不抓取或傳遞 `mds_file`／`mds_pdf_file`。
 
-尚未完成的唯一 Phase 1 收集 seam 是 encounter。現行 `patientsummary` 是 HTML 文字，
-不是可驗證的結構化就醫來源；在找到獨立來源前維持 `not-collected`。本 checkpoint 是
-本機工程與 fixture 證據，不是 NHI-origin 人工驗證、臨床品質或 release approval。
+claims encounter 只有在西藥與中藥兩個終態都完整可用時才 seal；任一來源未授權或失敗
+就不回傳 partial encounter records。現行 `patientsummary` 是 HTML 文字，不是此 seam 的
+來源。授權操作者已回報 encounter 變更前的七個直接來源 coverage 於實際 NHI-origin 畫面
+顯示通過；repository 未收集畫面、筆數或病歷內容。新增的 encounter 仍待新 build 人工重測。
+本 checkpoint 不是臨床品質或 release approval。
