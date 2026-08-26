@@ -1,11 +1,11 @@
 # B6 Engineering Gate Evidence
 
-> **狀態說明（2026-08-24）**：本文件區分 machine-verifiable engineering gate 與
+> **狀態說明（2026-08-26）**：本文件區分 machine-verifiable engineering gate 與
 > bounded controlled manual evidence。
 > AI 頁籤已透過 extension-origin iframe 接上 sealed request 與 background-only
 > Provider boundary；machine-verifiable gate 只使用合成資料與 loopback request。另有
 > 受控 coverage-only 與 `has-data` synthetic OpenRouter 人工觀察，以及後續固定本機
-> Ollama coverage-only CLI seam，必須與本文件的自動化證據分開判讀。不得把本文件
+> Ollama coverage-only／lab `has-data` CLI seam，必須與本文件的自動化證據分開判讀。不得把本文件
 > 解讀為一般 Provider 可用、release ready 或臨床驗收完成。完整缺口與復原順序見
 > [`PROJECT_RECOVERY_PLAN.md`](PROJECT_RECOVERY_PLAN.md)。
 
@@ -31,7 +31,7 @@ Provider execution is background-only. The code fixes Ollama to the loopback end
 
 After a controlled synthetic OpenRouter attempt reached the local whole-document gate, the previous single `validation-failed` state was split into bounded fail-closed categories: missing output, truncated output, JSON structure, source alias, content policy, and Chinese-character count. A subsequent controlled attempt reached the content-policy category, which is further divided into forbidden metadata/formatting, missing-data-as-negative wording, fixed data-gap wording, and per-field bounds. These categories contain no response text, request text, aliases, counts, HTTP details, Zod issues, or Provider payload. They are diagnostic evidence only; the later coverage-only successful observations below do not extend them into `has-data` or clinical acceptance evidence.
 
-The bounded category then identified non-canonical `無` wording. A stronger `clinical-summary-prompt.v2` still did not make the fixed OpenRouter model/route reliably obey that semantic rule, so the authorized implementation no longer delegates coverage prose to the Provider. Under `clinical-summary-prompt.v3`, OpenRouter receives immutable policy in a `system` message and only the sealed coverage/facts projection in a separate `user` message; its task is limited to `has-data` facts. A local deterministic coverage renderer replaces every fully uncovered section and the fixed data-gap section from the sealed coverage contract, clears Provider aliases from those replaced sections, and adds only fixed coverage context when needed to meet the unchanged 180–260 Chinese-character gate. Provider prose retained for sections with collected facts remains subject to the unchanged local negative-finding, metadata, alias, ordering, wording, field-bound, and total-length validators.
+The bounded category then identified non-canonical `無` wording. A stronger `clinical-summary-prompt.v2` still did not make the fixed OpenRouter model/route reliably obey that semantic rule, so the authorized implementation no longer delegates coverage prose to the Provider. Under `clinical-summary-prompt.v3`, OpenRouter receives immutable policy in a `system` message and only the sealed coverage/facts projection in a separate `user` message; its task is limited to `has-data` facts. A local deterministic coverage renderer replaces every fully uncovered section and the fixed data-gap section from the sealed coverage contract, clears Provider aliases from those replaced sections, and adds only fixed coverage context when needed to meet the unchanged 180–260 Chinese-character gate. `clinical-summary-prompt.v4` additionally makes the local renderer, rather than Provider prose, responsible for the post-merge minimum length and separates clinical content from structured source attribution. The local validator canonicalizes only a redundant alias token that is both declared by the same section and known to the sealed request; undeclared or unknown aliases and every other metadata, negative-finding, ordering, wording, field-bound, and total-length failure remain fail closed.
 
 Synthetic regressions cover a lab-only snapshot whose Provider response uses non-canonical gap prose, a snapshot with no collected facts, and the fact-only outbound contract. The built MV3 loopback test additionally asserts the rendered medication/allergy and admission/procedure/discharge text in the iframe. These tests do not constitute clinical approval of the new deterministic wording; clinician and pharmacist re-review remains mandatory. The exact implemented phrases, state mapping, synthetic case matrix, and reviewer questions are collected in [`DETERMINISTIC_COVERAGE_WORDING_REVIEW.md`](DETERMINISTIC_COVERAGE_WORDING_REVIEW.md).
 
@@ -43,7 +43,7 @@ The same operator reported bounded PASS results for cancellation, revision chang
 
 The operator then completed a separate non-empty synthetic lab preflight: lab coverage was `has-data` with a positive count, an opaque local source alias was present, and no identity, raw source reference, or raw row was displayed. For one explicitly authorized fixed-route request, the operator reported bounded PASS results for strict whole-document validation, inclusion of at least one collected synthetic lab fact, alias-only attribution, absence of added uncollected facts, diagnoses, or negative inference, deterministic coverage semantics for non-`has-data` families, and review/copy gating.
 
-No summary text, Provider request or response, key, raw payload, HAR, log, screenshot, patient/session identifier, or clipboard content was collected. Fresh-session repeatability was observed only for the no-collected-facts case; the real fixed-route `has-data` path currently has one bounded successful observation. These observations do not establish `has-data` repeatability, overall clinical quality, general Provider availability, artifact approval, or release approval. Separate clinical and pharmacy approval of the deterministic coverage wording is recorded below and does not broaden these runtime observations.
+No summary text, Provider request or response, key, raw payload, HAR, log, screenshot, patient/session identifier, or clipboard content was collected. Fresh-session repeatability was observed only for the no-collected-facts OpenRouter case; the real fixed-route OpenRouter `has-data` path currently has one bounded successful observation. These OpenRouter observations do not establish OpenRouter `has-data` repeatability, overall clinical quality, general Provider availability, artifact approval, or release approval. Separate clinical and pharmacy approval of the deterministic coverage wording is recorded below and does not broaden these runtime observations.
 
 The user subsequently reported that the security/privacy owner and the hospital/environment owner approved their respective gates. Clinical and pharmacy reviewers then independently reported all five wording cases passing, all six reviewer questions approved, and a final approval of the current deterministic coverage wording. This repository records only those bounded approval states; no approver identity, signature reference, account detail, environment identifier, or controlled-system link was collected. Overall clinical acceptance and the release-owner decision remain pending.
 
@@ -63,11 +63,30 @@ past structure but were rejected by the unchanged semantic gates, including nega
 metadata, and field-bound categories. Therefore this evidence proves only repeatable local
 coverage-only CLI completion.
 
+On 2026-08-26, a red-capable lab `has-data` regression at the same real background boundary
+reproduced `validation-content-negative-none-word-failed` twice. Removing the conflicting Provider
+minimum-length responsibility moved the bounded result to `validation-content-metadata-failed`;
+diagnostic categories containing no response text then established that the fixed model was
+repeating a section-declared source alias inside clinical content. Prompt-only, native `system`
+separation, unsupported schema-pattern, and one-round self-repair probes did not provide a stable
+solution and were not retained. The final prompt-v4 validator instead canonicalizes only redundant,
+same-section, sealed-request-known aliases into the structured source field before applying the
+unchanged complete validator. An undeclared alias remains a regression failure.
+
+The final fixed lab `has-data` seam then completed in three fresh test processes through the strict
+schema, alias mapping, negative-finding, metadata, field-bound, total-length, and deterministic
+coverage gates. Each run made one Provider request and recorded only PASS plus the bounded
+`completed` state; no request, response, summary, alias value, clinical fact, session value, log,
+HAR, screenshot, or clipboard content was retained. This is repeatability evidence for one sealed
+synthetic lab fact on the pinned local Ollama model. It is not built-extension `has-data` UI evidence,
+multi-family or general model quality evidence, clinical acceptance, artifact approval, or release
+approval.
+
 After rebuilding and reloading the extension, the authorized operator then reported bounded PASS
 for the matching real Ollama coverage-only UI generation, fixed five-section/full-validator state,
 copy remaining disabled before review, and copy becoming enabled only after explicit review. No UI
 content or screenshot was collected. This extends the observation to one built-extension UI retest;
-it does not prove Ollama `has-data` acceptance or repeatability, general model quality, clinical
+that UI observation alone does not prove built-extension Ollama `has-data` acceptance or repeatability, general model quality, clinical
 acceptance, artifact approval, or release approval.
 
 R1 additionally exercises the real local terminal-result seam. The content runtime passes one revision-wide batch into a closed collector that normalizes and quarantines the existing `medication`, `chinesemed`, `allergy`, `labdata`, `imaging`, `surgery`, and `discharge` source shapes, seals their coverage and local reference vault once, and renders only coverage plus opaque source aliases. Encounter is constructed only from explicit claim-header date, facility, visit type, and source diagnosis fields already present on both western and Chinese medication results; records are deduplicated, missing source diagnoses remain `null`, and any unavailable claim source prevents partial encounter records from being sealed. HTML `patientsummary` and medication names are not used. The maintained product fixture covers all eight Phase 1 families and verifies that internal IDs, file handles, and image case identifiers do not enter the sealed snapshot. An authorized operator first reported that the pre-encounter build displayed the seven direct-source coverage results on the real NHI-origin page, then reported bounded PASS for claims encounter coverage after loading the new build. No screenshot, count, clinical content, or identity was collected. The eight-family collection/display seam therefore has bounded NHI-origin manual evidence, but this does not invoke an LLM and remains engineering evidence rather than summary-quality or release approval. R2/R3 attach an extension-origin iframe: it receives a scope only, reads public coverage/labels through the background, and can request fixed Ollama or OpenRouter generation. The iframe is the sole secret-entry surface; BYOK, explicit remote consent, optional host grants, request construction, timeout/cancellation, and strict whole-document validation are background-owned. The code and synthetic tests do not prove an installed Ollama, valid OpenRouter account/key, model availability, or successful external request. Error, cancellation, session end, revision change, and patient change clear review/copy eligibility. No visual snapshot update is part of this gate.
@@ -97,8 +116,8 @@ gate also passed.
 The repository nevertheless has no NIHCloudAI release identity or independent SemVer, annotated
 release tag, immutable release ZIP, instantiated release manifest, artifact hash record, or complete
 provider/clinical evidence hashes. The current extension version `26.0702.1` remains an upstream-fork
-compatibility version. `has-data` fixed-route evidence has only one bounded successful observation,
-overall clinical acceptance is incomplete, real Ollama evidence is unavailable, and the formal
+compatibility version. At the time of that decision, `has-data` fixed-route evidence had only one bounded successful observation,
+overall clinical acceptance was incomplete, real Ollama evidence was unavailable, and the formal
 developer-mode install/update/removal record is incomplete.
 
 The authorized release owner reported the following bounded decision:
@@ -113,7 +132,7 @@ No release-owner identity, signature, controlled-system content, or approval ref
 Permission to continue controlled development validation is not deployment approval, clinical-use
 approval, a standing authorization for external data transfer, or permission to push this branch.
 
-The later 2026-08-25 coverage-only Ollama CLI evidence narrows one Provider gap but does not change
+The later 2026-08-25 coverage-only and 2026-08-26 lab `has-data` Ollama CLI evidence narrow Provider gaps but do not change
 the release owner's artifact rejection, pending provenance decision, or formal publication rejection.
 
 Passing `verify:release` is evidence of code and artifact hygiene, not a clinical validation, deployment approval, or provider end-to-end certification.

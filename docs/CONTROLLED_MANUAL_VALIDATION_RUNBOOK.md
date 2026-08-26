@@ -58,6 +58,10 @@ permission-denied、timeout 與 cancel 路徑並記錄為「外部資源未提�
 4. 僅在成功回應時，確認輸出恰為固定五段、每段僅對應本地來源別名、沒有 partial
    output。review 前 copy 必須停用；編輯、重新生成、錯誤、timeout 或取消後 copy
    再次失效。
+5. 對非空合成 `has-data` scope 另以三個 fresh data sessions 重複步驟 4。只記錄每次
+   bounded PASS／失敗類別；不得保存摘要、來源 alias 值、request／response、log、HAR、
+   screenshot 或 clipboard。CLI repeatability 不可代替 built-extension UI、臨床品質或
+   release acceptance。
 
 ## OpenRouter（遠端、session-only BYOK）
 

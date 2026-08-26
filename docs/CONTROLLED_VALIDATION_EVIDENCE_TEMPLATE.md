@@ -32,6 +32,7 @@ console／proxy／HAR／錄影／screenshot／剪貼簿歷史等可能保存敏�
 | Revision／合成病人切換後，舊 scope、摘要、review、copy 均失效 | | |
 | Ollama：拒絕 exact optional permission 時 fail closed | | |
 | Ollama：exact loopback grant、timeout、取消與完整五段輸出驗證 | | |
+| Ollama：非空合成 `has-data` 的三個 fresh-session bounded 結果 | | |
 | OpenRouter：拒絕 exact optional permission 時 fail closed | | |
 | OpenRouter：session-only BYOK、明確 consent、固定 route | | |
 | OpenRouter：Provider 僅摘要 has-data facts，本機 deterministic coverage wording 符合核准案例 | | |

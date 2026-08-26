@@ -1,6 +1,6 @@
 # NIHCloudAI 專案復原計畫
 
-狀態日期：2026-08-21  
+狀態日期：2026-08-26
 工作主線：`codex/integration-recovery`  
 穩定基準：`main` = `origin/main` = `upstream/main` @ `cad76e5`（26.0702.1）
 
@@ -23,7 +23,7 @@
 
 ## 目前必須承認的缺口
 
-1. R2/R3 的程式與合成測試已接上；受控 coverage-only synthetic OpenRouter 已完成 fresh-session 重複性、review/copy、取消及 scope 失效觀察，另有一筆真實 fixed-route `has-data` synthetic facts bounded 成功。固定本機 Ollama coverage-only CLI seam 已連續兩次完成，built-extension UI generation／完整 validator／review-copy gating 重測亦通過；但 `has-data` Ollama 仍被完整語意 validator 拒絕。臨床與藥事已核准 deterministic coverage wording，但 `has-data` 重複性、整體臨床品質與 release acceptance 仍未完成。
+1. R2/R3 的程式與合成測試已接上；受控 coverage-only synthetic OpenRouter 已完成 fresh-session 重複性、review/copy、取消及 scope 失效觀察，另有一筆真實 fixed-route `has-data` synthetic facts bounded 成功。固定本機 Ollama coverage-only CLI seam 已連續兩次完成，built-extension UI generation／完整 validator／review-copy gating 重測亦通過；固定 lab `has-data` CLI seam 亦已在 prompt v4／完整 validator 下連續三個 fresh process 完成。臨床與藥事已核准 deterministic coverage wording，但 built-extension `has-data` UI、多家族摘要、整體臨床品質與 release acceptance 仍未完成。
 2. revision-wide collector 已接上八個 Phase 1 家族。就醫只取西／中藥 claim 上明確存在的日期、院所、門診／藥局類型與來源診斷並去重，不解析 HTML `patientsummary`，也不從藥名推論；授權操作者已在新 build 上回報 NHI-origin encounter coverage bounded PASS。
 3. actual extension browser test 證明已載入 iframe 會 fail closed、可完成 loopback Provider round trip，且 MV3 service worker 重啟後只恢復同 tab 的目前 sealed scope 供 review；真實 Provider 與 NHI-origin 流程仍只可在受控人工環境驗證。
 4. `package.json` 使用 upstream 版本號，但文件又宣稱 NIHCloudAI 採獨立 SemVer；release identity 尚未定案。
@@ -105,7 +105,7 @@ exact iframe sender、session-only BYOK/consent 與舊 revision rejection。`npm
 artifact 內以 loopback 合成 Provider 驗證 background transport、完整回應驗證及 service
 worker 重啟後的同 tab review recovery。該測試不連線實際 OpenRouter，也不是臨床資料流
 驗證；受控人工 coverage-only fixed-route generate/review/copy 已通過，另有一筆
-`has-data` synthetic facts bounded 成功，但 repeatability 與臨床品質仍需要獲授權的
+OpenRouter `has-data` synthetic facts bounded 成功，但 OpenRouter repeatability 與臨床品質仍需要獲授權的
 本機／院內環境及 reviewer。
 
 2026-08-24 的受控合成 OpenRouter 重試已越過 transport 與 HTTP 階段，但停在本機完整
@@ -163,7 +163,7 @@ OpenRouter／`openai/gpt-oss-120b`／DeepInfra no-fallback request。操作者�
 `npm run verify`、45 passed／1 expected skip 的正式 visual run、23 個 `dist` artifact
 連續 build byte-identical，以及 baseline／license／permission／secret／source-map gates 均
 通過。但目前沒有 NIHCloudAI release identity、獨立 SemVer、annotated tag、immutable ZIP、
-實體 release manifest 或完整 evidence hashes；`has-data` repeatability、整體 clinical
+實體 release manifest 或完整 evidence hashes；在該次決策時，`has-data` repeatability、整體 clinical
 acceptance、真實 Ollama 與 developer-mode install/update/removal record 亦未完成。Release
 owner 因此決定 artifact 拒絕、provenance 待補、正式發布拒絕，只允許持續受控開發驗證。
 這不是部署、臨床使用、永久外送或 push 授權。
@@ -173,12 +173,28 @@ owner 因此決定 artifact 拒絕、provenance 待補、正式發布拒絕，�
 與固定 `temperature: 0`／`seed: 0` 後，相同真實 loopback boundary 連續兩次通過完整
 validator 與 deterministic coverage renderer。測試只記錄 bounded PASS／`completed`，未保存
 request、response、摘要、alias、session、log、HAR、screenshot 或 clipboard 內容。另行探索的
-`has-data` Ollama 執行雖越過結構驗證，仍被原有陰性措辭、metadata 或欄位 bounds gate
- fail closed，因此不得把 coverage-only 成功延伸為 Ollama `has-data`／`has-data` UI、臨床品質
+`has-data` Ollama 執行雖越過結構驗證，當時仍被原有陰性措辭、metadata 或欄位 bounds gate
+ fail closed，因此當時不得把 coverage-only 成功延伸為 Ollama `has-data`／`has-data` UI、臨床品質
 或 release 驗收。其後操作者重新載入 built extension，回報相同 coverage-only UI generation、固定五段／
 完整 validator、review 前 copy disabled 與 review 後 copy enabled 四項全數 PASS；未收集 UI
 內容或 screenshot。這項後續證據仍不變更 release owner 已記錄的 artifact 拒絕、provenance
 待補與正式發布拒絕。
+
+2026-08-26，新的 red-capable 固定 lab `has-data` 測試在同一個真實 background Provider seam
+連續兩次重現 `validation-content-negative-none-word-failed`。移除 Provider 原始文字的最低字數
+責任後，bounded 類別收斂為 metadata；不保存文字的診斷標記確認固定模型把該 section 已宣告
+的來源 alias 重複寫入 clinical content。prompt-only、原生 system 欄位、Ollama 不支援的排除式
+schema pattern 與單次自我修正均未形成穩定解，相關 probe 均未保留。
+
+`clinical-summary-prompt.v4` 現在明確把合併後最低字數交由本機 deterministic coverage renderer，
+並在 sealed provider-output validator 內只正規化「同 section 已宣告且可映回目前 sealed request」
+的重複 alias。結構化來源對應仍保留；未宣告／未知 alias、內部 ID、其他 metadata、陰性措辭、
+順序、固定文字、欄位與 180–260 字 gate 仍 fail closed。介面層回歸先紅後綠，最終固定 lab
+`has-data` seam 在三個 fresh test processes 連續回報 bounded `completed`，每次只有一個 Provider
+request。Repository 未保存 request、response、摘要、alias 值、合成臨床 fact、session、log、
+HAR、screenshot 或 clipboard 內容。完整 `npm run verify` 亦通過；這只建立 pinned local Ollama
+單一合成 lab fact 的 CLI repeatability，不是 built-extension `has-data` UI、多家族／一般模型品質、
+整體臨床、artifact 或 release approval。
 
 ## 已完成的 Phase 1 collection checkpoint（2026-08-25）
 
