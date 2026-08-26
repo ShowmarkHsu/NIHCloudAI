@@ -206,7 +206,7 @@ export function isSealedSummaryRequest(value: unknown): value is SealedSummaryRe
 
 export type ProviderSummaryOutputResult =
   | Readonly<{status: 'completed'; summary: FixedFiveSectionSummary}>
-  | Readonly<{status: 'validation-structure-failed' | 'validation-alias-failed' | 'validation-content-failed' | 'validation-content-metadata-failed' | 'validation-content-negative-failed' | 'validation-content-negative-not-found-failed' | 'validation-content-negative-normal-failed' | 'validation-content-negative-none-word-failed' | 'validation-content-data-gap-failed' | 'validation-content-bounds-failed' | 'validation-length-failed'}>;
+  | Readonly<{status: 'validation-structure-failed' | 'validation-alias-failed' | 'validation-content-failed' | 'validation-content-metadata-failed' | 'validation-content-negative-failed' | 'validation-content-negative-not-found-failed' | 'validation-content-negative-normal-failed' | 'validation-content-negative-none-word-failed' | 'validation-content-negative-none-word-outside-supported-sections-failed' | 'validation-content-negative-none-word-multiple-failed' | 'validation-content-negative-none-word-unrelated-to-allergy-failed' | 'validation-content-negative-none-word-allergy-source-unsupported-failed' | 'validation-content-negative-none-word-allergy-phrase-unsupported-failed' | 'validation-content-data-gap-failed' | 'validation-content-bounds-failed' | 'validation-length-failed'}>;
 
 function isAliasIssuePath(path: readonly PropertyKey[]): boolean {
   const sourceAliasesIndex = path.indexOf('sourceAliases');
@@ -269,6 +269,37 @@ function canonicalizeSourceStatedNoKnownAllergy(
     content,
     sourceAliases: Object.freeze(sourceAliases),
   });
+}
+
+type NoneWordFailureStatus = Exclude<
+  ProviderSummaryOutputResult,
+  Readonly<{status: 'completed'; summary: FixedFiveSectionSummary}>
+>['status'];
+
+function classifyNoneWordFailure(
+  sections: readonly Readonly<{heading: string; content: string}>[],
+  sourceEvidence: SealedSummaryRequest['sourceEvidence'],
+): NoneWordFailureStatus {
+  const failingSection = sections.find((section) =>
+    section.content.replaceAll('無可用資料', '').includes('無'));
+  if (failingSection === undefined) return 'validation-content-negative-none-word-failed';
+  const sectionIndex = FIXED_FIVE_SECTION_HEADINGS.indexOf(
+    failingSection.heading as typeof FIXED_FIVE_SECTION_HEADINGS[number],
+  );
+  if (sectionIndex !== 0 && sectionIndex !== 1) {
+    return 'validation-content-negative-none-word-outside-supported-sections-failed';
+  }
+  const content = failingSection.content.replaceAll('無可用資料', '');
+  if ((content.match(/無/gu)?.length ?? 0) !== 1) {
+    return 'validation-content-negative-none-word-multiple-failed';
+  }
+  if (!content.includes('過敏')) {
+    return 'validation-content-negative-none-word-unrelated-to-allergy-failed';
+  }
+  if (!Object.values(sourceEvidence).includes('source-stated-no-known-allergy')) {
+    return 'validation-content-negative-none-word-allergy-source-unsupported-failed';
+  }
+  return 'validation-content-negative-none-word-allergy-phrase-unsupported-failed';
 }
 
 function canonicalizeDeclaredAliasCitations(
@@ -341,7 +372,9 @@ export function validateProviderSummaryOutput(
         .find((kind) => kind !== null);
       if (negativeKind === 'not-found') return {status: 'validation-content-negative-not-found-failed'};
       if (negativeKind === 'normal') return {status: 'validation-content-negative-normal-failed'};
-      if (negativeKind === 'none-word') return {status: 'validation-content-negative-none-word-failed'};
+      if (negativeKind === 'none-word') {
+        return {status: classifyNoneWordFailure(sections, request.sourceEvidence)};
+      }
       return {status: 'validation-content-negative-failed'};
     }
     if (contentFailure === 'data-gap-wording') return {status: 'validation-content-data-gap-failed'};

@@ -237,8 +237,12 @@ evidence 支持 `no-known-allergy` 時，於【核對重點】與【目前用藥
 processes 回報 bounded `completed`（25.8、22.7、22.7 秒）；只有 allergy source 時，
 模型若把未收集用藥誤述為「無用藥」仍會 fail closed。完整產品 fixture 亦在最終規則
 下再次完成（177.8 秒）。測試未
-保存 Provider output 或其他敏感內容。兩種新增固定過敏措辭仍待臨床與藥事審閱，且
-installed-extension direct-origin 新 build 的重測尚未完成。
+保存 Provider output 或其他敏感內容。兩種新增固定過敏措辭仍待臨床與藥事審閱。
+installed-extension direct-origin 重載該 build 後仍回報泛化的
+`validation-content-negative-none-word-failed`；為避免要求摘要內容，validator 現在把
+此狀態再分成非允許節、同節多個「無」、與過敏無關、sealed 過敏來源不支持，以及
+過敏片語不在窄窗五種 bounded 子類別。分類不回傳節文字、aliases、字數或 Provider
+payload，也不放寬原有 fail-closed 規則；新診斷 build 的 installed-extension 重測待完成。
 
 ## 已完成的 Phase 1 collection checkpoint（2026-08-25）
 

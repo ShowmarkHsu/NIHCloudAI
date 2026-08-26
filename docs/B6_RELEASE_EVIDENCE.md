@@ -147,9 +147,15 @@ full-data medication/allergy section, then completed in three fresh processes in
 no-medication wording with the supported allergy state. The maintained full product fixture also
 completed again under the final rule in 177.8 seconds. Only bounded completion status and duration
 were retained. The two new fixed allergy phrases are
-explicitly pending clinical and pharmacy review, and installed-extension direct-origin retesting of
-the rebuilt artifact remains pending. These results do not establish clinical meaning, general model
-quality, artifact approval, or release approval.
+explicitly pending clinical and pharmacy review. The installed-extension direct-origin retest of
+that rebuilt artifact still reported the generic `validation-content-negative-none-word-failed`
+state. To continue without requesting or retaining summary content, the validator now subdivides
+that state into five bounded causes: outside the two supported sections, multiple none-word uses in
+one section, unrelated to allergy, unsupported by sealed allergy evidence, or outside the controlled
+allergy-phrase window. The result carries no section text, alias, character count, or Provider
+payload and does not relax fail-closed validation. Installed-extension retesting of this diagnostic
+build remains pending. These results do not establish clinical meaning, general model quality,
+artifact approval, or release approval.
 
 R1 additionally exercises the real local terminal-result seam. The content runtime passes one revision-wide batch into a closed collector that normalizes and quarantines the existing `medication`, `chinesemed`, `allergy`, `labdata`, `imaging`, `surgery`, and `discharge` source shapes, seals their coverage and local reference vault once, and renders only coverage plus opaque source aliases. Encounter is constructed only from explicit claim-header date, facility, visit type, and source diagnosis fields already present on both western and Chinese medication results; records are deduplicated, missing source diagnoses remain `null`, and any unavailable claim source prevents partial encounter records from being sealed. HTML `patientsummary` and medication names are not used. The maintained product fixture covers all eight Phase 1 families and verifies that internal IDs, file handles, and image case identifiers do not enter the sealed snapshot. An authorized operator first reported that the pre-encounter build displayed the seven direct-source coverage results on the real NHI-origin page, then reported bounded PASS for claims encounter coverage after loading the new build. No screenshot, count, clinical content, or identity was collected. The eight-family collection/display seam therefore has bounded NHI-origin manual evidence, but this does not invoke an LLM and remains engineering evidence rather than summary-quality or release approval. R2/R3 attach an extension-origin iframe: it receives a scope only, reads public coverage/labels through the background, and can request fixed Ollama or OpenRouter generation. The iframe is the sole secret-entry surface; BYOK, explicit remote consent, optional host grants, request construction, timeout/cancellation, and strict whole-document validation are background-owned. The code and synthetic tests do not prove an installed Ollama, valid OpenRouter account/key, model availability, or successful external request. Error, cancellation, session end, revision change, and patient change clear review/copy eligibility. No visual snapshot update is part of this gate.
 

@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import { createLabVerticalSlice } from '../../../src/ai/integration/labVerticalSlice';
 import {createClinicalSnapshotCollector} from '../../../src/ai/integration/clinicalSnapshotCollector';
-import { createSealedSummaryRequest, parseProviderSummaryOutput } from '../../../src/ai/summary/providerRequest';
+import {
+  createSealedSummaryRequest,
+  parseProviderSummaryOutput,
+  validateProviderSummaryOutput,
+} from '../../../src/ai/summary/providerRequest';
 
 function setup() {
   const vertical = createLabVerticalSlice({
@@ -149,5 +153,37 @@ describe('sealed provider request and source alias round-trip', () => {
       drug_name: 'Synthetic allergen;;', sympton_name: 'Synthetic reaction',
     }]);
     expect(parseProviderSummaryOutput(JSON.stringify(conflicting), presentOnlyRequest!)).toBeNull();
+  });
+
+  it('classifies none-word failures without returning provider content', () => {
+    const labRequest = setup().request!;
+    const noKnownRequest = noKnownAllergyRequest()!;
+    const classify = (value: ReturnType<typeof JSON.parse>, request = noKnownRequest) =>
+      validateProviderSummaryOutput(JSON.stringify(value), request).status;
+
+    const outsideSupportedSections = JSON.parse(output(['S1']));
+    outsideSupportedSections.sections[2].content = `無法確認${'重'.repeat(36)}`;
+    expect(classify(outsideSupportedSections, labRequest))
+      .toBe('validation-content-negative-none-word-outside-supported-sections-failed');
+
+    const multiple = JSON.parse(output(['S1']));
+    multiple.sections[0].content = `無已知過敏，無相關過敏${'重'.repeat(27)}`;
+    expect(classify(multiple))
+      .toBe('validation-content-negative-none-word-multiple-failed');
+
+    const unrelated = JSON.parse(output(['S1']));
+    unrelated.sections[0].content = `無法確認${'重'.repeat(36)}`;
+    expect(classify(unrelated))
+      .toBe('validation-content-negative-none-word-unrelated-to-allergy-failed');
+
+    const unsupportedSource = JSON.parse(output(['S1']));
+    unsupportedSource.sections[0].content = `無已知過敏紀錄${'重'.repeat(25)}`;
+    expect(classify(unsupportedSource, labRequest))
+      .toBe('validation-content-negative-none-word-allergy-source-unsupported-failed');
+
+    const unsupportedPhrase = JSON.parse(output(['S1']));
+    unsupportedPhrase.sections[0].content = `無用藥及過敏紀錄${'重'.repeat(26)}`;
+    expect(classify(unsupportedPhrase))
+      .toBe('validation-content-negative-none-word-allergy-phrase-unsupported-failed');
   });
 });

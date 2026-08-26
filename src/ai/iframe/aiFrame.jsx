@@ -215,6 +215,11 @@ function AiFrame() {
       status === "validation-content-metadata-failed" ? "Provider 回應含有禁止的內部代號或格式標記；沒有可複製內容。" :
       status === "validation-content-negative-not-found-failed" ? "Provider 回應使用「未發現」描述資料；沒有可複製內容。" :
       status === "validation-content-negative-normal-failed" ? "Provider 回應使用「正常」描述資料；沒有可複製內容。" :
+      status === "validation-content-negative-none-word-outside-supported-sections-failed" ? "Provider 在非過敏摘要節使用「無」字；沒有可複製內容。" :
+      status === "validation-content-negative-none-word-multiple-failed" ? "Provider 同一摘要節使用多個非固定「無」字；沒有可複製內容。" :
+      status === "validation-content-negative-none-word-unrelated-to-allergy-failed" ? "Provider 在核對或用藥節使用與過敏無關的「無」字；沒有可複製內容。" :
+      status === "validation-content-negative-none-word-allergy-source-unsupported-failed" ? "Provider 使用「無過敏」措辭，但 sealed 過敏來源未明示支持；沒有可複製內容。" :
+      status === "validation-content-negative-none-word-allergy-phrase-unsupported-failed" ? "Provider 的「無過敏」片語不在受控正規化範圍；沒有可複製內容。" :
       status === "validation-content-negative-none-word-failed" ? "Provider 回應使用非固定格式的「無」字措辭；沒有可複製內容。" :
       status === "validation-content-negative-failed" ? "Provider 將缺少的資料寫成陰性結果；沒有可複製內容。" :
       status === "validation-content-data-gap-failed" ? "Provider 回應未使用固定的資料缺口與待確認措辭；沒有可複製內容。" :

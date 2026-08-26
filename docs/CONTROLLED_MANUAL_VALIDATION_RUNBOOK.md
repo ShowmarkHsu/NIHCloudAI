@@ -67,6 +67,9 @@ permission-denied、timeout 與 cancel 路徑並記錄為「外部資源未提�
    與 `no-known-allergy` 的核准合成案例確認只出現受控固定衝突提示。只記錄 bounded
    PASS／失敗類別，不保存摘要文字或 aliases。兩種固定措辭在臨床與藥事重新核准前，
    即使工程驗證通過也不得視為 clinical acceptance。
+7. 若仍出現 none-word 失敗，只記錄 UI 顯示的 bounded 子類別：非允許節、同節多個
+   「無」、與過敏無關、sealed 過敏來源不支持或過敏片語不在窄窗。不得開啟 console、
+   擷取 response、複製摘要或以 screenshot／HAR／log 擴大診斷資料。
 
 ## OpenRouter（遠端、session-only BYOK）
 

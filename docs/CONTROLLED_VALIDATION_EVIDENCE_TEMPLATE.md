@@ -37,6 +37,7 @@ console／proxy／HAR／錄影／screenshot／剪貼簿歷史等可能保存敏�
 | Ollama：過敏與 `no-known-allergy` 同時存在時的固定衝突提示 | | |
 | Ollama：隔離 built-MV3 localhost bridge UI 的三個 fresh-tab bounded 結果 | | |
 | Ollama：installed extension direct-origin／optional-permission 人工結果 | | |
+| Ollama：none-word 失敗時只記 bounded 子類別，未擷取內容 | | |
 | OpenRouter：拒絕 exact optional permission 時 fail closed | | |
 | OpenRouter：session-only BYOK、明確 consent、固定 route | | |
 | OpenRouter：Provider 僅摘要 has-data facts，本機 deterministic coverage wording 符合核准案例 | | |

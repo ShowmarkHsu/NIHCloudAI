@@ -190,7 +190,7 @@ describe('background-only Provider boundary', () => {
         },
       },
       {
-        status: 'validation-content-negative-none-word-failed',
+        status: 'validation-content-negative-none-word-unrelated-to-allergy-failed',
         mutate(value: ReturnType<typeof JSON.parse>) {
           value.sections[0].content = `無法確認${'重'.repeat(36)}`;
         },
