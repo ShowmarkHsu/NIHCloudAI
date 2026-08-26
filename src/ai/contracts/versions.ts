@@ -8,7 +8,7 @@ export const CAPABILITY_MESSAGE_SCHEMA_VERSION =
   'ai-capability-message.v1' as const;
 export const RELEASE_MANIFEST_SCHEMA_VERSION = 'release-manifest.v1' as const;
 export const CLINICAL_SUMMARY_PROMPT_VERSION =
-  'clinical-summary-prompt.v3' as const;
+  'clinical-summary-prompt.v4' as const;
 export const CLINICAL_SUMMARY_SCHEMA_VERSION = 'clinical-summary.v1' as const;
 export const CLINICAL_RULES_VERSION = 'clinical-rules.v2' as const;
 export const CLINICAL_CASE_SET_VERSION = 'clinical-case-set.v1' as const;

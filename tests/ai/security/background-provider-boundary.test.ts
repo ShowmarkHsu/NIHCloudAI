@@ -198,7 +198,7 @@ describe('background-only Provider boundary', () => {
       {
         status: 'validation-content-metadata-failed',
         mutate(value: ReturnType<typeof JSON.parse>) {
-          value.sections[0].content = `S1${'重'.repeat(38)}`;
+          value.sections[0].content = `S2${'重'.repeat(38)}`;
         },
       },
       {

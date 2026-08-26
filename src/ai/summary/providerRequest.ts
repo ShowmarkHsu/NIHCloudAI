@@ -12,7 +12,10 @@ import {
 import type { SnapshotCoverage } from '../contracts/coverage';
 import { type SealedPatientSnapshot, sealVersionedPatientSnapshot } from '../projection/builder';
 import { FIXED_FIVE_SECTION_COVERAGE_POLICY } from '../providers/prompt';
-import { renderDeterministicCoverageSections } from './coverageRenderer';
+import {
+  renderDeterministicCoverageSections,
+  type CoverageRenderableSection,
+} from './coverageRenderer';
 import type { SummaryReviewScopeInput } from './stateMachine';
 
 const sourceAliasSchema = z.string().regex(/^S[1-9]\d{0,3}$/);
@@ -47,7 +50,7 @@ const providerSectionJsonSchema = Object.freeze({
     heading: Object.freeze({type: 'string', enum: FIXED_FIVE_SECTION_HEADINGS}),
     content: Object.freeze({
       type: 'string',
-      description: '只摘要 has-data facts。local-rendered coverage 不得由 Provider 描述；沒有 has-data facts 或資料缺口 section 可輸出空字串。本機將依 sealed coverage 產生固定文字。',
+      description: '只寫 has-data 臨床事實，不得包含任何來源代號。local-rendered coverage 不得由 Provider 描述；沒有 has-data facts 或資料缺口 section 可輸出空字串。本機將依 sealed coverage 產生固定文字。',
     }),
     sourceAliases: Object.freeze({
       type: 'array',
@@ -168,6 +171,26 @@ function isAliasIssuePath(path: readonly PropertyKey[]): boolean {
   return sourceAliasesIndex >= 0 && typeof path[sourceAliasesIndex + 1] === 'number';
 }
 
+const declaredAliasCitationPattern = /\bS[1-9]\d{0,3}\b/gu;
+
+function canonicalizeDeclaredAliasCitations(
+  section: CoverageRenderableSection,
+  knownAliases: Readonly<Record<string, string>>,
+): CoverageRenderableSection {
+  const contentAliases = [...section.content.matchAll(declaredAliasCitationPattern)]
+    .map((match) => match[0]);
+  if (
+    contentAliases.length === 0 ||
+    contentAliases.some((alias) =>
+      !section.sourceAliases.includes(alias) || knownAliases[alias] === undefined)
+  ) return section;
+  return Object.freeze({
+    heading: section.heading,
+    content: section.content.replace(declaredAliasCitationPattern, ''),
+    sourceAliases: section.sourceAliases,
+  });
+}
+
 /**
  * Classifies only a bounded validation stage. It never returns parsed provider
  * output, Zod issues, aliases, character counts, or any other response detail.
@@ -195,7 +218,9 @@ export function validateProviderSummaryOutput(
     parsed.data.sections,
     request.coverage,
   );
-  const sections = renderedSections.map((section) => {
+  const canonicalizedSections = renderedSections.map((section) =>
+    canonicalizeDeclaredAliasCitations(section, request.sourceAliases));
+  const sections = canonicalizedSections.map((section) => {
     const sourceRefs = section.sourceAliases.map((alias) => request.sourceAliases[alias]);
     return {heading: section.heading, content: section.content, sourceRefs};
   });

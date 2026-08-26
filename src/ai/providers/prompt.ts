@@ -32,5 +32,6 @@ export const FIXED_FIVE_SECTION_SYSTEM_PROMPT = [
   '不得撰寫空資料、缺資料、正常、陰性、「未發現」或任何含「無」的 coverage 敘述；沒有 has-data facts 的 section 可輸出空 content 與空 sourceAliases。',
   '【資料缺口與待確認】由本機完整取代；Provider 必須輸出空 content 與空 sourceAliases。',
   '只重述來源已明示的事實；不得新增診斷、推測病因或判定控制好壞；不得提出檢查、用藥或治療建議。',
-  '每個 section 的 sourceAliases 只可放提供的 S 代號；它們不得出現在 content。內容合計必須是 180–260 個中文字的 UTF-8 純文字；不得輸出來源引用、內部代碼、Provider、model、prompt、schema、Markdown、HTML 或其他中繼資料。',
+  '每個 section 的 sourceAliases 只可放提供的 S 代號；它們不得出現在 content。Provider 原始輸出不負責摘要字數下限，禁止為增加字數描述 local-rendered coverage 或缺少的資料；本機 coverage renderer 合併後才檢查摘要總長度。不得輸出來源引用、內部代碼、Provider、model、prompt、schema、Markdown、HTML 或其他中繼資料。',
+  '欄位分離規則：content 只能寫臨床事實文字；提供的來源代號只可放在 sourceAliases 陣列，不得複寫到 content。',
 ].join('\n');

@@ -90,6 +90,7 @@ describe('fixed five-section summary contract', () => {
       '內部識別 pt_opaque_patient_0001 必須移除。',
       '內部識別 ds_opaque_session_0001 必須移除。',
       'S1 必須移除。',
+      'S9999 必須移除。',
       'provider: synthetic-provider',
       '<strong>不是純文字</strong>',
       '```json\n{}\n```',

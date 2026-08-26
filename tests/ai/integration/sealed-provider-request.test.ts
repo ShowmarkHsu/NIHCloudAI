@@ -64,4 +64,18 @@ describe('sealed provider request and source alias round-trip', () => {
     expect(parseProviderSummaryOutput('{"sections":[]}', request!)).toBeNull();
     expect(parseProviderSummaryOutput(`${output(['S1'])}\npartial`, request!)).toBeNull();
   });
+
+  it('canonicalizes only redundant declared aliases out of content and rejects undeclared ones', () => {
+    const {request} = setup();
+    const declared = JSON.parse(output(['S1']));
+    declared.sections[0].content = `S1${'重'.repeat(40)}`;
+    const accepted = parseProviderSummaryOutput(JSON.stringify(declared), request!);
+
+    expect(accepted?.sections[0]?.content).toBe('重'.repeat(40));
+    expect(accepted?.sections[0]?.sourceRefs).toEqual(['sr_r2_provider_source_000001']);
+
+    const undeclared = JSON.parse(output(['S1']));
+    undeclared.sections[0].content = `S2${'重'.repeat(40)}`;
+    expect(parseProviderSummaryOutput(JSON.stringify(undeclared), request!)).toBeNull();
+  });
 });

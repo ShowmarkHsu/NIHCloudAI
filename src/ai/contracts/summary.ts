@@ -30,7 +30,7 @@ export const FIXED_FIVE_SECTION_VALIDATION_MESSAGES = Object.freeze({
   dataGapWording: 'data-gap section must use the fixed data-gap and confirmation wording',
 } as const);
 
-const FORBIDDEN_COPY_METADATA = /(?:\b(?:sr|pt|ds)_[A-Za-z0-9_-]+\b|source(?:Ref|Reference)|patientId|sessionId|\bprovider\b|\bprompt\b|\bschema\b|\bmodel\b|S[1-6]|<\/?[A-Za-z][^>]*>|```|(?:^|\n)\s*(?:#|[-*+]\s|\d+\.\s))/iu;
+const FORBIDDEN_COPY_METADATA = /(?:\b(?:sr|pt|ds)_[A-Za-z0-9_-]+\b|source(?:Ref|Reference)|patientId|sessionId|\bprovider\b|\bprompt\b|\bschema\b|\bmodel\b|\bS[1-9]\d{0,3}\b|<\/?[A-Za-z][^>]*>|```|(?:^|\n)\s*(?:#|[-*+]\s|\d+\.\s))/iu;
 
 function countChineseCharacters(text: string): number {
   return [...text].filter((character) => /\p{Script=Han}/u.test(character))
