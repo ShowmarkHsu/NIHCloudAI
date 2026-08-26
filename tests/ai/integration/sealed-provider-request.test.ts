@@ -45,6 +45,9 @@ describe('sealed provider request and source alias round-trip', () => {
     const {scope, sealed, request} = setup();
     expect(request).not.toBeNull();
     expect(request?.prompt).toContain('S1');
+    expect(request?.prompt).toContain('"factTables"');
+    expect(request?.prompt).toContain('"columns":["sourceAlias"');
+    expect(request?.prompt).not.toContain('"facts"');
     expect(request?.prompt).toContain('"coveragePolicy"');
     expect(request?.prompt).toContain('"confirmed-empty":"local-rendered"');
     expect(request?.prompt).toContain('"not-collected":"local-rendered"');

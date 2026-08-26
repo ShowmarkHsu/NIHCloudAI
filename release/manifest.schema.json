@@ -33,7 +33,7 @@
       "required": ["projectionVersion", "promptVersion", "summaryVersion", "rulesVersion", "caseSetVersion"],
       "properties": {
         "projectionVersion": { "const": "clinical-projection.v1" },
-        "promptVersion": { "const": "clinical-summary-prompt.v4" },
+        "promptVersion": { "const": "clinical-summary-prompt.v5" },
         "summaryVersion": { "const": "clinical-summary.v1" },
         "rulesVersion": { "const": "clinical-rules.v2" },
         "caseSetVersion": { "const": "clinical-case-set.v1" }

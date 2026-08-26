@@ -23,7 +23,7 @@
 
 ## 目前必須承認的缺口
 
-1. R2/R3 的程式與合成測試已接上；受控 coverage-only synthetic OpenRouter 已完成 fresh-session 重複性、review/copy、取消及 scope 失效觀察，另有一筆真實 fixed-route `has-data` synthetic facts bounded 成功。固定本機 Ollama coverage-only CLI seam 已連續兩次完成，built-extension UI generation／完整 validator／review-copy gating 重測亦通過；固定 lab `has-data` CLI seam 已在 prompt v4／完整 validator 下連續三個 fresh process 完成，隔離 built-MV3／真實 Ollama localhost bridge UI seam 亦完成三個 fresh tabs 的 generation／review-copy gating。臨床與藥事已核准 deterministic coverage wording，但 installed-extension direct-origin `has-data` UI、多家族摘要、整體臨床品質與 release acceptance 仍未完成。
+1. R2/R3 的程式與合成測試已接上；受控 coverage-only synthetic OpenRouter 已完成 fresh-session 重複性、review/copy、取消及 scope 失效觀察，另有一筆真實 fixed-route `has-data` synthetic facts bounded 成功。固定本機 Ollama coverage-only CLI seam 已連續兩次完成，built-extension UI generation／完整 validator／review-copy gating 重測亦通過；固定 lab `has-data` CLI seam 已在 prompt v4／完整 validator 下連續三個 fresh process 完成，隔離 built-MV3／真實 Ollama localhost bridge UI seam 亦完成三個 fresh tabs 的 generation／review-copy gating。prompt v5 的維護產品 fixture 多家族 seam 已連續三個 fresh process 完成，但 installed-extension direct-origin v5 重測、兩句新增 deterministic context 的臨床／藥事重新核准、整體臨床品質與 release acceptance 仍未完成。
 2. revision-wide collector 已接上八個 Phase 1 家族。就醫只取西／中藥 claim 上明確存在的日期、院所、門診／藥局類型與來源診斷並去重，不解析 HTML `patientsummary`，也不從藥名推論；授權操作者已在新 build 上回報 NHI-origin encounter coverage bounded PASS。
 3. actual extension browser test 證明已載入 iframe 會 fail closed、可完成 loopback Provider round trip，且 MV3 service worker 重啟後只恢復同 tab 的目前 sealed scope 供 review；真實 Provider 與 NHI-origin 流程仍只可在受控人工環境驗證。
 4. `package.json` 使用 upstream 版本號，但文件又宣稱 NIHCloudAI 採獨立 SemVer；release identity 尚未定案。
@@ -209,6 +209,21 @@ review 前 copy disabled 與 review 後 enabled。Harness 沒有讀取摘要欄�
 background／真實 Ollama repeatability；不證明 installed extension ID 的 direct-origin 相容性、
 optional-permission UX、NHI-origin 真實資料摘要、多家族／一般模型品質、臨床、artifact 或 release
 approval。
+
+同日，installed-extension direct-origin 的完整資料執行回報 `validation-structure-failed`。以維護中的
+完整產品 fixture 建立的 red-capable 真實 Ollama 測試重現同一 bounded 狀態；只回報結構階段與
+Ollama envelope metadata 的診斷確認實際為 `done_reason=length`，而 boundary 原先把截斷字串誤交
+JSON parser。prompt v5 現在先把 Ollama `length` 正確分類為 `provider-output-truncated`，固定
+`num_ctx=32768`、`num_predict=1024`、`think=false`，並把每 family 的全量 facts 改為一次 columns
+加多列 rows 的表格 JSON。維護 fixture 的 183 筆 sealed records 全部保留，非 gated 回歸驗證
+rows 與 source aliases 數量一致；prompt 從 43,300 降至 21,443 字元。Provider schema 同步限制
+每節 30–65 字與最多 20 aliases，本機 renderer 另加兩句固定核對說明以履行既有 180–260 字責任。
+
+相同完整產品 fixture 最終在三個 fresh test processes 連續回報 bounded `completed`，時間為
+165.5 秒（同程序先完成三個其他受控案例）、51.3 秒與 51.0 秒。測試未保存 request、response、摘要、alias 值、臨床內容、session、log、
+HAR、screenshot 或 clipboard 內容。這只建立 pinned local Ollama／維護 fixture／CLI seam 的
+多家族工程重複性；新增兩句 deterministic wording 必須重新取得臨床與藥事核准，installed
+extension direct-origin v5、真實病人摘要品質、artifact 與 release approval 仍未完成。
 
 ## 已完成的 Phase 1 collection checkpoint（2026-08-25）
 

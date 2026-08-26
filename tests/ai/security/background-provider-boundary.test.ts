@@ -262,6 +262,23 @@ describe('background-only Provider boundary', () => {
     }
   });
 
+  it('classifies an Ollama length stop before parsing its partial structured output', async () => {
+    const fetch = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        done: true,
+        done_reason: 'length',
+        response: '{"schemaVersion":"clinical-summary.v1"',
+      }),
+    }));
+    const provider = createBackgroundProviderBoundary({fetch: fetch as never});
+
+    await expect(provider.generate(scope, 'ollama', request()!)).resolves.toEqual({
+      status: 'provider-output-truncated',
+    });
+  });
+
   it('reports a provider HTTP rejection without exposing its status or body', async () => {
     const fetch = vi.fn(async () => ({
       ok: false,
@@ -362,7 +379,12 @@ describe('background-only Provider boundary', () => {
       const sent = JSON.parse(init.body);
       const hasFixedRequest = JSON.stringify(sent.format) ===
           JSON.stringify(FIXED_FIVE_SECTION_PROVIDER_JSON_SCHEMA) &&
-        sent.options?.temperature === 0 && sent.options?.seed === 0;
+        sent.options?.temperature === 0 && sent.options?.seed === 0 &&
+        sent.options?.num_ctx === 32_768 && sent.options?.num_predict === 1_024 &&
+        sent.format?.properties?.sections?.items?.properties?.content?.minLength === 30 &&
+        sent.format?.properties?.sections?.items?.properties?.content?.maxLength === 65 &&
+        sent.format?.properties?.sections?.items?.properties?.sourceAliases?.maxItems === 20 &&
+        sent.think === false;
       return {
         ok: true,
         status: 200,
@@ -412,6 +434,8 @@ describe('background-only Provider boundary', () => {
     expect(sent.messages.map((message: {role: string}) => message.role)).toEqual(['system', 'user']);
     expect(sent.messages[0].content).not.toContain('Synthetic analyte');
     expect(sent.messages[0].content).toContain('只摘要 has-data facts');
+    expect(sent.messages[0].content).toContain('本節內容由本機固定取代');
+    expect(sent.messages[0].content).not.toContain('空 content');
     expect(sent.messages[1].content).not.toContain('pt_provider_patient_00001');
   });
 

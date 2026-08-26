@@ -4,6 +4,7 @@ import {describe, expect, it} from 'vitest';
 
 import {resolveVaultReference} from '../../../src/ai/contracts/referenceVault';
 import {createClinicalSnapshotCollector} from '../../../src/ai/integration/clinicalSnapshotCollector';
+import {createSealedSummaryRequest} from '../../../src/ai/summary/providerRequest';
 
 const scope = {
   patientId: 'pt_clinical_collector_patient_00001',
@@ -168,6 +169,20 @@ describe('revision-wide clinical snapshot collector', () => {
     for (const forbidden of ['hosp_id', 'mds_file', 'mds_pdf_file', 'ipl_case_seq_no', 'drug_ing_code']) {
       expect(serialized).not.toContain(forbidden);
     }
+
+    const providerRequest = createSealedSummaryRequest({
+      tabId: 27,
+      ...scope,
+      contractVersion: 'clinical-projection.v1',
+    }, result?.sealed);
+    expect(providerRequest).not.toBeNull();
+    expect(providerRequest!.prompt.length).toBeLessThan(22_000);
+    const promptDocument = JSON.parse(providerRequest!.prompt.split('\n').slice(1).join('\n')) as {
+      factTables: Array<{rows: unknown[][]}>;
+    };
+    expect(promptDocument.factTables.reduce((total, table) => total + table.rows.length, 0))
+      .toBe(result?.sealed.snapshot.records.length);
+    expect(Object.keys(providerRequest!.sourceAliases)).toHaveLength(result?.sealed.snapshot.records.length);
   });
 
   it('does not seal a partial claims encounter family when one required claim source is unauthorized', () => {

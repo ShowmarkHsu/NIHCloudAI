@@ -109,6 +109,26 @@ content or screenshot was collected. This extends the observation to one built-e
 that earlier UI observation alone does not prove installed-extension direct-origin Ollama `has-data` acceptance or repeatability, general model quality, clinical
 acceptance, artifact approval, or release approval.
 
+Later on 2026-08-26, the installed-extension direct-origin full-data attempt reported the bounded
+`validation-structure-failed` state. A red-capable real-Ollama test using the maintained full product
+fixture reproduced that state without retaining Provider output. Bounded diagnostics established
+that Ollama had ended with `done_reason=length`; the boundary had ignored that envelope state and
+passed a partial string to JSON parsing. Prompt v5 now classifies the Ollama length stop as
+`provider-output-truncated`, pins `num_ctx=32768`, `num_predict=1024`, and `think=false`, and sends
+all facts in per-family column/row tables. A non-gated regression verifies that all 183 sealed fixture
+records and aliases remain represented while the prompt shrinks from 43,300 to 21,443 characters.
+The Provider schema also bounds each section to 30–65 characters and 20 aliases. Two deterministic
+local review-context sentences were added so concise but valid Provider facts still reach the
+unchanged 180–260 Chinese-character gate.
+
+The maintained full product fixture then completed through the entire local validator in three fresh
+test processes in 165.5 seconds after three other controlled cases in the same process, then 51.3 and
+51.0 seconds in isolated runs. The tests retained no request, response, summary,
+alias value, clinical content, session value, log, HAR, screenshot, or clipboard content. This proves
+only pinned-local-Ollama multi-family CLI repeatability for the maintained fixture. The two new local
+sentences require renewed clinical and pharmacy wording approval; installed-extension direct-origin
+v5 behavior, real-patient summary quality, artifact approval, and release approval remain pending.
+
 R1 additionally exercises the real local terminal-result seam. The content runtime passes one revision-wide batch into a closed collector that normalizes and quarantines the existing `medication`, `chinesemed`, `allergy`, `labdata`, `imaging`, `surgery`, and `discharge` source shapes, seals their coverage and local reference vault once, and renders only coverage plus opaque source aliases. Encounter is constructed only from explicit claim-header date, facility, visit type, and source diagnosis fields already present on both western and Chinese medication results; records are deduplicated, missing source diagnoses remain `null`, and any unavailable claim source prevents partial encounter records from being sealed. HTML `patientsummary` and medication names are not used. The maintained product fixture covers all eight Phase 1 families and verifies that internal IDs, file handles, and image case identifiers do not enter the sealed snapshot. An authorized operator first reported that the pre-encounter build displayed the seven direct-source coverage results on the real NHI-origin page, then reported bounded PASS for claims encounter coverage after loading the new build. No screenshot, count, clinical content, or identity was collected. The eight-family collection/display seam therefore has bounded NHI-origin manual evidence, but this does not invoke an LLM and remains engineering evidence rather than summary-quality or release approval. R2/R3 attach an extension-origin iframe: it receives a scope only, reads public coverage/labels through the background, and can request fixed Ollama or OpenRouter generation. The iframe is the sole secret-entry surface; BYOK, explicit remote consent, optional host grants, request construction, timeout/cancellation, and strict whole-document validation are background-owned. The code and synthetic tests do not prove an installed Ollama, valid OpenRouter account/key, model availability, or successful external request. Error, cancellation, session end, revision change, and patient change clear review/copy eligibility. No visual snapshot update is part of this gate.
 
 The synthetic runtime lifecycle tests cover the closed content-to-background capability path: content emits only lifecycle messages after its existing terminal data-fetch event, ends the current scope on patient-switch and page-exit events, and the background clears the matching scope when Chrome reports tab removal. These tests contain no patient payload, credentials, Provider request, screenshot, or session value from a browser.

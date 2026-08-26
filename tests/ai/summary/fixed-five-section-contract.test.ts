@@ -143,7 +143,7 @@ describe('fixed five-section rules prompt', () => {
     expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain('近 1 年');
     expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain('只摘要 has-data facts');
     expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain('local-rendered');
-    expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain('由本機完整取代');
+    expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain('完整丟棄占位並依 sealed coverage 取代');
     expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain('不得新增診斷');
     expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain('不得提出檢查、用藥或治療建議');
     expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain('過敏、異常標記、數值變化或資料矛盾');

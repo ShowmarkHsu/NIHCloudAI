@@ -50,11 +50,14 @@ const providerSectionJsonSchema = Object.freeze({
     heading: Object.freeze({type: 'string', enum: FIXED_FIVE_SECTION_HEADINGS}),
     content: Object.freeze({
       type: 'string',
-      description: '只寫 has-data 臨床事實，不得包含任何來源代號。local-rendered coverage 不得由 Provider 描述；沒有 has-data facts 或資料缺口 section 可輸出空字串。本機將依 sealed coverage 產生固定文字。',
+      minLength: 30,
+      maxLength: 65,
+      description: '30–65 字。只寫 has-data 臨床事實且不得包含來源代號；local-rendered 的無 facts 或資料缺口 section 使用指定中性占位，本機將完整丟棄並依 sealed coverage 取代。',
     }),
     sourceAliases: Object.freeze({
       type: 'array',
       items: Object.freeze({type: 'string'}),
+      maxItems: 20,
     }),
   }),
   required: Object.freeze(['heading', 'content', 'sourceAliases']),
@@ -112,6 +115,36 @@ export type SealedSummaryRequest = Readonly<{
   sourceAliases: Readonly<Record<string, string>>;
 }> & Readonly<{[sealedSummaryRequestBrand]: true}>;
 
+type ProviderFactRow = Readonly<{
+  sourceAlias: string;
+  fact: Readonly<Record<string, unknown>>;
+}>;
+
+function createProviderFactTables(
+  records: SealedPatientSnapshot['snapshot']['records'],
+): readonly Readonly<{
+  sourceFamily: string;
+  columns: readonly string[];
+  rows: readonly (readonly unknown[])[];
+}>[] {
+  const grouped = new Map<string, ProviderFactRow[]>();
+  for (const [index, record] of records.entries()) {
+    const {sourceRef: _sourceRef, sourceFamily, ...fact} = record;
+    const rows = grouped.get(sourceFamily) ?? [];
+    rows.push({sourceAlias: `S${index + 1}`, fact});
+    grouped.set(sourceFamily, rows);
+  }
+  return Object.freeze([...grouped.entries()].map(([sourceFamily, facts]) => {
+    const factColumns = [...new Set(facts.flatMap(({fact}) => Object.keys(fact)))];
+    const columns = Object.freeze(['sourceAlias', ...factColumns]);
+    const rows = Object.freeze(facts.map(({sourceAlias, fact}) => Object.freeze([
+      sourceAlias,
+      ...factColumns.map((column) => fact[column] ?? null),
+    ])));
+    return Object.freeze({sourceFamily, columns, rows});
+  }));
+}
+
 function sameScope(scope: SummaryReviewScopeInput, sealed: SealedPatientSnapshot): boolean {
   return scope.patientId === sealed.snapshot.patientId &&
     scope.sessionId === sealed.snapshot.sessionId &&
@@ -138,15 +171,12 @@ export function createSealedSummaryRequest(
   const sourceAliases = Object.fromEntries(rebuilt.snapshot.records.map((record, index) => [
     `S${index + 1}`, record.sourceRef,
   ]));
-  const facts = rebuilt.snapshot.records.map((record, index) => {
-    const {sourceRef: _sourceRef, ...clinicalFact} = record;
-    return {sourceAlias: `S${index + 1}`, ...clinicalFact};
-  });
-  const prompt = '請只輸出 JSON；每節使用 sourceAliases（S1…），不得輸出 sourceRefs。\n' +
+  const factTables = createProviderFactTables(rebuilt.snapshot.records);
+  const prompt = '請只輸出 JSON；每節使用 sourceAliases（S1…），不得輸出 sourceRefs。factTables 的 columns 依序對應每列 rows 的值。\n' +
     JSON.stringify({
       coveragePolicy: FIXED_FIVE_SECTION_COVERAGE_POLICY,
       coverage: rebuilt.snapshot.coverage,
-      facts,
+      factTables,
     });
   return Object.freeze({
     scope: Object.freeze({...scope}),

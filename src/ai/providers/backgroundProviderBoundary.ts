@@ -91,8 +91,9 @@ function fixedRequest(provider: SummaryProvider, secret: string | undefined, req
         model: OLLAMA_MODEL,
         prompt: `${FIXED_FIVE_SECTION_SYSTEM_PROMPT}\n\n${request.prompt}`,
         format: FIXED_FIVE_SECTION_PROVIDER_JSON_SCHEMA,
-        options: {temperature: 0, seed: 0},
+        options: {temperature: 0, seed: 0, num_ctx: 32_768, num_predict: 1_024},
         stream: false,
+        think: false,
       }),
     };
   }
@@ -136,6 +137,7 @@ type ProviderOutputResult =
 function outputFromResponse(value: unknown): ProviderOutputResult {
   if (typeof value !== 'object' || value === null) return {status: 'provider-output-missing'};
   const ollamaOutput = Reflect.get(value, 'response');
+  if (Reflect.get(value, 'done_reason') === 'length') return {status: 'provider-output-truncated'};
   if (typeof ollamaOutput === 'string' && ollamaOutput.length > 0) return {status: 'completed', output: ollamaOutput};
   const completion = Reflect.get(value, 'completion');
   if (typeof completion === 'string' && completion.length > 0) return {status: 'completed', output: completion};
