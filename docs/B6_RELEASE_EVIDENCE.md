@@ -5,7 +5,7 @@
 > AI 頁籤已透過 extension-origin iframe 接上 sealed request 與 background-only
 > Provider boundary；machine-verifiable gate 只使用合成資料與 loopback request。另有
 > 受控 coverage-only 與 `has-data` synthetic OpenRouter 人工觀察，以及後續固定本機
-> Ollama coverage-only／lab `has-data` CLI seam，必須與本文件的自動化證據分開判讀。不得把本文件
+> Ollama coverage-only／lab `has-data` CLI seam 與隔離 built-MV3 UI seam，必須與本文件的自動化證據分開判讀。不得把本文件
 > 解讀為一般 Provider 可用、release ready 或臨床驗收完成。完整缺口與復原順序見
 > [`PROJECT_RECOVERY_PLAN.md`](PROJECT_RECOVERY_PLAN.md)。
 
@@ -78,15 +78,35 @@ schema, alias mapping, negative-finding, metadata, field-bound, total-length, an
 coverage gates. Each run made one Provider request and recorded only PASS plus the bounded
 `completed` state; no request, response, summary, alias value, clinical fact, session value, log,
 HAR, screenshot, or clipboard content was retained. This is repeatability evidence for one sealed
-synthetic lab fact on the pinned local Ollama model. It is not built-extension `has-data` UI evidence,
+synthetic lab fact on the pinned local Ollama model. This CLI evidence alone is not built-extension `has-data` UI evidence,
 multi-family or general model quality evidence, clinical acceptance, artifact approval, or release
 approval.
+
+The same day, an isolated built-MV3 controlled path loaded a temporary copy of `dist` into a fresh
+Chromium profile and injected one sealed synthetic lab fact through the real content runtime and
+extension iframe. A first direct request from the temporary random extension origin stopped at the
+bounded Provider HTTP rejection state before validation. No response body was read or retained, so
+this observation does not identify or prove a specific Ollama origin-policy cause.
+
+The retained controlled harness leaves production `dist` unchanged and rewrites only its temporary
+copy to use an ephemeral localhost in-memory bridge. The temporary manifest pre-grants only the
+fixed Ollama loopback and ephemeral bridge origins; the bridge forwards the synthetic request to
+the fixed `127.0.0.1:11434` Ollama endpoint without logging or retaining request or response content.
+Three fresh Chromium tabs/data sessions then each reached the bounded full-validation success state,
+kept copy disabled before review, and enabled copy only after explicit review. The harness did not
+read summary fields, aliases, clinical facts, clipboard content, or screenshots, and removed the
+temporary profile and artifact afterward.
+
+This proves repeatable built-extension UI/background/real-Ollama/full-validator and review/copy
+behavior for the isolated bridged synthetic lab case. It does not prove direct-origin compatibility
+for an installed extension ID, optional-permission UX, NHI-origin real-data summary behavior,
+multi-family or general model quality, clinical acceptance, artifact approval, or release approval.
 
 After rebuilding and reloading the extension, the authorized operator then reported bounded PASS
 for the matching real Ollama coverage-only UI generation, fixed five-section/full-validator state,
 copy remaining disabled before review, and copy becoming enabled only after explicit review. No UI
 content or screenshot was collected. This extends the observation to one built-extension UI retest;
-that UI observation alone does not prove built-extension Ollama `has-data` acceptance or repeatability, general model quality, clinical
+that earlier UI observation alone does not prove installed-extension direct-origin Ollama `has-data` acceptance or repeatability, general model quality, clinical
 acceptance, artifact approval, or release approval.
 
 R1 additionally exercises the real local terminal-result seam. The content runtime passes one revision-wide batch into a closed collector that normalizes and quarantines the existing `medication`, `chinesemed`, `allergy`, `labdata`, `imaging`, `surgery`, and `discharge` source shapes, seals their coverage and local reference vault once, and renders only coverage plus opaque source aliases. Encounter is constructed only from explicit claim-header date, facility, visit type, and source diagnosis fields already present on both western and Chinese medication results; records are deduplicated, missing source diagnoses remain `null`, and any unavailable claim source prevents partial encounter records from being sealed. HTML `patientsummary` and medication names are not used. The maintained product fixture covers all eight Phase 1 families and verifies that internal IDs, file handles, and image case identifiers do not enter the sealed snapshot. An authorized operator first reported that the pre-encounter build displayed the seven direct-source coverage results on the real NHI-origin page, then reported bounded PASS for claims encounter coverage after loading the new build. No screenshot, count, clinical content, or identity was collected. The eight-family collection/display seam therefore has bounded NHI-origin manual evidence, but this does not invoke an LLM and remains engineering evidence rather than summary-quality or release approval. R2/R3 attach an extension-origin iframe: it receives a scope only, reads public coverage/labels through the background, and can request fixed Ollama or OpenRouter generation. The iframe is the sole secret-entry surface; BYOK, explicit remote consent, optional host grants, request construction, timeout/cancellation, and strict whole-document validation are background-owned. The code and synthetic tests do not prove an installed Ollama, valid OpenRouter account/key, model availability, or successful external request. Error, cancellation, session end, revision change, and patient change clear review/copy eligibility. No visual snapshot update is part of this gate.
@@ -132,7 +152,7 @@ No release-owner identity, signature, controlled-system content, or approval ref
 Permission to continue controlled development validation is not deployment approval, clinical-use
 approval, a standing authorization for external data transfer, or permission to push this branch.
 
-The later 2026-08-25 coverage-only and 2026-08-26 lab `has-data` Ollama CLI evidence narrow Provider gaps but do not change
+The later 2026-08-25 coverage-only and 2026-08-26 lab `has-data` Ollama CLI/isolated-UI evidence narrow Provider gaps but do not change
 the release owner's artifact rejection, pending provenance decision, or formal publication rejection.
 
 Passing `verify:release` is evidence of code and artifact hygiene, not a clinical validation, deployment approval, or provider end-to-end certification.

@@ -23,7 +23,7 @@
 
 ## 目前必須承認的缺口
 
-1. R2/R3 的程式與合成測試已接上；受控 coverage-only synthetic OpenRouter 已完成 fresh-session 重複性、review/copy、取消及 scope 失效觀察，另有一筆真實 fixed-route `has-data` synthetic facts bounded 成功。固定本機 Ollama coverage-only CLI seam 已連續兩次完成，built-extension UI generation／完整 validator／review-copy gating 重測亦通過；固定 lab `has-data` CLI seam 亦已在 prompt v4／完整 validator 下連續三個 fresh process 完成。臨床與藥事已核准 deterministic coverage wording，但 built-extension `has-data` UI、多家族摘要、整體臨床品質與 release acceptance 仍未完成。
+1. R2/R3 的程式與合成測試已接上；受控 coverage-only synthetic OpenRouter 已完成 fresh-session 重複性、review/copy、取消及 scope 失效觀察，另有一筆真實 fixed-route `has-data` synthetic facts bounded 成功。固定本機 Ollama coverage-only CLI seam 已連續兩次完成，built-extension UI generation／完整 validator／review-copy gating 重測亦通過；固定 lab `has-data` CLI seam 已在 prompt v4／完整 validator 下連續三個 fresh process 完成，隔離 built-MV3／真實 Ollama localhost bridge UI seam 亦完成三個 fresh tabs 的 generation／review-copy gating。臨床與藥事已核准 deterministic coverage wording，但 installed-extension direct-origin `has-data` UI、多家族摘要、整體臨床品質與 release acceptance 仍未完成。
 2. revision-wide collector 已接上八個 Phase 1 家族。就醫只取西／中藥 claim 上明確存在的日期、院所、門診／藥局類型與來源診斷並去重，不解析 HTML `patientsummary`，也不從藥名推論；授權操作者已在新 build 上回報 NHI-origin encounter coverage bounded PASS。
 3. actual extension browser test 證明已載入 iframe 會 fail closed、可完成 loopback Provider round trip，且 MV3 service worker 重啟後只恢復同 tab 的目前 sealed scope 供 review；真實 Provider 與 NHI-origin 流程仍只可在受控人工環境驗證。
 4. `package.json` 使用 upstream 版本號，但文件又宣稱 NIHCloudAI 採獨立 SemVer；release identity 尚未定案。
@@ -195,6 +195,20 @@ request。Repository 未保存 request、response、摘要、alias 值、合成�
 HAR、screenshot 或 clipboard 內容。完整 `npm run verify` 亦通過；這只建立 pinned local Ollama
 單一合成 lab fact 的 CLI repeatability，不是 built-extension `has-data` UI、多家族／一般模型品質、
 整體臨床、artifact 或 release approval。
+
+同日，隔離 built-MV3 harness 以新的 Chromium profile 載入暫存 `dist` 複本，經真實 content
+runtime／extension iframe 注入單一 sealed synthetic lab fact。暫存隨機 extension origin 的第一次
+直接 Ollama request 在 validator 前回報 bounded Provider HTTP rejection；未讀取或保存 response
+body，因此不能宣稱已定位特定 Ollama origin policy。最終受控 harness 不修改 production `dist`，
+只在暫存 artifact 預先授予固定 Ollama loopback 與一次性 localhost bridge origin，並將暫存
+background endpoint 改寫到不記錄內容的 in-memory bridge，再轉送至固定 `127.0.0.1:11434`。
+
+三個 fresh Chromium tabs／data sessions 均通過 built extension UI generation、完整 validator、
+review 前 copy disabled 與 review 後 enabled。Harness 沒有讀取摘要欄位、alias、臨床 fact、clipboard
+或 screenshot，結束後刪除暫存 profile／artifact。這建立隔離 bridge 條件下的 built-MV3 UI／
+background／真實 Ollama repeatability；不證明 installed extension ID 的 direct-origin 相容性、
+optional-permission UX、NHI-origin 真實資料摘要、多家族／一般模型品質、臨床、artifact 或 release
+approval。
 
 ## 已完成的 Phase 1 collection checkpoint（2026-08-25）
 
