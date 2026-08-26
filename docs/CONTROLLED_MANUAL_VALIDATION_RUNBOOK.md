@@ -72,6 +72,9 @@ permission-denied、timeout 與 cancel 路徑並記錄為「外部資源未提�
    擷取 response、複製摘要或以 screenshot／HAR／log 擴大診斷資料。
 8. 若子類別為非允許節，只再記錄 UI 顯示的固定節別與「引用來源有明示支持／未明示
    支持」；不得記錄是哪一筆來源、來源值、alias、片語或筆數。
+9. 對【近期病程與檢查】／【住院、手術與出院】的來源未支持 none-word 合成案例，確認
+   Provider 原敘述未顯示，改為固定人工核對提示、aliases 仍可回查，且 review 前 copy
+   維持停用。固定提示取得臨床與藥事核准前，不得視為 clinical acceptance。
 
 ## OpenRouter（遠端、session-only BYOK）
 

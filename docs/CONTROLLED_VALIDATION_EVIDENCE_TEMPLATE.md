@@ -39,6 +39,7 @@ console／proxy／HAR／錄影／screenshot／剪貼簿歷史等可能保存敏�
 | Ollama：installed extension direct-origin／optional-permission 人工結果 | | |
 | Ollama：none-word 失敗時只記 bounded 子類別，未擷取內容 | | |
 | Ollama：非允許節 none-word 只記固定節別／來源支持布林值 | | |
+| Ollama：rules-v4 移除來源未支持敘述並顯示固定人工核對提示 | | |
 | OpenRouter：拒絕 exact optional permission 時 fail closed | | |
 | OpenRouter：session-only BYOK、明確 consent、固定 route | | |
 | OpenRouter：Provider 僅摘要 has-data facts，本機 deterministic coverage wording 符合核准案例 | | |

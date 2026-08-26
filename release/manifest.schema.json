@@ -35,7 +35,7 @@
         "projectionVersion": { "const": "clinical-projection.v1" },
         "promptVersion": { "const": "clinical-summary-prompt.v5" },
         "summaryVersion": { "const": "clinical-summary.v1" },
-        "rulesVersion": { "const": "clinical-rules.v3" },
+        "rulesVersion": { "const": "clinical-rules.v4" },
         "caseSetVersion": { "const": "clinical-case-set.v1" }
       }
     },

@@ -236,6 +236,8 @@ const unsupportedAllergyQualifierPattern =
 const canonicalNoKnownAllergyWording = '來源明示未有已知過敏紀錄';
 const canonicalConflictingAllergyWording =
   '來源同時明示過敏與未有已知過敏紀錄，資料可能矛盾，須逐項人工核對';
+const unsupportedNoneWordSectionWording =
+  '本節含未獲已收集來源明示支持的狀態敘述，該敘述不納入摘要，須回到原始紀錄逐項人工核對';
 
 function canonicalizeSourceStatedNoKnownAllergy(
   section: CoverageRenderableSection,
@@ -281,6 +283,21 @@ function canonicalizeSourceStatedNoKnownAllergy(
     heading: section.heading,
     content,
     sourceAliases: Object.freeze(sourceAliases),
+  });
+}
+
+function canonicalizeUnsupportedNoneWordSection(
+  section: CoverageRenderableSection,
+  sourceContainsNoneWord: SealedSummaryRequest['sourceContainsNoneWord'],
+): CoverageRenderableSection {
+  if (!section.content.includes('無')) return section;
+  const sectionIndex = FIXED_FIVE_SECTION_HEADINGS.indexOf(section.heading);
+  if (sectionIndex !== 2 && sectionIndex !== 3) return section;
+  if (section.sourceAliases.some((alias) => sourceContainsNoneWord[alias] === true)) return section;
+  return Object.freeze({
+    heading: section.heading,
+    content: unsupportedNoneWordSectionWording,
+    sourceAliases: section.sourceAliases,
   });
 }
 
@@ -377,8 +394,10 @@ export function validateProviderSummaryOutput(
 
   const evidenceCanonicalizedSections = parsed.data.sections.map((section) =>
     canonicalizeSourceStatedNoKnownAllergy(section, request.sourceEvidence));
+  const unsupportedNoneWordCanonicalizedSections = evidenceCanonicalizedSections.map((section) =>
+    canonicalizeUnsupportedNoneWordSection(section, request.sourceContainsNoneWord));
   const renderedSections = renderDeterministicCoverageSections(
-    evidenceCanonicalizedSections,
+    unsupportedNoneWordCanonicalizedSections,
     request.coverage,
   );
   const canonicalizedSections = renderedSections.map((section) =>

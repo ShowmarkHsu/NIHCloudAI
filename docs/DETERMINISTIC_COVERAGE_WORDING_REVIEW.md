@@ -1,8 +1,9 @@
 # Deterministic coverage wording 臨床／藥事審閱材料
 
 狀態：2026-08-24 臨床與藥事 reviewer 核准當時的四句補長 context；2026-08-26
-prompt v5 新增第 5、6 句，以及來源明示未有已知過敏紀錄的兩種固定正規化措辭，
-目前都待臨床與藥事重新核准。
+prompt v5 新增第 5、6 句；clinical-rules.v3 新增來源明示未有已知過敏紀錄的兩種固定
+正規化措辭；clinical-rules.v4 新增未獲來源支持狀態敘述的固定移除提示。目前這些新增
+文字都待臨床與藥事重新核准。
 先前核准只涵蓋當時的固定文字、案例矩陣與 reviewer 問題，不是整體 clinical
 acceptance、release approval 或 Provider 合格證明。本文件只列出 background 依 sealed
 coverage contract 產生的固定文字；Provider 不負責產生、改寫或補充這些 coverage 文字。
@@ -70,6 +71,19 @@ Provider 仍不得自行推論陰性狀態。只有 sealed allergy record 明確
 closed。這項規則不改寫 coverage 的
 `confirmed-empty`，也不把資料缺口解讀為沒有過敏。
 
+## 未獲來源支持的「無」字狀態敘述
+
+若 Provider 在【近期病程與檢查】或【住院、手術與出院】使用「無」字，而該節宣告的
+所有 aliases 對應 sealed records 都沒有來源明示「無」字，clinical-rules.v4 不接受或
+改寫該陰性結論，而是移除該節全部 Provider content、保留可供人工核對的 aliases，並
+以本機固定句取代：
+
+> 本節含未獲已收集來源明示支持的狀態敘述，該敘述不納入摘要，須回到原始紀錄逐項人工核對
+
+這句目前待臨床與藥事審閱。若任一宣告 alias 的 sealed record 本身含來源明示「無」字，
+本規則不會取代，仍由完整 negative-finding validator fail closed；因此本規則不會把僅有
+字元相似性的來源內容自動判為支持，也不會保留 Provider 的原始陰性敘述。
+
 ## 合成案例審閱矩陣
 
 審閱時只記錄案例類別與 pass/fail，不保存畫面或摘要文字。
@@ -84,7 +98,9 @@ closed。這項規則不改寫 coverage 的
 | 來源只明示 `no-known-allergy`，Provider 有／沒有附 alias | 固定措辭忠實表達來源狀態，且只補入 sealed allergy alias | 待審閱 | 待審閱 |
 | 來源同時明示過敏與 `no-known-allergy` | 固定衝突措辭不掩蓋陽性紀錄，並要求逐項人工核對 | 待審閱 | 待審閱 |
 | 只有過敏陽性 evidence，Provider 卻使用「無過敏」 | 必須 fail closed，不得正規化為陰性結論 | 自動化通過 | 自動化通過 |
-| 非過敏子句含「無」 | 必須維持既有 fail-closed 防線 | 自動化通過 | 自動化通過 |
+| 核對／用藥節的非過敏子句含「無」 | 必須維持既有 fail-closed 防線 | 自動化通過 | 自動化通過 |
+| 近期病程／住院節含「無」，引用來源未明示支持 | 移除整節 Provider content，只顯示固定人工核對提示並保留 aliases | 待審閱 | 待審閱 |
+| 近期病程／住院節含「無」，任一引用來源本身含「無」 | 不得僅以字元相同視為語意支持，仍須 fail closed | 自動化通過 | 自動化通過 |
 
 ## Reviewer 決策
 
@@ -101,6 +117,10 @@ closed。這項規則不改寫 coverage 的
    或由模型推定的「沒有過敏」？
 8. 同時存在過敏與未有已知過敏紀錄時，固定衝突措辭是否足以避免掩蓋陽性紀錄，並
    清楚要求人工逐項核對？
+9. clinical-rules.v4 的固定移除提示是否清楚表達「模型敘述未納入」，且不會被誤讀為
+   原始紀錄沒有近期病程、住院、手術或出院事件？
+10. 保留該節 aliases 供人工回查是否適當，或 reviewer 要求在移除整節 Provider content
+    時採用其他引用呈現方式？
 
 ## Bounded reviewer 結果 — 2026-08-24
 

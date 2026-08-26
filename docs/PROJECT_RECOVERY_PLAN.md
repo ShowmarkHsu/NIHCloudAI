@@ -247,6 +247,15 @@ payload，也不放寬原有 fail-closed 規則；新診斷 build 的 installed-
 分類因此再區分【近期病程與檢查】、【住院、手術與出院】或【資料缺口與待確認】，並只
 回報該節引用的 sealed source 是否本身含來源明示「無」字。它不回傳來源值、摘要片語、
 alias 或筆數；此節別／來源支持診斷 build 的 installed-extension 重測仍待完成。
+該重測進一步回報【住院、手術與出院】使用「無」字，且引用來源未明示支持，確認是
+Provider 自行補出的陰性狀態，不能正規化為來源事實。曾評估 prompt v6 與 JSON Schema
+Unicode 否定 pattern；pattern 案例回報 `provider-output-truncated`，prompt-only 的 183-record
+fixture 又連續兩次在固定 180 秒回報 timeout，因此兩項實驗均撤回，runtime prompt 維持
+v5。clinical-rules.v4 改由本機在【近期病程與檢查】／【住院、手術與出院】遇到此精確
+條件時，移除整節 Provider content、保留 aliases，並顯示固定人工核對提示；任一引用來源
+本身含「無」字時仍 fail closed。八家族真實 Ollama seam 在三個 fresh processes 完成
+（32.2、20.8、21.3 秒），183-record 維護 fixture 亦完成（169.6 秒）。固定提示仍待臨床
+與藥事審閱，installed-extension direct-origin rules-v4 重測尚未完成。
 
 ## 已完成的 Phase 1 collection checkpoint（2026-08-25）
 

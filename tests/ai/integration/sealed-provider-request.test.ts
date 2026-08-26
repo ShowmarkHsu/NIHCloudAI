@@ -163,8 +163,17 @@ describe('sealed provider request and source alias round-trip', () => {
 
     const outsideSupportedSections = JSON.parse(output(['S1']));
     outsideSupportedSections.sections[2].content = `無法確認${'重'.repeat(36)}`;
-    expect(classify(outsideSupportedSections, labRequest))
-      .toBe('validation-content-negative-none-word-recent-course-source-unsupported-failed');
+    const unsupportedSourceCanonicalized = validateProviderSummaryOutput(
+      JSON.stringify(outsideSupportedSections),
+      labRequest,
+    );
+    expect(unsupportedSourceCanonicalized.status).toBe('completed');
+    expect(unsupportedSourceCanonicalized.status === 'completed' &&
+      unsupportedSourceCanonicalized.summary.sections[2]?.content)
+      .toBe('本節含未獲已收集來源明示支持的狀態敘述，該敘述不納入摘要，須回到原始紀錄逐項人工核對');
+    expect(unsupportedSourceCanonicalized.status === 'completed' &&
+      unsupportedSourceCanonicalized.summary.sections[2]?.sourceRefs)
+      .toEqual(['sr_r2_provider_source_000001']);
     const labRequestWithSourceNoneWord = Object.freeze({
       ...labRequest,
       sourceContainsNoneWord: Object.freeze({S1: true}),
