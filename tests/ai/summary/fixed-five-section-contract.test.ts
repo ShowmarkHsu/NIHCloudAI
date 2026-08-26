@@ -132,7 +132,7 @@ describe('fixed summary time-window rules', () => {
 
 describe('fixed five-section rules prompt', () => {
   it('pins the section order, windows, and missing-not-negative language', () => {
-    expect(FIXED_FIVE_SECTION_RULES_VERSION).toBe('clinical-rules.v2');
+    expect(FIXED_FIVE_SECTION_RULES_VERSION).toBe('clinical-rules.v3');
 
     for (const heading of FIXED_FIVE_SECTION_HEADINGS) {
       expect(FIXED_FIVE_SECTION_SYSTEM_PROMPT).toContain(`【${heading}】`);

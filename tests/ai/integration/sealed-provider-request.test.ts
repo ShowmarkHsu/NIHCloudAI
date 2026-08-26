@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { createLabVerticalSlice } from '../../../src/ai/integration/labVerticalSlice';
+import {createClinicalSnapshotCollector} from '../../../src/ai/integration/clinicalSnapshotCollector';
 import { createSealedSummaryRequest, parseProviderSummaryOutput } from '../../../src/ai/summary/providerRequest';
 
 function setup() {
@@ -38,6 +39,25 @@ function output(sourceAliases: string[]) {
       {heading: '資料缺口與待確認', content: `資料缺口：${'待'.repeat(40)}；待確認：${'核'.repeat(40)}`, sourceAliases: []},
     ],
   });
+}
+
+function noKnownAllergyRequest(rows: readonly object[] = [{
+  upload_d: '115/08/20', hosp: 'Synthetic Clinic;0000000000', drug_name: '未過敏;;',
+}]) {
+  const scope = {
+    tabId: 10, patientId: 'pt_no_known_allergy_000001', sessionId: 'ds_no_known_allergy_000001',
+    revision: 1, contractVersion: 'clinical-projection.v1',
+  } as const;
+  let sourceNumber = 0;
+  const collector = createClinicalSnapshotCollector({
+    now: () => '2026-08-21T00:00:00.000Z',
+    issueSourceReference: () => `sr_no_known_allergy_${String(++sourceNumber).padStart(6, '0')}`,
+  });
+  const sealed = collector.ingest(scope, [{
+    status: 'success', dataType: 'allergy', recordCount: rows.length,
+    data: {rObject: rows},
+  }])?.sealed;
+  return createSealedSummaryRequest(scope, sealed);
 }
 
 describe('sealed provider request and source alias round-trip', () => {
@@ -80,5 +100,54 @@ describe('sealed provider request and source alias round-trip', () => {
     const undeclared = JSON.parse(output(['S1']));
     undeclared.sections[0].content = `S2${'重'.repeat(40)}`;
     expect(parseProviderSummaryOutput(JSON.stringify(undeclared), request!)).toBeNull();
+  });
+
+  it('canonicalizes only source-supported no-known-allergy wording and keeps other none-word uses closed', () => {
+    const request = noKnownAllergyRequest();
+    expect(request).not.toBeNull();
+    const supported = JSON.parse(output(['S1']));
+    supported.sections[0].content = `來源顯示無已知過敏紀錄，${'重'.repeat(25)}`;
+    supported.sections[1].content = `目前無已知藥物過敏，${'要'.repeat(25)}`;
+    supported.sections[1].sourceAliases = [];
+    const accepted = parseProviderSummaryOutput(JSON.stringify(supported), request!);
+    expect(accepted).not.toBeNull();
+    expect(accepted?.sections[0]?.content).not.toContain('無');
+    expect(accepted?.sections[1]?.content).not.toContain('無');
+    expect(accepted?.sections[1]?.sourceRefs).toEqual(['sr_no_known_allergy_000001']);
+
+    const safeLexicalOverlap = JSON.parse(output(['S1']));
+    safeLexicalOverlap.sections[1].content = `目前無用藥物過敏，${'要'.repeat(26)}`;
+    expect(parseProviderSummaryOutput(JSON.stringify(safeLexicalOverlap), request!)).not.toBeNull();
+
+    const unsupportedSource = JSON.parse(JSON.stringify(supported));
+    expect(parseProviderSummaryOutput(JSON.stringify(unsupportedSource), setup().request!)).toBeNull();
+
+    const unrelatedNone = JSON.parse(output(['S1']));
+    unrelatedNone.sections[0].content = `目前無用藥紀錄，${'重'.repeat(26)}`;
+    expect(parseProviderSummaryOutput(JSON.stringify(unrelatedNone), request!)).toBeNull();
+    const combinedNone = JSON.parse(output(['S1']));
+    combinedNone.sections[0].content = `目前無用藥及過敏紀錄，${'重'.repeat(24)}`;
+    expect(parseProviderSummaryOutput(JSON.stringify(combinedNone), request!)).toBeNull();
+
+    const conflictingRequest = noKnownAllergyRequest([
+      {upload_d: '115/08/20', hosp: 'Synthetic Clinic;0000000000', drug_name: '未過敏;;'},
+      {
+        upload_d: '115/08/19', hosp: 'Synthetic Clinic;0000000000',
+        drug_name: 'Synthetic allergen;;', sympton_name: 'Synthetic reaction',
+      },
+    ]);
+    const conflicting = JSON.parse(output([]));
+    conflicting.sections[0].content = `目前無已知過敏紀錄，${'重'.repeat(25)}`;
+    conflicting.sections[1].content = `過敏資料顯示無相關紀錄，${'要'.repeat(25)}`;
+    const conflictAccepted = parseProviderSummaryOutput(JSON.stringify(conflicting), conflictingRequest!);
+    expect(conflictAccepted?.sections[0]?.content).toContain('資料可能矛盾');
+    expect(conflictAccepted?.sections[0]?.sourceRefs).toHaveLength(2);
+    expect(conflictAccepted?.sections[0]?.content).not.toContain('無');
+
+    const presentOnlyRequest = noKnownAllergyRequest([{
+      upload_d: '115/08/19', hosp: 'Synthetic Clinic;0000000000',
+      drug_name: 'Synthetic allergen;;', sympton_name: 'Synthetic reaction',
+    }]);
+    expect(parseProviderSummaryOutput(JSON.stringify(conflicting), presentOnlyRequest!)).toBeNull();
   });
 });

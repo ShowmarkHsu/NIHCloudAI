@@ -63,6 +63,10 @@ permission-denied、timeout 與 cancel 路徑並記錄為「外部資源未提�
    screenshot 或 clipboard。CLI repeatability 不可代替 built-extension UI、臨床品質或
    release acceptance；隔離 localhost bridge 的 built-MV3 自動化亦不可代替 installed-extension
    direct-origin 與 optional-permission 人工驗證。
+6. 以來源明示 `no-known-allergy` 的核准合成案例重複步驟 4；另以同時含來源明示過敏
+   與 `no-known-allergy` 的核准合成案例確認只出現受控固定衝突提示。只記錄 bounded
+   PASS／失敗類別，不保存摘要文字或 aliases。兩種固定措辭在臨床與藥事重新核准前，
+   即使工程驗證通過也不得視為 clinical acceptance。
 
 ## OpenRouter（遠端、session-only BYOK）
 

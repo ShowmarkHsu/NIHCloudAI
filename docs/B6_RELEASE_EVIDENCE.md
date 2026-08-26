@@ -129,6 +129,28 @@ only pinned-local-Ollama multi-family CLI repeatability for the maintained fixtu
 sentences require renewed clinical and pharmacy wording approval; installed-extension direct-origin
 v5 behavior, real-patient summary quality, artifact approval, and release approval remain pending.
 
+The subsequent installed-extension direct-origin attempt reported the bounded
+`validation-content-negative-none-word-failed` state. A red-capable real-Ollama regression using a
+synthetic source-stated `no-known-allergy` record reproduced it without retaining Provider output.
+The previous negative-finding gate rejected every non-coverage use of the character `無`, so it
+could not distinguish source-stated allergy absence from an unsupported model inference.
+`clinical-rules.v3` now permits local canonicalization only when sealed allergy evidence contains
+`no-known-allergy`, only in the review-focus or medication/allergy section, and only for an allergy
+clause. The background restores only the supporting sealed aliases. Positive-only allergy evidence,
+an unrelated none-word clause, another section, or any remaining none-word continues to fail closed.
+When positive and no-known evidence coexist, a separate fixed conflict warning retains both sets of
+aliases and requires item-by-item human review.
+
+The source-stated no-known-allergy case, paired with a synthetic medication fact to represent the
+full-data medication/allergy section, then completed in three fresh processes in 25.8, 22.7, and
+22.7 seconds. An allergy-only attempt remained fail closed when the model combined unsupported
+no-medication wording with the supported allergy state. The maintained full product fixture also
+completed again under the final rule in 177.8 seconds. Only bounded completion status and duration
+were retained. The two new fixed allergy phrases are
+explicitly pending clinical and pharmacy review, and installed-extension direct-origin retesting of
+the rebuilt artifact remains pending. These results do not establish clinical meaning, general model
+quality, artifact approval, or release approval.
+
 R1 additionally exercises the real local terminal-result seam. The content runtime passes one revision-wide batch into a closed collector that normalizes and quarantines the existing `medication`, `chinesemed`, `allergy`, `labdata`, `imaging`, `surgery`, and `discharge` source shapes, seals their coverage and local reference vault once, and renders only coverage plus opaque source aliases. Encounter is constructed only from explicit claim-header date, facility, visit type, and source diagnosis fields already present on both western and Chinese medication results; records are deduplicated, missing source diagnoses remain `null`, and any unavailable claim source prevents partial encounter records from being sealed. HTML `patientsummary` and medication names are not used. The maintained product fixture covers all eight Phase 1 families and verifies that internal IDs, file handles, and image case identifiers do not enter the sealed snapshot. An authorized operator first reported that the pre-encounter build displayed the seven direct-source coverage results on the real NHI-origin page, then reported bounded PASS for claims encounter coverage after loading the new build. No screenshot, count, clinical content, or identity was collected. The eight-family collection/display seam therefore has bounded NHI-origin manual evidence, but this does not invoke an LLM and remains engineering evidence rather than summary-quality or release approval. R2/R3 attach an extension-origin iframe: it receives a scope only, reads public coverage/labels through the background, and can request fixed Ollama or OpenRouter generation. The iframe is the sole secret-entry surface; BYOK, explicit remote consent, optional host grants, request construction, timeout/cancellation, and strict whole-document validation are background-owned. The code and synthetic tests do not prove an installed Ollama, valid OpenRouter account/key, model availability, or successful external request. Error, cancellation, session end, revision change, and patient change clear review/copy eligibility. No visual snapshot update is part of this gate.
 
 The synthetic runtime lifecycle tests cover the closed content-to-background capability path: content emits only lifecycle messages after its existing terminal data-fetch event, ends the current scope on patient-switch and page-exit events, and the background clears the matching scope when Chrome reports tab removal. These tests contain no patient payload, credentials, Provider request, screenshot, or session value from a browser.
@@ -137,7 +159,7 @@ The synthetic runtime lifecycle tests cover the closed content-to-background cap
 
 These checks cannot be truthfully performed by repository automation and remain the release owner's responsibility:
 
-- Qualified clinical and pharmacy reviewers approved the deterministic coverage wording matrix on 2026-08-24. Broader synthetic-summary clinical acceptance remains a separate pending gate.
+- Qualified clinical and pharmacy reviewers approved the then-current deterministic coverage wording matrix on 2026-08-24. That historical approval does not cover prompt-v5 context sentences 5–6 or the two `clinical-rules.v3` source-stated allergy phrases; those additions and broader synthetic-summary clinical acceptance remain pending gates.
 - An authorized operator verifies the intended Chrome build against approved test patients only; no real data, screenshot, request body, key, or session value may enter this repository.
 - Before any remote Provider connection, the owner records the exact endpoint/model/version, asks for outbound-data consent for that session, confirms the optional host grant, validates session-only secret handling, and re-runs the gate with the least-privilege permission policy.
 - The release owner completes the developer-mode install, update, removal, Provider and data-handling checklist in [`CONTROLLED_MANUAL_VALIDATION_RUNBOOK.md`](CONTROLLED_MANUAL_VALIDATION_RUNBOOK.md) (with [`DEVELOPER_MODE_DISTRIBUTION.md`](DEVELOPER_MODE_DISTRIBUTION.md) as the installation summary).

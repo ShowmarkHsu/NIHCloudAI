@@ -89,6 +89,63 @@ controlledIt('completes the fixed Ollama boundary with sealed synthetic has-data
   expect(result.status).toBe('completed');
 }, 190_000);
 
+controlledIt('completes the fixed Ollama boundary with source-stated no-known-allergy', async () => {
+  const scope = {
+    tabId: 28,
+    sessionId: 'ds_controlled_ollama_0005',
+    revision: 1,
+  } as const;
+  let sourceNumber = 0;
+  const collector = createClinicalSnapshotCollector({
+    now: () => '2026-08-25T00:00:00.000Z',
+    issueSourceReference: () => `sr_controlled_ollama_allergy_${String(++sourceNumber).padStart(6, '0')}`,
+  });
+  const collected = collector.ingest({
+    patientId: 'pt_controlled_ollama_00005',
+    sessionId: scope.sessionId,
+    revision: scope.revision,
+  }, [
+    {
+      status: 'success',
+      dataType: 'medication',
+      recordCount: 1,
+      data: {rObject: [{
+        drug_date: '2026/08/20',
+        hosp: 'Synthetic Clinic;outpatient;0000000000',
+        drug_ename: 'Synthetic western medicine',
+        drug_ing_name: 'Synthetic ingredient',
+        qty: 6,
+        drug_fre: 'BID',
+        day: 3,
+      }]},
+    },
+    {
+      status: 'success',
+      dataType: 'allergy',
+      recordCount: 1,
+      data: {rObject: [{
+        upload_d: '115/08/20',
+        hosp: 'Synthetic Clinic;0000000000',
+        drug_name: '未過敏;;',
+      }]},
+    },
+  ]);
+  const request = createSealedSummaryRequest({
+    ...scope,
+    patientId: 'pt_controlled_ollama_00005',
+    contractVersion: 'clinical-projection.v1',
+  }, collected?.sealed);
+  expect(request).not.toBeNull();
+
+  const provider = createBackgroundProviderBoundary({
+    fetch: ((url: string, init: RequestInit) => globalThis.fetch(url, init)) as never,
+    ensureOptionalHostPermission: async () => true,
+  });
+  const result = await provider.generate(scope, 'ollama', request!);
+
+  expect(result.status).toBe('completed');
+}, 190_000);
+
 controlledIt('completes the fixed Ollama boundary with every synthetic phase-one family', async () => {
   const scope = {
     tabId: 25,

@@ -1,7 +1,8 @@
 # Deterministic coverage wording 臨床／藥事審閱材料
 
 狀態：2026-08-24 臨床與藥事 reviewer 核准當時的四句補長 context；2026-08-26
-prompt v5 新增第 5、6 句，目前待臨床與藥事重新核准。
+prompt v5 新增第 5、6 句，以及來源明示未有已知過敏紀錄的兩種固定正規化措辭，
+目前都待臨床與藥事重新核准。
 先前核准只涵蓋當時的固定文字、案例矩陣與 reviewer 問題，不是整體 clinical
 acceptance、release approval 或 Provider 合格證明。本文件只列出 background 依 sealed
 coverage contract 產生的固定文字；Provider 不負責產生、改寫或補充這些 coverage 文字。
@@ -51,6 +52,24 @@ coverage contract 產生的固定文字；Provider 不負責產生、改寫或�
 5. 摘要內容僅整理本次已收集且由來源明示的臨床事實，不得補充或推定未提供的結論。
 6. 各節仍須回到可核對來源逐項確認，不能取代原始紀錄與專業判讀。
 
+## 來源明示過敏狀態的固定正規化
+
+Provider 仍不得自行推論陰性狀態。只有 sealed allergy record 明確標記
+`no-known-allergy`，且 Provider 在【核對重點】或【目前用藥與過敏】使用含「無」的
+過敏子句時，background 才會以本機規則取代該子句並補回 sealed source alias。固定
+措辭如下；兩句都尚未取得臨床或藥事核准：
+
+| Sealed allergy evidence | 本機固定措辭 | 審閱狀態 |
+| --- | --- | --- |
+| 只有來源明示 `no-known-allergy` | `來源明示未有已知過敏紀錄` | 待臨床／藥事審閱 |
+| 同時有來源明示過敏與 `no-known-allergy` | `來源同時明示過敏與未有已知過敏紀錄，資料可能矛盾，須逐項人工核對` | 待臨床／藥事審閱 |
+
+本機只補入實際支持上述狀態的 sealed allergy aliases。只有過敏陽性 evidence、沒有
+`no-known-allergy` evidence、在其他 section 出現、含「無」的局部片語不符合受控過敏
+措辭白名單、含多個「無」字，或局部替換後仍殘留任何其他「無」字時，一律 fail
+closed。這項規則不改寫 coverage 的
+`confirmed-empty`，也不把資料缺口解讀為沒有過敏。
+
 ## 合成案例審閱矩陣
 
 審閱時只記錄案例類別與 pass/fail，不保存畫面或摘要文字。
@@ -62,6 +81,10 @@ coverage contract 產生的固定文字；Provider 不負責產生、改寫或�
 | 同時含 `confirmed-empty` 與其他缺口 | 「無可用資料」與「資料缺口，待確認」可清楚區分且不造成陰性推論 | pass | pass |
 | 西藥／中藥／過敏全部沒有 `has-data` | 藥事使用者不會把 coverage 狀態誤讀為無用藥或無過敏 | pass | pass |
 | 達不到 180 字而附加 context | 第 1–4 句已核准；第 5–6 句不造成重複、矛盾或不當臨床暗示 | 待重新審閱 | 待重新審閱 |
+| 來源只明示 `no-known-allergy`，Provider 有／沒有附 alias | 固定措辭忠實表達來源狀態，且只補入 sealed allergy alias | 待審閱 | 待審閱 |
+| 來源同時明示過敏與 `no-known-allergy` | 固定衝突措辭不掩蓋陽性紀錄，並要求逐項人工核對 | 待審閱 | 待審閱 |
+| 只有過敏陽性 evidence，Provider 卻使用「無過敏」 | 必須 fail closed，不得正規化為陰性結論 | 自動化通過 | 自動化通過 |
+| 非過敏子句含「無」 | 必須維持既有 fail-closed 防線 | 自動化通過 | 自動化通過 |
 
 ## Reviewer 決策
 
@@ -74,10 +97,14 @@ coverage contract 產生的固定文字；Provider 不負責產生、改寫或�
 4. 「西藥」、「中藥」、「過敏」逐項顯示是否足以防止藥事上的陰性推論？
 5. 六句補長 context 是否可接受，且不會讓 coverage 文字看似 Provider 臨床摘要？
 6. 合成案例矩陣是否需要增加特定 coverage 組合，才能做出核准決定？
+7. 「來源明示未有已知過敏紀錄」是否準確表達來源狀態，而不被解讀為跨來源、跨時間
+   或由模型推定的「沒有過敏」？
+8. 同時存在過敏與未有已知過敏紀錄時，固定衝突措辭是否足以避免掩蓋陽性紀錄，並
+   清楚要求人工逐項核對？
 
 ## Bounded reviewer 結果 — 2026-08-24
 
-| 角色 | 合成案例 1–5 | 決策問題 1–6 | 最終 wording 決定 |
+| 角色 | 當時的合成案例 1–5 | 當時的決策問題 1–6 | 當時的 wording 決定 |
 | --- | --- | --- | --- |
 | 臨床 reviewer | 全數 pass | 全數核准 | 核准 |
 | 藥事 reviewer | 全數 pass | 全數核准 | 核准 |

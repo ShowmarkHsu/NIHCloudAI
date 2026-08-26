@@ -23,7 +23,7 @@
 
 ## 目前必須承認的缺口
 
-1. R2/R3 的程式與合成測試已接上；受控 coverage-only synthetic OpenRouter 已完成 fresh-session 重複性、review/copy、取消及 scope 失效觀察，另有一筆真實 fixed-route `has-data` synthetic facts bounded 成功。固定本機 Ollama coverage-only CLI seam 已連續兩次完成，built-extension UI generation／完整 validator／review-copy gating 重測亦通過；固定 lab `has-data` CLI seam 已在 prompt v4／完整 validator 下連續三個 fresh process 完成，隔離 built-MV3／真實 Ollama localhost bridge UI seam 亦完成三個 fresh tabs 的 generation／review-copy gating。prompt v5 的維護產品 fixture 多家族 seam 已連續三個 fresh process 完成，但 installed-extension direct-origin v5 重測、兩句新增 deterministic context 的臨床／藥事重新核准、整體臨床品質與 release acceptance 仍未完成。
+1. R2/R3 的程式與合成測試已接上；受控 coverage-only synthetic OpenRouter 已完成 fresh-session 重複性、review/copy、取消及 scope 失效觀察，另有一筆真實 fixed-route `has-data` synthetic facts bounded 成功。固定本機 Ollama coverage-only CLI seam 已連續兩次完成，built-extension UI generation／完整 validator／review-copy gating 重測亦通過；固定 lab `has-data` CLI seam 已在 prompt v4／完整 validator 下連續三個 fresh process 完成，隔離 built-MV3／真實 Ollama localhost bridge UI seam 亦完成三個 fresh tabs 的 generation／review-copy gating。prompt v5 的維護產品 fixture 多家族 seam 已連續三個 fresh process 完成；來源明示 `no-known-allergy` 的真實 Ollama seam 亦連續三次完成。installed-extension direct-origin v5 重測、兩句新增 deterministic context 與兩種過敏狀態固定措辭的臨床／藥事重新核准、整體臨床品質與 release acceptance 仍未完成。
 2. revision-wide collector 已接上八個 Phase 1 家族。就醫只取西／中藥 claim 上明確存在的日期、院所、門診／藥局類型與來源診斷並去重，不解析 HTML `patientsummary`，也不從藥名推論；授權操作者已在新 build 上回報 NHI-origin encounter coverage bounded PASS。
 3. actual extension browser test 證明已載入 iframe 會 fail closed、可完成 loopback Provider round trip，且 MV3 service worker 重啟後只恢復同 tab 的目前 sealed scope 供 review；真實 Provider 與 NHI-origin 流程仍只可在受控人工環境驗證。
 4. `package.json` 使用 upstream 版本號，但文件又宣稱 NIHCloudAI 採獨立 SemVer；release identity 尚未定案。
@@ -224,6 +224,21 @@ rows 與 source aliases 數量一致；prompt 從 43,300 降至 21,443 字元。
 HAR、screenshot 或 clipboard 內容。這只建立 pinned local Ollama／維護 fixture／CLI seam 的
 多家族工程重複性；新增兩句 deterministic wording 必須重新取得臨床與藥事核准，installed
 extension direct-origin v5、真實病人摘要品質、artifact 與 release approval 仍未完成。
+
+後續 installed-extension direct-origin 回報 `validation-content-negative-none-word-failed`。
+red-capable 真實 Ollama 測試以來源明示 `no-known-allergy` 的合成 allergy record 重現該
+bounded 狀態；問題是既有 validator 對除固定「無可用資料」外的任何「無」一律 fail
+closed，無法區分來源明示的過敏狀態。`clinical-rules.v3` 現在只在 sealed allergy
+evidence 支持 `no-known-allergy` 時，於【核對重點】與【目前用藥與過敏】將含「無」的
+過敏子句正規化為固定本機措辭，並由 sealed evidence 補回來源 aliases；只有過敏陽性、
+非過敏「無」字、其他 section 或任何殘留「無」字仍 fail closed。同時存在過敏陽性與
+`no-known-allergy` 時改用固定矛盾提示，不得掩蓋陽性紀錄。來源明示
+`no-known-allergy` 搭配合成用藥 fact 的 full-data 型真實 Ollama seam 已在三個 fresh
+processes 回報 bounded `completed`（25.8、22.7、22.7 秒）；只有 allergy source 時，
+模型若把未收集用藥誤述為「無用藥」仍會 fail closed。完整產品 fixture 亦在最終規則
+下再次完成（177.8 秒）。測試未
+保存 Provider output 或其他敏感內容。兩種新增固定過敏措辭仍待臨床與藥事審閱，且
+installed-extension direct-origin 新 build 的重測尚未完成。
 
 ## 已完成的 Phase 1 collection checkpoint（2026-08-25）
 

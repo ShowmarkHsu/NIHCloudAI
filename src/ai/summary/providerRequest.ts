@@ -113,6 +113,8 @@ export type SealedSummaryRequest = Readonly<{
   prompt: string;
   coverage: SnapshotCoverage;
   sourceAliases: Readonly<Record<string, string>>;
+  sourceEvidence: Readonly<Record<string,
+    'source-stated-no-known-allergy' | 'source-stated-present-allergy'>>;
 }> & Readonly<{[sealedSummaryRequestBrand]: true}>;
 
 type ProviderFactRow = Readonly<{
@@ -171,6 +173,15 @@ export function createSealedSummaryRequest(
   const sourceAliases = Object.fromEntries(rebuilt.snapshot.records.map((record, index) => [
     `S${index + 1}`, record.sourceRef,
   ]));
+  const sourceEvidence = Object.fromEntries(rebuilt.snapshot.records.flatMap((record, index) => {
+    if (record.sourceFamily !== 'allergy') return [];
+    return [[
+      `S${index + 1}`,
+      record.status === 'no-known-allergy'
+        ? 'source-stated-no-known-allergy' as const
+        : 'source-stated-present-allergy' as const,
+    ]];
+  }));
   const factTables = createProviderFactTables(rebuilt.snapshot.records);
   const prompt = '請只輸出 JSON；每節使用 sourceAliases（S1…），不得輸出 sourceRefs。factTables 的 columns 依序對應每列 rows 的值。\n' +
     JSON.stringify({
@@ -183,6 +194,7 @@ export function createSealedSummaryRequest(
     prompt,
     coverage: rebuilt.snapshot.coverage,
     sourceAliases: Object.freeze(sourceAliases),
+    sourceEvidence: Object.freeze(sourceEvidence),
     [sealedSummaryRequestBrand]: true as const,
   });
 }
@@ -202,6 +214,62 @@ function isAliasIssuePath(path: readonly PropertyKey[]): boolean {
 }
 
 const declaredAliasCitationPattern = /\bS[1-9]\d{0,3}\b/gu;
+const noneBeforeAllergyPhrasePattern =
+  /無([^，；。無]{0,6})過敏(?:紀錄|記錄|史|資料|資訊)?/gu;
+const allergyBeforeNonePhrasePattern =
+  /過敏(?:紀錄|記錄|史|資料|資訊)?(?:顯示|為|：|:)?無(?:相關)?(?:紀錄|記錄|資料|資訊)?/gu;
+const unsupportedAllergyQualifierPattern =
+  /(?:及|與|或|、|和|以及|疾病|症狀|檢驗|影像|手術|住院|出院|處置|就醫)/u;
+const canonicalNoKnownAllergyWording = '來源明示未有已知過敏紀錄';
+const canonicalConflictingAllergyWording =
+  '來源同時明示過敏與未有已知過敏紀錄，資料可能矛盾，須逐項人工核對';
+
+function canonicalizeSourceStatedNoKnownAllergy(
+  section: CoverageRenderableSection,
+  sourceEvidence: SealedSummaryRequest['sourceEvidence'],
+): CoverageRenderableSection {
+  if (!section.content.includes('無') ||
+    (section.heading !== FIXED_FIVE_SECTION_HEADINGS[0] &&
+      section.heading !== FIXED_FIVE_SECTION_HEADINGS[1])) return section;
+
+  const noKnownAliases = Object.entries(sourceEvidence)
+    .filter(([, evidence]) => evidence === 'source-stated-no-known-allergy')
+    .map(([alias]) => alias);
+  if (noKnownAliases.length === 0) return section;
+  const presentAliases = Object.entries(sourceEvidence)
+    .filter(([, evidence]) => evidence === 'source-stated-present-allergy')
+    .map(([alias]) => alias);
+  const fixedWording = presentAliases.length > 0
+    ? canonicalConflictingAllergyWording
+    : canonicalNoKnownAllergyWording;
+
+  if ((section.content.match(/無/gu)?.length ?? 0) !== 1) return section;
+  let replacementCount = 0;
+  const noneBeforeCanonicalized = section.content.replace(
+    noneBeforeAllergyPhrasePattern,
+    (phrase, qualifier: string) => {
+      if (unsupportedAllergyQualifierPattern.test(qualifier)) return phrase;
+      replacementCount += 1;
+      return fixedWording;
+    },
+  );
+  const content = noneBeforeCanonicalized.replace(allergyBeforeNonePhrasePattern, () => {
+    replacementCount += 1;
+    return fixedWording;
+  });
+  if (replacementCount !== 1 || content.includes('無')) return section;
+  const sourceAliases = [...new Set([
+    ...section.sourceAliases,
+    ...noKnownAliases,
+    ...(presentAliases.length > 0 ? presentAliases : []),
+  ])];
+  if (sourceAliases.length > 100) return section;
+  return Object.freeze({
+    heading: section.heading,
+    content,
+    sourceAliases: Object.freeze(sourceAliases),
+  });
+}
 
 function canonicalizeDeclaredAliasCitations(
   section: CoverageRenderableSection,
@@ -244,8 +312,10 @@ export function validateProviderSummaryOutput(
       : {status: 'validation-structure-failed'};
   }
 
+  const evidenceCanonicalizedSections = parsed.data.sections.map((section) =>
+    canonicalizeSourceStatedNoKnownAllergy(section, request.sourceEvidence));
   const renderedSections = renderDeterministicCoverageSections(
-    parsed.data.sections,
+    evidenceCanonicalizedSections,
     request.coverage,
   );
   const canonicalizedSections = renderedSections.map((section) =>
@@ -266,7 +336,7 @@ export function validateProviderSummaryOutput(
     const contentFailure = classifyFixedFiveSectionContentFailure(summary.error.issues);
     if (contentFailure === 'metadata') return {status: 'validation-content-metadata-failed'};
     if (contentFailure === 'negative-finding') {
-      const negativeKind = parsed.data.sections
+      const negativeKind = sections
         .map((section) => classifyMissingAsNegativeFinding(section.content))
         .find((kind) => kind !== null);
       if (negativeKind === 'not-found') return {status: 'validation-content-negative-not-found-failed'};
