@@ -215,6 +215,12 @@ function AiFrame() {
       status === "validation-content-metadata-failed" ? "Provider 回應含有禁止的內部代號或格式標記；沒有可複製內容。" :
       status === "validation-content-negative-not-found-failed" ? "Provider 回應使用「未發現」描述資料；沒有可複製內容。" :
       status === "validation-content-negative-normal-failed" ? "Provider 回應使用「正常」描述資料；沒有可複製內容。" :
+      status === "validation-content-negative-none-word-recent-course-source-supported-failed" ? "Provider 在近期病程與檢查使用「無」字；引用來源有明示「無」字，尚未通過受控正規化；沒有可複製內容。" :
+      status === "validation-content-negative-none-word-recent-course-source-unsupported-failed" ? "Provider 在近期病程與檢查使用「無」字，但引用來源未明示支持；沒有可複製內容。" :
+      status === "validation-content-negative-none-word-admission-source-supported-failed" ? "Provider 在住院、手術與出院使用「無」字；引用來源有明示「無」字，尚未通過受控正規化；沒有可複製內容。" :
+      status === "validation-content-negative-none-word-admission-source-unsupported-failed" ? "Provider 在住院、手術與出院使用「無」字，但引用來源未明示支持；沒有可複製內容。" :
+      status === "validation-content-negative-none-word-data-gap-source-supported-failed" ? "Provider 在資料缺口與待確認使用非固定「無」字；引用來源有明示「無」字；沒有可複製內容。" :
+      status === "validation-content-negative-none-word-data-gap-source-unsupported-failed" ? "Provider 在資料缺口與待確認使用非固定「無」字，且引用來源未明示支持；沒有可複製內容。" :
       status === "validation-content-negative-none-word-outside-supported-sections-failed" ? "Provider 在非過敏摘要節使用「無」字；沒有可複製內容。" :
       status === "validation-content-negative-none-word-multiple-failed" ? "Provider 同一摘要節使用多個非固定「無」字；沒有可複製內容。" :
       status === "validation-content-negative-none-word-unrelated-to-allergy-failed" ? "Provider 在核對或用藥節使用與過敏無關的「無」字；沒有可複製內容。" :

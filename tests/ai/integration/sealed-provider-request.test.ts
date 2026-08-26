@@ -164,7 +164,13 @@ describe('sealed provider request and source alias round-trip', () => {
     const outsideSupportedSections = JSON.parse(output(['S1']));
     outsideSupportedSections.sections[2].content = `無法確認${'重'.repeat(36)}`;
     expect(classify(outsideSupportedSections, labRequest))
-      .toBe('validation-content-negative-none-word-outside-supported-sections-failed');
+      .toBe('validation-content-negative-none-word-recent-course-source-unsupported-failed');
+    const labRequestWithSourceNoneWord = Object.freeze({
+      ...labRequest,
+      sourceContainsNoneWord: Object.freeze({S1: true}),
+    });
+    expect(classify(outsideSupportedSections, labRequestWithSourceNoneWord))
+      .toBe('validation-content-negative-none-word-recent-course-source-supported-failed');
 
     const multiple = JSON.parse(output(['S1']));
     multiple.sections[0].content = `無已知過敏，無相關過敏${'重'.repeat(27)}`;

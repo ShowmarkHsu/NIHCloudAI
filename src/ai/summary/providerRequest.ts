@@ -115,6 +115,7 @@ export type SealedSummaryRequest = Readonly<{
   sourceAliases: Readonly<Record<string, string>>;
   sourceEvidence: Readonly<Record<string,
     'source-stated-no-known-allergy' | 'source-stated-present-allergy'>>;
+  sourceContainsNoneWord: Readonly<Record<string, boolean>>;
 }> & Readonly<{[sealedSummaryRequestBrand]: true}>;
 
 type ProviderFactRow = Readonly<{
@@ -145,6 +146,13 @@ function createProviderFactTables(
     ])));
     return Object.freeze({sourceFamily, columns, rows});
   }));
+}
+
+function containsNoneWord(value: unknown): boolean {
+  if (typeof value === 'string') return value.includes('無');
+  if (Array.isArray(value)) return value.some(containsNoneWord);
+  if (typeof value !== 'object' || value === null) return false;
+  return Object.values(value).some(containsNoneWord);
 }
 
 function sameScope(scope: SummaryReviewScopeInput, sealed: SealedPatientSnapshot): boolean {
@@ -182,6 +190,10 @@ export function createSealedSummaryRequest(
         : 'source-stated-present-allergy' as const,
     ]];
   }));
+  const sourceContainsNoneWord = Object.fromEntries(rebuilt.snapshot.records.map((record, index) => [
+    `S${index + 1}`,
+    containsNoneWord(record),
+  ]));
   const factTables = createProviderFactTables(rebuilt.snapshot.records);
   const prompt = '請只輸出 JSON；每節使用 sourceAliases（S1…），不得輸出 sourceRefs。factTables 的 columns 依序對應每列 rows 的值。\n' +
     JSON.stringify({
@@ -195,6 +207,7 @@ export function createSealedSummaryRequest(
     coverage: rebuilt.snapshot.coverage,
     sourceAliases: Object.freeze(sourceAliases),
     sourceEvidence: Object.freeze(sourceEvidence),
+    sourceContainsNoneWord: Object.freeze(sourceContainsNoneWord),
     [sealedSummaryRequestBrand]: true as const,
   });
 }
@@ -206,7 +219,7 @@ export function isSealedSummaryRequest(value: unknown): value is SealedSummaryRe
 
 export type ProviderSummaryOutputResult =
   | Readonly<{status: 'completed'; summary: FixedFiveSectionSummary}>
-  | Readonly<{status: 'validation-structure-failed' | 'validation-alias-failed' | 'validation-content-failed' | 'validation-content-metadata-failed' | 'validation-content-negative-failed' | 'validation-content-negative-not-found-failed' | 'validation-content-negative-normal-failed' | 'validation-content-negative-none-word-failed' | 'validation-content-negative-none-word-outside-supported-sections-failed' | 'validation-content-negative-none-word-multiple-failed' | 'validation-content-negative-none-word-unrelated-to-allergy-failed' | 'validation-content-negative-none-word-allergy-source-unsupported-failed' | 'validation-content-negative-none-word-allergy-phrase-unsupported-failed' | 'validation-content-data-gap-failed' | 'validation-content-bounds-failed' | 'validation-length-failed'}>;
+  | Readonly<{status: 'validation-structure-failed' | 'validation-alias-failed' | 'validation-content-failed' | 'validation-content-metadata-failed' | 'validation-content-negative-failed' | 'validation-content-negative-not-found-failed' | 'validation-content-negative-normal-failed' | 'validation-content-negative-none-word-failed' | 'validation-content-negative-none-word-outside-supported-sections-failed' | 'validation-content-negative-none-word-recent-course-source-supported-failed' | 'validation-content-negative-none-word-recent-course-source-unsupported-failed' | 'validation-content-negative-none-word-admission-source-supported-failed' | 'validation-content-negative-none-word-admission-source-unsupported-failed' | 'validation-content-negative-none-word-data-gap-source-supported-failed' | 'validation-content-negative-none-word-data-gap-source-unsupported-failed' | 'validation-content-negative-none-word-multiple-failed' | 'validation-content-negative-none-word-unrelated-to-allergy-failed' | 'validation-content-negative-none-word-allergy-source-unsupported-failed' | 'validation-content-negative-none-word-allergy-phrase-unsupported-failed' | 'validation-content-data-gap-failed' | 'validation-content-bounds-failed' | 'validation-length-failed'}>;
 
 function isAliasIssuePath(path: readonly PropertyKey[]): boolean {
   const sourceAliasesIndex = path.indexOf('sourceAliases');
@@ -277,8 +290,9 @@ type NoneWordFailureStatus = Exclude<
 >['status'];
 
 function classifyNoneWordFailure(
-  sections: readonly Readonly<{heading: string; content: string}>[],
+  sections: readonly CoverageRenderableSection[],
   sourceEvidence: SealedSummaryRequest['sourceEvidence'],
+  sourceContainsNoneWord: SealedSummaryRequest['sourceContainsNoneWord'],
 ): NoneWordFailureStatus {
   const failingSection = sections.find((section) =>
     section.content.replaceAll('無可用資料', '').includes('無'));
@@ -286,7 +300,25 @@ function classifyNoneWordFailure(
   const sectionIndex = FIXED_FIVE_SECTION_HEADINGS.indexOf(
     failingSection.heading as typeof FIXED_FIVE_SECTION_HEADINGS[number],
   );
-  if (sectionIndex !== 0 && sectionIndex !== 1) {
+  if (sectionIndex >= 2) {
+    const citedSourceSupportsNoneWord = failingSection.sourceAliases.some(
+      (alias) => sourceContainsNoneWord[alias] === true,
+    );
+    if (sectionIndex === 2) {
+      return citedSourceSupportsNoneWord
+        ? 'validation-content-negative-none-word-recent-course-source-supported-failed'
+        : 'validation-content-negative-none-word-recent-course-source-unsupported-failed';
+    }
+    if (sectionIndex === 3) {
+      return citedSourceSupportsNoneWord
+        ? 'validation-content-negative-none-word-admission-source-supported-failed'
+        : 'validation-content-negative-none-word-admission-source-unsupported-failed';
+    }
+    if (sectionIndex === 4) {
+      return citedSourceSupportsNoneWord
+        ? 'validation-content-negative-none-word-data-gap-source-supported-failed'
+        : 'validation-content-negative-none-word-data-gap-source-unsupported-failed';
+    }
     return 'validation-content-negative-none-word-outside-supported-sections-failed';
   }
   const content = failingSection.content.replaceAll('無可用資料', '');
@@ -373,7 +405,11 @@ export function validateProviderSummaryOutput(
       if (negativeKind === 'not-found') return {status: 'validation-content-negative-not-found-failed'};
       if (negativeKind === 'normal') return {status: 'validation-content-negative-normal-failed'};
       if (negativeKind === 'none-word') {
-        return {status: classifyNoneWordFailure(sections, request.sourceEvidence)};
+        return {status: classifyNoneWordFailure(
+          canonicalizedSections,
+          request.sourceEvidence,
+          request.sourceContainsNoneWord,
+        )};
       }
       return {status: 'validation-content-negative-failed'};
     }

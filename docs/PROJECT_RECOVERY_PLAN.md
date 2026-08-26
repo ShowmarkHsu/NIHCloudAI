@@ -243,6 +243,10 @@ installed-extension direct-origin 重載該 build 後仍回報泛化的
 此狀態再分成非允許節、同節多個「無」、與過敏無關、sealed 過敏來源不支持，以及
 過敏片語不在窄窗五種 bounded 子類別。分類不回傳節文字、aliases、字數或 Provider
 payload，也不放寬原有 fail-closed 規則；新診斷 build 的 installed-extension 重測待完成。
+該診斷 build 的 installed-extension 重測隨後回報「非過敏摘要節」子類別。下一層 bounded
+分類因此再區分【近期病程與檢查】、【住院、手術與出院】或【資料缺口與待確認】，並只
+回報該節引用的 sealed source 是否本身含來源明示「無」字。它不回傳來源值、摘要片語、
+alias 或筆數；此節別／來源支持診斷 build 的 installed-extension 重測仍待完成。
 
 ## 已完成的 Phase 1 collection checkpoint（2026-08-25）
 

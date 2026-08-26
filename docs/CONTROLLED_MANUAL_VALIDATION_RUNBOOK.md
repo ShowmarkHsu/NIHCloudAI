@@ -70,6 +70,8 @@ permission-denied、timeout 與 cancel 路徑並記錄為「外部資源未提�
 7. 若仍出現 none-word 失敗，只記錄 UI 顯示的 bounded 子類別：非允許節、同節多個
    「無」、與過敏無關、sealed 過敏來源不支持或過敏片語不在窄窗。不得開啟 console、
    擷取 response、複製摘要或以 screenshot／HAR／log 擴大診斷資料。
+8. 若子類別為非允許節，只再記錄 UI 顯示的固定節別與「引用來源有明示支持／未明示
+   支持」；不得記錄是哪一筆來源、來源值、alias、片語或筆數。
 
 ## OpenRouter（遠端、session-only BYOK）
 
