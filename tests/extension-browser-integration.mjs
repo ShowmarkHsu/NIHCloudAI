@@ -5,6 +5,8 @@ import os from 'node:os';
 import path from 'node:path';
 import {chromium} from '@playwright/test';
 
+const runRealOllamaUi = process.argv.includes('--real-ollama-ui');
+
 const providerOutput = JSON.stringify({
   schemaVersion: 'clinical-summary.v1',
   timeWindows: {
@@ -40,6 +42,48 @@ if (providerAddress === null || typeof providerAddress === 'string') {
 const syntheticProviderOrigin = `http://127.0.0.1:${providerAddress.port}`;
 const syntheticProviderEndpoint = `${syntheticProviderOrigin}/api/v1/chat/completions`;
 
+let ollamaBridgeServer;
+let ollamaBridgeOrigin;
+if (runRealOllamaUi) {
+  ollamaBridgeServer = createServer(async (request, response) => {
+    if (request.method !== 'POST' || request.url !== '/api/generate') {
+      response.writeHead(404).end();
+      return;
+    }
+    const chunks = [];
+    let byteLength = 0;
+    for await (const chunk of request) {
+      byteLength += chunk.length;
+      if (byteLength > 1_000_000) {
+        response.writeHead(413).end();
+        return;
+      }
+      chunks.push(chunk);
+    }
+    try {
+      const upstream = await fetch('http://127.0.0.1:11434/api/generate', {
+        method: 'POST',
+        headers: {'content-type': 'application/json'},
+        body: Buffer.concat(chunks),
+      });
+      const body = Buffer.from(await upstream.arrayBuffer());
+      response.writeHead(upstream.status, {
+        'content-type': upstream.headers.get('content-type') ?? 'application/json',
+      });
+      response.end(body);
+    } catch {
+      response.writeHead(502).end();
+    }
+  });
+  ollamaBridgeServer.listen(0, '127.0.0.1');
+  await once(ollamaBridgeServer, 'listening');
+  const ollamaBridgeAddress = ollamaBridgeServer.address();
+  if (ollamaBridgeAddress === null || typeof ollamaBridgeAddress === 'string') {
+    throw new Error('controlled Ollama bridge did not expose a TCP address');
+  }
+  ollamaBridgeOrigin = `http://127.0.0.1:${ollamaBridgeAddress.port}`;
+}
+
 const builtExtensionPath = path.resolve('dist');
 const extensionPath = await mkdtemp(path.join(os.tmpdir(), 'nihcloudai-extension-artifact-'));
 await cp(builtExtensionPath, extensionPath, {recursive: true});
@@ -53,15 +97,33 @@ manifest.host_permissions.push(`${syntheticProviderOrigin}/*`);
 manifest.optional_host_permissions = manifest.optional_host_permissions.filter(
   (origin) => origin !== 'https://openrouter.ai/*',
 );
+if (runRealOllamaUi) {
+  manifest.host_permissions.push('http://127.0.0.1:11434/*');
+  manifest.host_permissions.push(`${ollamaBridgeOrigin}/*`);
+  manifest.optional_host_permissions = manifest.optional_host_permissions.filter(
+    (origin) => origin !== 'http://127.0.0.1:11434/*',
+  );
+}
 await writeFile(manifestPath, JSON.stringify(manifest));
 const backgroundPath = path.join(extensionPath, 'background.js');
 const backgroundSource = await readFile(backgroundPath, 'utf8');
-const rewrittenBackgroundSource = backgroundSource.replace(
+let rewrittenBackgroundSource = backgroundSource.replace(
   'https://openrouter.ai/api/v1/chat/completions',
   syntheticProviderEndpoint,
 );
 if (rewrittenBackgroundSource === backgroundSource) {
   throw new Error('built background did not contain the fixed OpenRouter endpoint');
+}
+if (runRealOllamaUi) {
+  const ollamaBridgeEndpoint = `${ollamaBridgeOrigin}/api/generate`;
+  const ollamaRewrittenBackgroundSource = rewrittenBackgroundSource.replace(
+    'http://127.0.0.1:11434/api/generate',
+    ollamaBridgeEndpoint,
+  );
+  if (ollamaRewrittenBackgroundSource === rewrittenBackgroundSource) {
+    throw new Error('built background did not contain the fixed Ollama endpoint');
+  }
+  rewrittenBackgroundSource = ollamaRewrittenBackgroundSource;
 }
 await writeFile(backgroundPath, rewrittenBackgroundSource);
 const userDataDirectory = await mkdtemp(path.join(os.tmpdir(), 'nihcloudai-extension-browser-'));
@@ -261,6 +323,76 @@ try {
   if (!receivedSyntheticProviderRequest) {
     throw new Error('OpenRouter request did not leave the MV3 background service worker');
   }
+
+  if (runRealOllamaUi) {
+    for (let run = 1; run <= 3; run += 1) {
+      const ollamaParent = await context.newPage();
+      const ollamaPageErrors = [];
+      ollamaParent.on('pageerror', () => ollamaPageErrors.push('page-error'));
+      try {
+        await ollamaParent.route('https://medcloud2.nhi.gov.tw/**', (route) => route.fulfill({
+          contentType: 'text/html',
+          body: '<!doctype html><title>controlled synthetic Ollama parent</title><body></body>',
+        }));
+        await ollamaParent.goto(`https://medcloud2.nhi.gov.tw/controlled-ollama-has-data-ui-${run}`);
+        const ollamaFloatingButton = ollamaParent.locator('#nhi-floating-root button').filter({
+          has: ollamaParent.locator('img[alt="NHI Extractor"]'),
+        });
+        await ollamaFloatingButton.waitFor({timeout: 15_000});
+        for (let attempt = 0; attempt < 2; attempt += 1) {
+          await ollamaParent.evaluate(() => {
+            window.dispatchEvent(new CustomEvent('dataFetchCompleted', {detail: [{
+              status: 'success', dataType: 'labdata', recordCount: 1,
+              data: {rObject: [{
+                hosp: 'Synthetic Lab;outpatient;0000000000', real_inspect_date: '2026/08/26',
+                order_code: 'LAB-OLLAMA-001', assay_item_name: 'Synthetic analyte', assay_value: '12.3',
+                unit_data: 'mg/dL', consult_value: '10-14', assay_mark: 'H',
+              }]},
+            }]}));
+          });
+          await ollamaParent.waitForTimeout(100);
+        }
+        await ollamaFloatingButton.click();
+        await ollamaParent.getByRole('tab', {name: 'AI 摘要'}).click();
+        const ollamaFrame = ollamaParent.frameLocator('iframe[title="AI 摘要隔離工作區"]');
+        await ollamaFrame.getByText('資料已就緒；請主動選擇 provider。').waitFor({timeout: 15_000});
+        await ollamaFrame.getByRole('button', {name: '生成本機 Ollama 摘要'}).click();
+        const ollamaStatus = ollamaFrame.locator('p[aria-live="polite"]');
+        await ollamaStatus.evaluate((element) => new Promise((resolve, reject) => {
+          const deadline = Date.now() + 190_000;
+          const pendingStates = new Set([
+            '資料已就緒；請主動選擇 provider。',
+            '正在生成完整摘要；不會顯示 partial output。',
+          ]);
+          const poll = () => {
+            if (!pendingStates.has(element.textContent)) resolve();
+            else if (Date.now() >= deadline) reject(new Error('Ollama UI status remained pending'));
+            else setTimeout(poll, 50);
+          };
+          poll();
+        }));
+        const ollamaStatusText = await ollamaStatus.textContent();
+        if (ollamaStatusText !== '完整摘要已通過固定格式驗證，請 review。') {
+          throw new Error(`controlled Ollama UI failed closed: ${ollamaStatusText}`);
+        }
+        const ollamaCopyButton = ollamaFrame.getByRole('button', {name: '複製已 review 摘要'});
+        if (await ollamaCopyButton.isEnabled()) {
+          throw new Error('controlled Ollama UI copy must remain disabled before review');
+        }
+        await ollamaFrame.getByRole('button', {name: '確認 review'}).click();
+        await ollamaFrame.getByText('已 review；可複製目前版本。').waitFor({timeout: 15_000});
+        if (!(await ollamaCopyButton.isEnabled())) {
+          throw new Error('controlled Ollama UI copy did not become eligible after review');
+        }
+        if (ollamaPageErrors.length > 0) {
+          throw new Error('controlled Ollama UI page reported an error');
+        }
+      } finally {
+        await ollamaParent.close();
+      }
+    }
+    console.log('Controlled Ollama UI: 3/3 fresh synthetic has-data sessions passed full validation and review/copy gating.');
+  }
   if (parentErrors.length > 0) throw new Error(`extension content runtime page errors: ${parentErrors.join('; ')}`);
   console.log('Extension iframe browser integration: built MV3 iframe failed closed for invalid scopes and completed a synthetic loopback Provider round trip.');
 } finally {
@@ -268,4 +400,7 @@ try {
   await rm(userDataDirectory, {recursive: true, force: true});
   await rm(extensionPath, {recursive: true, force: true});
   await new Promise((resolve) => providerServer.close(resolve));
+  if (ollamaBridgeServer !== undefined) {
+    await new Promise((resolve) => ollamaBridgeServer.close(resolve));
+  }
 }

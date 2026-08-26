@@ -24,6 +24,7 @@
     "test:fixtures": "node tests/characterization/replay-fixtures.mjs",
     "test:browser": "node tests/run-browser-mocha.mjs",
     "test:extension": "npm run build && node tests/extension-browser-integration.mjs",
+    "test:extension:ollama": "npm run build && node tests/extension-browser-integration.mjs --real-ollama-ui",
     "test:ai": "vitest run --config vitest.ai.config.ts",
     "typecheck:ai": "tsc --project tsconfig.ai.json",
     "typecheck": "npm run typecheck:ai",
