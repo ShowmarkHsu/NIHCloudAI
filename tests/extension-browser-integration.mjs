@@ -312,6 +312,8 @@ try {
   if (!(await copyButton.isEnabled())) {
     throw new Error('MV3 summary copy did not become eligible after review');
   }
+  await copyButton.click();
+  await liveFrame.getByText('已成功複製已 review 摘要。').waitFor({timeout: 15_000});
   const medicationCoverage = await liveFrame.getByLabel('目前用藥與過敏 內容').inputValue();
   if (medicationCoverage !== '西藥：資料缺口，待確認；中藥：資料缺口，待確認；過敏：資料缺口，待確認。') {
     throw new Error('MV3 summary did not use the deterministic local medication/allergy coverage rendering');

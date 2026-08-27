@@ -33,6 +33,38 @@ function copyText(summary) {
   return summary.sections.map((section) => `${section.heading}\n${section.content}`).join("\n\n");
 }
 
+/**
+ * Chrome extension iframes normally expose the async Clipboard API, but some
+ * managed profiles reject it despite the extension's clipboardWrite permission.
+ * Keep the write inside the click gesture and fail closed if neither supported
+ * browser path accepts it. This function never persists or returns the text.
+ */
+async function writeReviewedSummaryToClipboard(text) {
+  if (typeof navigator.clipboard?.writeText === "function") {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // Fall through to Chrome's permission-backed legacy write path.
+    }
+  }
+
+  const input = document.createElement("textarea");
+  input.value = text;
+  input.setAttribute("readonly", "");
+  input.style.position = "fixed";
+  input.style.opacity = "0";
+  document.body.append(input);
+  input.select();
+  try {
+    return document.execCommand("copy");
+  } catch {
+    return false;
+  } finally {
+    input.remove();
+  }
+}
+
 function AiFrame() {
   const [scope, setScope] = useState(null);
   const [view, setView] = useState(null);
@@ -174,13 +206,16 @@ function AiFrame() {
 
   const copy = async () => {
     if (!scope || !reviewed || !draft) return;
+    const currentGeneration = generationEpoch.current;
     const response = await message(scope, "iframe.summary.copy");
+    if (generationEpoch.current !== currentGeneration) return;
     if (!response?.accepted) {
       setStatus("stale");
       return;
     }
-    await navigator.clipboard.writeText(copyText(draft));
-    setStatus("copied");
+    const copied = await writeReviewedSummaryToClipboard(copyText(draft));
+    if (generationEpoch.current !== currentGeneration) return;
+    setStatus(copied ? "copied" : "copy-failed");
   };
 
   const edit = (index, content) => {
@@ -200,7 +235,9 @@ function AiFrame() {
       status === "ready" ? "資料已就緒；請主動選擇 provider。" :
       status === "generating" ? "正在生成完整摘要；不會顯示 partial output。" :
       status === "ready-for-review" ? "完整摘要已通過固定格式驗證，請 review。" :
-      status === "reviewed" || status === "copied" ? "已 review；可複製目前版本。" :
+      status === "reviewed" ? "已 review；可複製目前版本。" :
+      status === "copied" ? "已成功複製已 review 摘要。" :
+      status === "copy-failed" ? "無法寫入剪貼簿；沒有複製內容。" :
       status === "edited" ? "編輯已使 review/copy 失效；請還原為已驗證版本或重新生成。" :
       status === "cancelled" ? "已取消生成；沒有可複製內容。" :
       status === "permission-required" ? "未授予所選 provider 的可選主機權限。" :
