@@ -11,13 +11,9 @@ import {
 } from '../contracts/summary';
 import type { SnapshotCoverage } from '../contracts/coverage';
 import { type SealedPatientSnapshot, sealVersionedPatientSnapshot } from '../projection/builder';
-import {
-  FIXED_FIVE_SECTION_COVERAGE_POLICY,
-  LOCAL_RENDERED_NEUTRAL_PLACEHOLDER,
-} from '../providers/prompt';
+import { FIXED_FIVE_SECTION_COVERAGE_POLICY } from '../providers/prompt';
 import {
   renderDeterministicCoverageSections,
-  sectionHasCollectedFacts,
   type CoverageRenderableSection,
 } from './coverageRenderer';
 import type { SummaryReviewScopeInput } from './stateMachine';
@@ -394,12 +390,6 @@ export function validateProviderSummaryOutput(
     return parsed.error.issues.some((issue) => isAliasIssuePath(issue.path))
       ? {status: 'validation-alias-failed'}
       : {status: 'validation-structure-failed'};
-  }
-
-  if (parsed.data.sections.some((section) =>
-    section.content === LOCAL_RENDERED_NEUTRAL_PLACEHOLDER &&
-    sectionHasCollectedFacts(section.heading, request.coverage))) {
-    return {status: 'validation-content-failed'};
   }
 
   const evidenceCanonicalizedSections = parsed.data.sections.map((section) =>
