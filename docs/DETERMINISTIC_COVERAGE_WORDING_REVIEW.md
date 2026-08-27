@@ -1,9 +1,9 @@
 # Deterministic coverage wording 臨床／藥事審閱材料
 
-狀態：2026-08-24 臨床與藥事 reviewer 核准當時的四句補長 context；2026-08-26
-prompt v5 新增第 5、6 句；clinical-rules.v3 新增來源明示未有已知過敏紀錄的兩種固定
-正規化措辭；clinical-rules.v4 新增未獲來源支持狀態敘述的固定移除提示。目前這些新增
-文字都待臨床與藥事重新核准。
+狀態：2026-08-24 臨床與藥事 reviewer 核准當時的四句補長 context；2026-08-27，兩個
+角色再分別核准 prompt v5 新增第 5、6 句、clinical-rules.v3 的兩種來源明示過敏固定
+正規化措辭，以及 clinical-rules.v4 未獲來源支持狀態敘述的固定移除提示與保留 aliases
+供人工回查。
 先前核准只涵蓋當時的固定文字、案例矩陣與 reviewer 問題，不是整體 clinical
 acceptance、release approval 或 Provider 合格證明。本文件只列出 background 依 sealed
 coverage contract 產生的固定文字；Provider 不負責產生、改寫或補充這些 coverage 文字。
@@ -58,12 +58,12 @@ coverage contract 產生的固定文字；Provider 不負責產生、改寫或�
 Provider 仍不得自行推論陰性狀態。只有 sealed allergy record 明確標記
 `no-known-allergy`，且 Provider 在【核對重點】或【目前用藥與過敏】使用含「無」的
 過敏子句時，background 才會以本機規則取代該子句並補回 sealed source alias。固定
-措辭如下；兩句都尚未取得臨床或藥事核准：
+措辭如下；兩句已於 2026-08-27 取得臨床與藥事逐組核准：
 
 | Sealed allergy evidence | 本機固定措辭 | 審閱狀態 |
 | --- | --- | --- |
-| 只有來源明示 `no-known-allergy` | `來源明示未有已知過敏紀錄` | 待臨床／藥事審閱 |
-| 同時有來源明示過敏與 `no-known-allergy` | `來源同時明示過敏與未有已知過敏紀錄，資料可能矛盾，須逐項人工核對` | 待臨床／藥事審閱 |
+| 只有來源明示 `no-known-allergy` | `來源明示未有已知過敏紀錄` | 臨床／藥事核准 |
+| 同時有來源明示過敏與 `no-known-allergy` | `來源同時明示過敏與未有已知過敏紀錄，資料可能矛盾，須逐項人工核對` | 臨床／藥事核准 |
 
 本機只補入實際支持上述狀態的 sealed allergy aliases。只有過敏陽性 evidence、沒有
 `no-known-allergy` evidence、在其他 section 出現、含「無」的局部片語不符合受控過敏
@@ -80,7 +80,8 @@ closed。這項規則不改寫 coverage 的
 
 > 本節含未獲已收集來源明示支持的狀態敘述，該敘述不納入摘要，須回到原始紀錄逐項人工核對
 
-這句目前待臨床與藥事審閱。若任一宣告 alias 的 sealed record 本身含來源明示「無」字，
+這句與保留 aliases 供人工回查已於 2026-08-27 取得臨床與藥事逐組核准。若任一宣告 alias
+的 sealed record 本身含來源明示「無」字，
 本規則不會取代，仍由完整 negative-finding validator fail closed；因此本規則不會把僅有
 字元相似性的來源內容自動判為支持，也不會保留 Provider 的原始陰性敘述。
 
@@ -94,12 +95,12 @@ closed。這項規則不改寫 coverage 的
 | phase-one 全部沒有 `has-data` | 【核對重點】明確禁止任何未提供的臨床推論 | pass | pass |
 | 同時含 `confirmed-empty` 與其他缺口 | 「無可用資料」與「資料缺口，待確認」可清楚區分且不造成陰性推論 | pass | pass |
 | 西藥／中藥／過敏全部沒有 `has-data` | 藥事使用者不會把 coverage 狀態誤讀為無用藥或無過敏 | pass | pass |
-| 達不到 180 字而附加 context | 第 1–4 句已核准；第 5–6 句不造成重複、矛盾或不當臨床暗示 | 待重新審閱 | 待重新審閱 |
-| 來源只明示 `no-known-allergy`，Provider 有／沒有附 alias | 固定措辭忠實表達來源狀態，且只補入 sealed allergy alias | 待審閱 | 待審閱 |
-| 來源同時明示過敏與 `no-known-allergy` | 固定衝突措辭不掩蓋陽性紀錄，並要求逐項人工核對 | 待審閱 | 待審閱 |
+| 達不到 180 字而附加 context | 第 1–4 句已核准；第 5–6 句不造成重複、矛盾或不當臨床暗示 | 核准 | 核准 |
+| 來源只明示 `no-known-allergy`，Provider 有／沒有附 alias | 固定措辭忠實表達來源狀態，且只補入 sealed allergy alias | 核准 | 核准 |
+| 來源同時明示過敏與 `no-known-allergy` | 固定衝突措辭不掩蓋陽性紀錄，並要求逐項人工核對 | 核准 | 核准 |
 | 只有過敏陽性 evidence，Provider 卻使用「無過敏」 | 必須 fail closed，不得正規化為陰性結論 | 自動化通過 | 自動化通過 |
 | 核對／用藥節的非過敏子句含「無」 | 必須維持既有 fail-closed 防線 | 自動化通過 | 自動化通過 |
-| 近期病程／住院節含「無」，引用來源未明示支持 | 移除整節 Provider content，只顯示固定人工核對提示並保留 aliases | 待審閱 | 待審閱 |
+| 近期病程／住院節含「無」，引用來源未明示支持 | 移除整節 Provider content，只顯示固定人工核對提示並保留 aliases | 核准 | 核准 |
 | 近期病程／住院節含「無」，任一引用來源本身含「無」 | 不得僅以字元相同視為語意支持，仍須 fail closed | 自動化通過 | 自動化通過 |
 
 ## Reviewer 決策
@@ -137,9 +138,9 @@ closed。這項規則不改寫 coverage 的
 
 | 新增文字組 | 對應問題 | 臨床 reviewer | 藥事 reviewer |
 | --- | --- | --- | --- |
-| prompt v5 補長 context 第 5–6 句 | 5 | 待補 | 待補 |
-| clinical-rules.v3 的兩句來源明示過敏固定措辭 | 7–8 | 待補 | 待補 |
-| clinical-rules.v4 的固定移除提示與保留 aliases 供人工回查 | 9–10 | 待補 | 待補 |
+| prompt v5 補長 context 第 5–6 句 | 5 | 核准 | 核准 |
+| clinical-rules.v3 的兩句來源明示過敏固定措辭 | 7–8 | 核准 | 核准 |
+| clinical-rules.v4 的固定移除提示與保留 aliases 供人工回查 | 9–10 | 核准 | 核准 |
 
 Repository 只記錄上述角色與 bounded 結果，未收集 reviewer identity、簽章、受控系統
 內容或簽核參照。任何後續文字變更都必須先更新合成 contract tests、保持完整 validator

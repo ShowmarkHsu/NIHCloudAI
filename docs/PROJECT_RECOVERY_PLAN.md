@@ -222,7 +222,7 @@ rows 與 source aliases 數量一致；prompt 從 43,300 降至 21,443 字元。
 相同完整產品 fixture 最終在三個 fresh test processes 連續回報 bounded `completed`，時間為
 165.5 秒（同程序先完成三個其他受控案例）、51.3 秒與 51.0 秒。測試未保存 request、response、摘要、alias 值、臨床內容、session、log、
 HAR、screenshot 或 clipboard 內容。這只建立 pinned local Ollama／維護 fixture／CLI seam 的
-多家族工程重複性；新增兩句 deterministic wording 必須重新取得臨床與藥事核准，installed
+多家族工程重複性；新增兩句 deterministic wording 在該 checkpoint 當時尚待臨床與藥事核准，installed
 extension direct-origin v5、真實病人摘要品質、artifact 與 release approval 仍未完成。
 
 後續 installed-extension direct-origin 回報 `validation-content-negative-none-word-failed`。
@@ -237,7 +237,7 @@ evidence 支持 `no-known-allergy` 時，於【核對重點】與【目前用藥
 processes 回報 bounded `completed`（25.8、22.7、22.7 秒）；只有 allergy source 時，
 模型若把未收集用藥誤述為「無用藥」仍會 fail closed。完整產品 fixture 亦在最終規則
 下再次完成（177.8 秒）。測試未
-保存 Provider output 或其他敏感內容。兩種新增固定過敏措辭仍待臨床與藥事審閱。
+保存 Provider output 或其他敏感內容。兩種新增固定過敏措辭在該 checkpoint 當時仍待臨床與藥事審閱。
 installed-extension direct-origin 重載該 build 後仍回報泛化的
 `validation-content-negative-none-word-failed`；為避免要求摘要內容，validator 現在把
 此狀態再分成非允許節、同節多個「無」、與過敏無關、sealed 過敏來源不支持，以及
@@ -254,8 +254,8 @@ fixture 又連續兩次在固定 180 秒回報 timeout，因此兩項實驗均�
 v5。clinical-rules.v4 改由本機在【近期病程與檢查】／【住院、手術與出院】遇到此精確
 條件時，移除整節 Provider content、保留 aliases，並顯示固定人工核對提示；任一引用來源
 本身含「無」字時仍 fail closed。八家族真實 Ollama seam 在三個 fresh processes 完成
-（32.2、20.8、21.3 秒），183-record 維護 fixture 亦完成（169.6 秒）。固定提示仍待臨床
-與藥事審閱；installed-extension direct-origin rules-v4 重測在此 checkpoint 當時尚未完成。
+（32.2、20.8、21.3 秒），183-record 維護 fixture 亦完成（169.6 秒）。固定提示在該
+checkpoint 當時仍待臨床與藥事審閱；installed-extension direct-origin rules-v4 重測亦尚未完成。
 授權操作者重新載入 commit `da58d78` 的 built extension 後，回報 installed-extension
 direct-origin full-data Ollama generation／完整 validator bounded PASS。Repository 未收集
 摘要、aliases、來源值、畫面、log、HAR、clipboard 或其他 Provider 內容。這完成該
@@ -263,6 +263,12 @@ rules-v4 工程重測。操作者另就同一筆成功結果回報 review 前 co
 review 後 copy enabled；未收集 clipboard 內容或摘要文字。這完成該筆結果的 bounded
 review/copy UI gate，但不代表固定提示已取得臨床／藥事核准、整體摘要臨床品質通過、
 artifact 核准或 release acceptance。
+
+2026-08-27，臨床與藥事 reviewer 分別逐組核准 prompt v5 補長 context 第 5–6 句（問題 5）、
+clinical-rules.v3 的兩句來源明示過敏固定措辭（問題 7–8），以及 clinical-rules.v4 的固定
+移除提示與保留 aliases 供人工回查（問題 9–10）。Repository 只記錄角色與 bounded 決策，
+未收集 reviewer identity、簽章、受控系統內容或簽核參照。這完成三組新增 deterministic
+wording 的 bounded reviewer gate，不代表整體摘要臨床驗收、artifact 核准或 release acceptance。
 
 ## 已完成的 Phase 1 collection checkpoint（2026-08-25）
 

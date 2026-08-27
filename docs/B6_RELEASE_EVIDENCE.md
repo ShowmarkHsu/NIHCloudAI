@@ -146,8 +146,8 @@ full-data medication/allergy section, then completed in three fresh processes in
 22.7 seconds. An allergy-only attempt remained fail closed when the model combined unsupported
 no-medication wording with the supported allergy state. The maintained full product fixture also
 completed again under the final rule in 177.8 seconds. Only bounded completion status and duration
-were retained. The two new fixed allergy phrases are
-explicitly pending clinical and pharmacy review. The installed-extension direct-origin retest of
+were retained. The two new fixed allergy phrases were
+explicitly pending clinical and pharmacy review at that checkpoint. The installed-extension direct-origin retest of
 that rebuilt artifact still reported the generic `validation-content-negative-none-word-failed`
 state. To continue without requesting or retaining summary content, the validator now subdivides
 that state into five bounded causes: outside the two supported sections, multiple none-word uses in
@@ -178,8 +178,8 @@ to a sealed source without a source-stated none-word. It retains the aliases for
 uses one fixed neutral warning. If any cited source itself contains a none-word, this rule does not
 claim semantic support and the existing validator remains fail closed. The eight-family real-Ollama
 case completed in three fresh processes in 32.2, 20.8, and 21.3 seconds; the maintained 183-record
-fixture completed in 169.6 seconds. No Provider content was retained. The new fixed warning requires
-clinical and pharmacy review; installed-extension direct-origin rules-v4 retesting was pending at
+fixture completed in 169.6 seconds. No Provider content was retained. The new fixed warning still
+required clinical and pharmacy review at that checkpoint; installed-extension direct-origin rules-v4 retesting was pending at
 that checkpoint.
 
 After reloading the built extension from commit `da58d78`, the authorized operator reported bounded
@@ -191,6 +191,14 @@ summary text was collected. This completes that result's bounded rules-v4 engine
 review/copy UI gates only. It does not approve the new fixed warning, establish broader clinical
 quality, approve the artifact, or change the release decision.
 
+On 2026-08-27, clinical and pharmacy reviewers each approved all three newly added deterministic
+wording groups: prompt-v5 context sentences 5–6 (question 5), the two clinical-rules.v3
+source-stated allergy phrases (questions 7–8), and the clinical-rules.v4 fixed removal warning plus
+retained aliases for manual review (questions 9–10). The repository records only reviewer roles and
+bounded decisions; it collected no reviewer identity, signature, controlled-system content, or
+approval reference. This completes the bounded reviewer gate for those three wording groups, not
+overall summary clinical acceptance, artifact approval, or release approval.
+
 R1 additionally exercises the real local terminal-result seam. The content runtime passes one revision-wide batch into a closed collector that normalizes and quarantines the existing `medication`, `chinesemed`, `allergy`, `labdata`, `imaging`, `surgery`, and `discharge` source shapes, seals their coverage and local reference vault once, and renders only coverage plus opaque source aliases. Encounter is constructed only from explicit claim-header date, facility, visit type, and source diagnosis fields already present on both western and Chinese medication results; records are deduplicated, missing source diagnoses remain `null`, and any unavailable claim source prevents partial encounter records from being sealed. HTML `patientsummary` and medication names are not used. The maintained product fixture covers all eight Phase 1 families and verifies that internal IDs, file handles, and image case identifiers do not enter the sealed snapshot. An authorized operator first reported that the pre-encounter build displayed the seven direct-source coverage results on the real NHI-origin page, then reported bounded PASS for claims encounter coverage after loading the new build. No screenshot, count, clinical content, or identity was collected. The eight-family collection/display seam therefore has bounded NHI-origin manual evidence, but this does not invoke an LLM and remains engineering evidence rather than summary-quality or release approval. R2/R3 attach an extension-origin iframe: it receives a scope only, reads public coverage/labels through the background, and can request fixed Ollama or OpenRouter generation. The iframe is the sole secret-entry surface; BYOK, explicit remote consent, optional host grants, request construction, timeout/cancellation, and strict whole-document validation are background-owned. The code and synthetic tests do not prove an installed Ollama, valid OpenRouter account/key, model availability, or successful external request. Error, cancellation, session end, revision change, and patient change clear review/copy eligibility. No visual snapshot update is part of this gate.
 
 The synthetic runtime lifecycle tests cover the closed content-to-background capability path: content emits only lifecycle messages after its existing terminal data-fetch event, ends the current scope on patient-switch and page-exit events, and the background clears the matching scope when Chrome reports tab removal. These tests contain no patient payload, credentials, Provider request, screenshot, or session value from a browser.
@@ -199,12 +207,12 @@ The synthetic runtime lifecycle tests cover the closed content-to-background cap
 
 These checks cannot be truthfully performed by repository automation and remain the release owner's responsibility:
 
-- Qualified clinical and pharmacy reviewers approved the then-current deterministic coverage wording matrix on 2026-08-24. That historical approval does not cover prompt-v5 context sentences 5–6, the two `clinical-rules.v3` source-stated allergy phrases, or the `clinical-rules.v4` unsupported-status warning; those additions and broader synthetic-summary clinical acceptance remain pending gates.
+- Qualified clinical and pharmacy reviewers approved the then-current deterministic coverage wording matrix on 2026-08-24. On 2026-08-27, both roles separately approved prompt-v5 context sentences 5–6, the two `clinical-rules.v3` source-stated allergy phrases, and the `clinical-rules.v4` unsupported-status warning plus retained aliases for manual review. Broader synthetic-summary and overall clinical acceptance remain pending gates.
 - An authorized operator verifies the intended Chrome build against approved test patients only; no real data, screenshot, request body, key, or session value may enter this repository.
 - Before any remote Provider connection, the owner records the exact endpoint/model/version, asks for outbound-data consent for that session, confirms the optional host grant, validates session-only secret handling, and re-runs the gate with the least-privilege permission policy.
 - The release owner completes the developer-mode install, update, removal, Provider and data-handling checklist in [`CONTROLLED_MANUAL_VALIDATION_RUNBOOK.md`](CONTROLLED_MANUAL_VALIDATION_RUNBOOK.md) (with [`DEVELOPER_MODE_DISTRIBUTION.md`](DEVELOPER_MODE_DISTRIBUTION.md) as the installation summary).
 
-Security/privacy and hospital/environment approval, plus clinical and pharmacy approval of deterministic coverage wording, were reported on 2026-08-24 without repository-held signature references. Those approvals do not substitute for pending overall clinical acceptance or artifact provenance, and they do not override the release-owner rejection recorded below.
+Security/privacy and hospital/environment approval, plus clinical and pharmacy approval of the then-current deterministic coverage wording, were reported on 2026-08-24 without repository-held signature references. The bounded clinical and pharmacy approvals for the three later wording groups were reported on 2026-08-27 under the same no-identity/no-signature evidence boundary. Those approvals do not substitute for pending overall clinical acceptance or artifact provenance, and they do not override the release-owner rejection recorded below.
 
 ## Release owner decision — 2026-08-24
 
