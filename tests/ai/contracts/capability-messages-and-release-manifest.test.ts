@@ -114,7 +114,7 @@ const releaseManifest = {
     },
     openRouter: {
       endpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      model: 'openai/gpt-5.6-sol',
+      model: 'openai/gpt-4.1-mini',
       route: 'azure',
       temperature: 0,
       topP: 1,

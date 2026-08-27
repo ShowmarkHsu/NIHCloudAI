@@ -100,7 +100,7 @@ describe('background-only Provider boundary', () => {
 
     expect(requests).toHaveLength(1);
     expect(requests[0]?.url).toBe(OPENROUTER_GENERATE_ENDPOINT);
-    expect(requests[0]?.init.body).toContain('openai/gpt-5.6-sol');
+    expect(requests[0]?.init.body).toContain('openai/gpt-4.1-mini');
     expect(requests[0]?.init.body).not.toContain('patientId');
     expect(Object.keys(provider)).not.toContain('readOpenRouterSessionSecret');
     expect(Object.keys(provider)).not.toContain('fetch');
