@@ -68,6 +68,25 @@ function allWithoutData(
   return families.every((family) => coverage[family].status !== 'has-data');
 }
 
+export function sectionHasCollectedFacts(
+  heading: CoverageRenderableSection['heading'],
+  coverage: SnapshotCoverage,
+): boolean {
+  if (heading === FIXED_FIVE_SECTION_HEADINGS[0]) {
+    return !allWithoutData(PHASE_ONE_SOURCE_FAMILIES, coverage);
+  }
+  if (heading === FIXED_FIVE_SECTION_HEADINGS[1]) {
+    return !allWithoutData(MEDICATION_AND_ALLERGY_FAMILIES, coverage);
+  }
+  if (heading === FIXED_FIVE_SECTION_HEADINGS[2]) {
+    return !allWithoutData(RECENT_COURSE_AND_TEST_FAMILIES, coverage);
+  }
+  if (heading === FIXED_FIVE_SECTION_HEADINGS[3]) {
+    return !allWithoutData(ADMISSION_PROCEDURE_DISCHARGE_FAMILIES, coverage);
+  }
+  return false;
+}
+
 function renderSeparatePhrases(
   families: readonly CoverageFamily[],
   coverage: SnapshotCoverage,
@@ -142,7 +161,7 @@ export function renderDeterministicCoverageSections(
   const rendered = Object.freeze(sections.map((section) => {
     if (
       section.heading === FIXED_FIVE_SECTION_HEADINGS[0] &&
-      allWithoutData(PHASE_ONE_SOURCE_FAMILIES, coverage)
+      !sectionHasCollectedFacts(section.heading, coverage)
     ) {
       return deterministicSection(
         section,
@@ -151,7 +170,7 @@ export function renderDeterministicCoverageSections(
     }
     if (
       section.heading === FIXED_FIVE_SECTION_HEADINGS[1] &&
-      allWithoutData(MEDICATION_AND_ALLERGY_FAMILIES, coverage)
+      !sectionHasCollectedFacts(section.heading, coverage)
     ) {
       return deterministicSection(
         section,
@@ -160,7 +179,7 @@ export function renderDeterministicCoverageSections(
     }
     if (
       section.heading === FIXED_FIVE_SECTION_HEADINGS[2] &&
-      allWithoutData(RECENT_COURSE_AND_TEST_FAMILIES, coverage)
+      !sectionHasCollectedFacts(section.heading, coverage)
     ) {
       return deterministicSection(
         section,
@@ -169,7 +188,7 @@ export function renderDeterministicCoverageSections(
     }
     if (
       section.heading === FIXED_FIVE_SECTION_HEADINGS[3] &&
-      allWithoutData(ADMISSION_PROCEDURE_DISCHARGE_FAMILIES, coverage)
+      !sectionHasCollectedFacts(section.heading, coverage)
     ) {
       return deterministicSection(
         section,

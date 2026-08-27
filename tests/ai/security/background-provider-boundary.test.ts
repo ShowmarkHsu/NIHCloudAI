@@ -235,6 +235,23 @@ describe('background-only Provider boundary', () => {
     }
   });
 
+  it('fails closed when a Provider returns the local placeholder for a section with collected facts', async () => {
+    const output = JSON.parse(providerOutput());
+    output.sections[2].content = '本節內容由本機固定取代，不加入臨床事實、資料涵蓋敘述或任何狀態判定。';
+    const fetch = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({choices: [{message: {content: JSON.stringify(output)}}]}),
+    }));
+    const provider = createBackgroundProviderBoundary({fetch: fetch as never});
+    provider.storeOpenRouterSessionSecret(scope, 'synthetic-byok-value');
+    provider.grantRemoteConsent(scope);
+
+    await expect(provider.generate(scope, 'openrouter', request()!)).resolves.toEqual({
+      status: 'validation-content-failed',
+    });
+  });
+
   it('classifies a missing or truncated output from safe envelope metadata only', async () => {
     const responses = [
       {
