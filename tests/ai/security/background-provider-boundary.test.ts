@@ -9,6 +9,7 @@ import {
   FIXED_FIVE_SECTION_PROVIDER_JSON_SCHEMA,
   createSealedSummaryRequest,
 } from '../../../src/ai/summary/providerRequest';
+import { FIXED_FIVE_SECTION_SYSTEM_PROMPT } from '../../../src/ai/providers/prompt';
 import { createLabVerticalSlice } from '../../../src/ai/integration/labVerticalSlice';
 
 const scope = {
@@ -347,6 +348,7 @@ describe('background-only Provider boundary', () => {
     expect(sent).not.toHaveProperty('route');
     expect(sent.messages[0]).toMatchObject({role: 'system'});
     expect(sent.messages[1]).toMatchObject({role: 'user'});
+    expect(sent.messages[1].content).toBe(`${FIXED_FIVE_SECTION_SYSTEM_PROMPT}\n\n${request()!.prompt}`);
     expect(sent.messages[1].content).not.toContain('pt_provider_patient_00001');
   });
 

@@ -83,13 +83,14 @@ function fixedRequest(provider: SummaryProvider, secret: string | undefined, req
   headers: Record<string, string>;
   body: string;
 } {
+  const fixedPromptWithFacts = `${FIXED_FIVE_SECTION_SYSTEM_PROMPT}\n\n${request.prompt}`;
   if (provider === 'ollama') {
     return {
       endpoint: OLLAMA_GENERATE_ENDPOINT,
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         model: OLLAMA_MODEL,
-        prompt: `${FIXED_FIVE_SECTION_SYSTEM_PROMPT}\n\n${request.prompt}`,
+        prompt: fixedPromptWithFacts,
         format: FIXED_FIVE_SECTION_PROVIDER_JSON_SCHEMA,
         options: {temperature: 0, seed: 0, num_ctx: 32_768, num_predict: 1_024},
         stream: false,
@@ -105,7 +106,7 @@ function fixedRequest(provider: SummaryProvider, secret: string | undefined, req
       model: OPENROUTER_MODEL,
       messages: [
         {role: 'system', content: FIXED_FIVE_SECTION_SYSTEM_PROMPT},
-        {role: 'user', content: request.prompt},
+        {role: 'user', content: fixedPromptWithFacts},
       ],
       response_format: {
         type: 'json_schema',
