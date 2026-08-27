@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { createClosedBackgroundMessageRouter } from '../../../src/background/aiMessageRouter';
 import { createIframeSummaryBroker } from '../../../src/background/iframeSummaryBroker';
 import { createSealedSnapshotStore } from '../../../src/background/sealedSnapshotStore';
+import type { PatientSnapshotV1 } from '../../../src/ai/contracts/patientSnapshot';
+import { createClinicalSnapshotCollector } from '../../../src/ai/integration/clinicalSnapshotCollector';
 import { createLabVerticalSlice } from '../../../src/ai/integration/labVerticalSlice';
 import { isSealedSummaryRequest } from '../../../src/ai/summary/providerRequest';
 
@@ -33,9 +35,9 @@ function providerSummary() {
   };
 }
 
-function setup() {
+function setup(snapshotOverride?: PatientSnapshotV1) {
   const scope = {tabId, sessionId, revision: 1} as const;
-  const snapshot = createLabVerticalSlice({
+  const snapshot = snapshotOverride ?? createLabVerticalSlice({
     now: () => '2026-08-21T00:00:00.000Z',
     issueSourceReference: () => 'sr_iframe_broker_source_000001',
   }).ingest({
@@ -70,6 +72,33 @@ function setup() {
   return {scope, snapshots, provider, broker: createIframeSummaryBroker({router, snapshots, provider})};
 }
 
+function mixedFamilySnapshot(): PatientSnapshotV1 {
+  let sourceNumber = 0;
+  const result = createClinicalSnapshotCollector({
+    now: () => '2026-08-27T00:00:00.000Z',
+    issueSourceReference: () => `sr_iframe_broker_mixed_${String(++sourceNumber).padStart(8, '0')}`,
+  }).ingest({
+    patientId: 'pt_iframe_broker_patient_00001', sessionId, revision: 1,
+  }, [
+    {
+      status: 'success', dataType: 'labdata', recordCount: 1,
+      data: {rObject: [{
+        hosp: 'Synthetic Lab;outpatient;0000000000', real_inspect_date: '2026/08/20',
+        order_code: 'LAB-001', assay_item_name: 'Synthetic analyte', assay_value: '1.0',
+      }]},
+    },
+    {
+      status: 'success', dataType: 'imaging', recordCount: 1,
+      data: {rObject: [{
+        hosp: 'Synthetic Imaging;outpatient;0000000000', real_inspect_date: '2026/08/20',
+        order_code: 'IMG-001', order_name: 'Synthetic imaging',
+      }]},
+    },
+  ]);
+  expect(result).not.toBeNull();
+  return result!.sealed.snapshot;
+}
+
 function message(type: string, sequence: number, extra = {}) {
   return {
     schemaVersion: 'ai-capability-message.v1', type, sessionId, revision: 1, sequence, ...extra,
@@ -94,6 +123,21 @@ describe('extension-origin iframe summary broker', () => {
     expect((generated as {result: {summary: {sections: Array<{sourceAliases: string[]}>}}}).result.summary.sections[0]?.sourceAliases).toEqual(['檢驗來源 1']);
     expect(JSON.stringify(generated)).not.toContain('sr_iframe_broker_source_000001');
     expect(provider.generate).toHaveBeenCalledOnce();
+  });
+
+  it('keeps opaque source labels truthful for each family in a mixed snapshot', async () => {
+    const {broker} = setup(mixedFamilySnapshot());
+
+    const read = await broker.receive(message('iframe.active-revision.read', 1, {
+      contractVersion: 'clinical-projection.v1',
+    }), iframeSender);
+
+    expect(read).toMatchObject({
+      accepted: true,
+      view: {sourceAliases: [{label: '檢驗來源 1'}, {label: '影像來源 1'}]},
+    });
+    expect(JSON.stringify(read)).not.toContain('sr_iframe_broker_mixed_');
+    expect(JSON.stringify(read)).not.toContain('pt_iframe_broker_patient_00001');
   });
 
   it('allows session-only BYOK and consent only from the exact iframe, and invalidates an old revision', async () => {

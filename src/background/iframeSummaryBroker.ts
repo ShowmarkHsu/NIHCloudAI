@@ -28,12 +28,46 @@ type Router = Readonly<{
 
 type PublicSourceAlias = Readonly<{label: string}>;
 
+const PUBLIC_SOURCE_FAMILY_LABELS = Object.freeze({
+  encounter: '就醫來源',
+  'western-medication': '西藥來源',
+  'chinese-medication': '中藥來源',
+  allergy: '過敏來源',
+  lab: '檢驗來源',
+  imaging: '影像來源',
+  procedure: '處置來源',
+  discharge: '出院來源',
+} as const);
+
+/**
+ * The iframe must see only opaque, local labels, but those labels still need
+ * to identify the sealed source family truthfully. Numbering is local to a
+ * family so a mixed snapshot cannot present every source as a lab citation.
+ */
+function publicAliasLabels(snapshot: PatientSnapshotV1): ReadonlyMap<string, string> {
+  const countByFamily = new Map<keyof typeof PUBLIC_SOURCE_FAMILY_LABELS, number>();
+  const labelsBySourceRef = new Map<string, string>();
+  for (const record of snapshot.records) {
+    const sourceFamily = record.sourceFamily;
+    const nextCount = (countByFamily.get(sourceFamily) ?? 0) + 1;
+    countByFamily.set(sourceFamily, nextCount);
+    labelsBySourceRef.set(
+      record.sourceRef,
+      `${PUBLIC_SOURCE_FAMILY_LABELS[sourceFamily]} ${nextCount}`,
+    );
+  }
+  return labelsBySourceRef;
+}
+
 function publicAliases(snapshot: PatientSnapshotV1): readonly PublicSourceAlias[] {
-  return Object.freeze(snapshot.records.map((_record, index) => Object.freeze({label: `檢驗來源 ${index + 1}`})));
+  const labelsBySourceRef = publicAliasLabels(snapshot);
+  return Object.freeze(snapshot.records.map((record) => Object.freeze({
+    label: labelsBySourceRef.get(record.sourceRef)!,
+  })));
 }
 
 function publicSummary(snapshot: PatientSnapshotV1, summary: FixedFiveSectionSummary) {
-  const aliasesBySourceRef = new Map(snapshot.records.map((record, index) => [record.sourceRef, `檢驗來源 ${index + 1}`]));
+  const aliasesBySourceRef = publicAliasLabels(snapshot);
   return Object.freeze({
     sections: Object.freeze(summary.sections.map((section) => Object.freeze({
       heading: section.heading,
