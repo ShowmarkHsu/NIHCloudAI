@@ -65,8 +65,8 @@ permission-denied、timeout 與 cancel 路徑並記錄為「外部資源未提�
    direct-origin 與 optional-permission 人工驗證。
 6. 以來源明示 `no-known-allergy` 的核准合成案例重複步驟 4；另以同時含來源明示過敏
    與 `no-known-allergy` 的核准合成案例確認只出現受控固定衝突提示。只記錄 bounded
-   PASS／失敗類別，不保存摘要文字或 aliases。兩種固定措辭在臨床與藥事重新核准前，
-   即使工程驗證通過也不得視為 clinical acceptance。
+   PASS／失敗類別，不保存摘要文字或 aliases。這兩種固定措辭已於 2026-08-27 取得
+   臨床與藥事逐組 wording 核准；即使工程驗證通過也不得視為整體 clinical acceptance。
 7. 若仍出現 none-word 失敗，只記錄 UI 顯示的 bounded 子類別：非允許節、同節多個
    「無」、與過敏無關、sealed 過敏來源不支持或過敏片語不在窄窗。不得開啟 console、
    擷取 response、複製摘要或以 screenshot／HAR／log 擴大診斷資料。
@@ -74,7 +74,8 @@ permission-denied、timeout 與 cancel 路徑並記錄為「外部資源未提�
    支持」；不得記錄是哪一筆來源、來源值、alias、片語或筆數。
 9. 對【近期病程與檢查】／【住院、手術與出院】的來源未支持 none-word 合成案例，確認
    Provider 原敘述未顯示，改為固定人工核對提示、aliases 仍可回查，且 review 前 copy
-   維持停用。固定提示取得臨床與藥事核准前，不得視為 clinical acceptance。
+   維持停用。固定提示與 aliases 呈現已於 2026-08-27 取得臨床與藥事逐組 wording
+   核准；這不代表整體 clinical acceptance。
 
 ## OpenRouter（遠端、session-only BYOK）
 

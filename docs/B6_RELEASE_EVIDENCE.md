@@ -1,6 +1,6 @@
 # B6 Engineering Gate Evidence
 
-> **狀態說明（2026-08-26）**：本文件區分 machine-verifiable engineering gate 與
+> **狀態說明（2026-08-27）**：本文件區分 machine-verifiable engineering gate 與
 > bounded controlled manual evidence。
 > AI 頁籤已透過 extension-origin iframe 接上 sealed request 與 background-only
 > Provider boundary；machine-verifiable gate 只使用合成資料與 loopback request。另有

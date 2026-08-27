@@ -1,6 +1,6 @@
 # NIHCloudAI 專案復原計畫
 
-狀態日期：2026-08-26
+狀態日期：2026-08-27
 工作主線：`codex/integration-recovery`  
 穩定基準：`main` = `origin/main` = `upstream/main` @ `cad76e5`（26.0702.1）
 
@@ -23,7 +23,7 @@
 
 ## 目前必須承認的缺口
 
-1. R2/R3 的程式與合成測試已接上；受控 coverage-only synthetic OpenRouter 已完成 fresh-session 重複性、review/copy、取消及 scope 失效觀察，另有一筆真實 fixed-route `has-data` synthetic facts bounded 成功。固定本機 Ollama coverage-only CLI seam 已連續兩次完成，built-extension UI generation／完整 validator／review-copy gating 重測亦通過；固定 lab `has-data` CLI seam 已在 prompt v4／完整 validator 下連續三個 fresh process 完成，隔離 built-MV3／真實 Ollama localhost bridge UI seam 亦完成三個 fresh tabs 的 generation／review-copy gating。prompt v5 的維護產品 fixture 多家族 seam 已連續三個 fresh process 完成；來源明示 `no-known-allergy` 的真實 Ollama seam 亦連續三次完成。installed-extension direct-origin full-data generation／完整 validator 已在 clinical-rules.v4 build 回報 bounded PASS；兩句新增 deterministic context、兩種過敏狀態固定措辭與 rules-v4 固定人工核對提示的臨床／藥事重新核准、整體臨床品質與 release acceptance 仍未完成。
+1. R2/R3 的程式與合成測試已接上；受控 coverage-only synthetic OpenRouter 已完成 fresh-session 重複性、review/copy、取消及 scope 失效觀察，另有一筆真實 fixed-route `has-data` synthetic facts bounded 成功。固定本機 Ollama coverage-only CLI seam 已連續兩次完成，built-extension UI generation／完整 validator／review-copy gating 重測亦通過；固定 lab `has-data` CLI seam 已在 prompt v4／完整 validator 下連續三個 fresh process 完成，隔離 built-MV3／真實 Ollama localhost bridge UI seam 亦完成三個 fresh tabs 的 generation／review-copy gating。prompt v5 的維護產品 fixture 多家族 seam 已連續三個 fresh process 完成；來源明示 `no-known-allergy` 的真實 Ollama seam 亦連續三次完成。installed-extension direct-origin full-data generation／完整 validator 已在 clinical-rules.v4 build 回報 bounded PASS；2026-08-27 已完成兩句新增 deterministic context、兩種過敏狀態固定措辭與 rules-v4 固定人工核對提示的臨床／藥事逐組核准。整體臨床品質與 release acceptance 仍未完成。
 2. revision-wide collector 已接上八個 Phase 1 家族。就醫只取西／中藥 claim 上明確存在的日期、院所、門診／藥局類型與來源診斷並去重，不解析 HTML `patientsummary`，也不從藥名推論；授權操作者已在新 build 上回報 NHI-origin encounter coverage bounded PASS。
 3. actual extension browser test 證明已載入 iframe 會 fail closed、可完成 loopback Provider round trip，且 MV3 service worker 重啟後只恢復同 tab 的目前 sealed scope 供 review；真實 Provider 與 NHI-origin 流程仍只可在受控人工環境驗證。
 4. `package.json` 使用 upstream 版本號，但文件又宣稱 NIHCloudAI 採獨立 SemVer；release identity 尚未定案。
