@@ -56,7 +56,7 @@ const providerSectionJsonSchema = Object.freeze({
     }),
     sourceAliases: Object.freeze({
       type: 'array',
-      items: Object.freeze({type: 'string'}),
+      items: Object.freeze({type: 'string', pattern: '^S[1-9]\\d{0,3}$'}),
       maxItems: 20,
     }),
   }),

@@ -344,6 +344,8 @@ describe('background-only Provider boundary', () => {
       .toEqual(['核對重點', '目前用藥與過敏', '近期病程與檢查', '住院、手術與出院', '資料缺口與待確認']);
     expect(sent.response_format.json_schema.schema.properties.sections.items.properties.content.description)
       .toContain('local-rendered');
+    expect(sent.response_format.json_schema.schema.properties.sections.items.properties.sourceAliases.items)
+      .toEqual({type: 'string', pattern: '^S[1-9]\\d{0,3}$'});
     expect(JSON.stringify(sent.response_format)).not.toContain('sourceRef');
     expect(sent).not.toHaveProperty('route');
     expect(sent.messages[0]).toMatchObject({role: 'system'});
