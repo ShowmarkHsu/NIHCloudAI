@@ -6,7 +6,6 @@ import { OLLAMA_MODEL, OPENROUTER_ENDPOINT, OPENROUTER_MODEL, OPENROUTER_ROUTE }
 import type { RevisionScope } from '../session/coordinator';
 import {
   FIXED_FIVE_SECTION_PROVIDER_JSON_SCHEMA,
-  isCollectedSectionPlaceholderOutput,
   isSealedSummaryRequest,
   validateProviderSummaryOutput,
   type SealedSummaryRequest,
@@ -17,8 +16,6 @@ import { FIXED_FIVE_SECTION_SYSTEM_PROMPT } from './prompt';
 export const OLLAMA_GENERATE_ENDPOINT = 'http://127.0.0.1:11434/api/generate' as const;
 export const OPENROUTER_GENERATE_ENDPOINT = OPENROUTER_ENDPOINT;
 export const PROVIDER_TIMEOUT_MS = 180_000;
-const OPENROUTER_PLACEHOLDER_REPAIR_INSTRUCTION =
-  '修復要求：若任何相關 coverage 類別為 has-data，該章節必須依 factTables 的已明示事實與 sourceAliases 重寫；不得輸出本機中性占位。只輸出完整 JSON。';
 
 export type SummaryProvider = 'ollama' | 'openrouter';
 
@@ -81,12 +78,7 @@ function defaultTimer(): Timer {
   };
 }
 
-function fixedRequest(
-  provider: SummaryProvider,
-  secret: string | undefined,
-  request: SealedSummaryRequest,
-  repairCollectedSectionPlaceholder = false,
-): {
+function fixedRequest(provider: SummaryProvider, secret: string | undefined, request: SealedSummaryRequest): {
   endpoint: string;
   headers: Record<string, string>;
   body: string;
@@ -107,9 +99,6 @@ function fixedRequest(
     };
   }
   if (secret === undefined) throw new TypeError('OpenRouter requires a session secret');
-  const openRouterPrompt = repairCollectedSectionPlaceholder
-    ? `${fixedPromptWithFacts}\n\n${OPENROUTER_PLACEHOLDER_REPAIR_INSTRUCTION}`
-    : fixedPromptWithFacts;
   return {
     endpoint: OPENROUTER_GENERATE_ENDPOINT,
     headers: { 'content-type': 'application/json', authorization: `Bearer ${secret}` },
@@ -117,7 +106,7 @@ function fixedRequest(
       model: OPENROUTER_MODEL,
       messages: [
         {role: 'system', content: FIXED_FIVE_SECTION_SYSTEM_PROMPT},
-        {role: 'user', content: openRouterPrompt},
+        {role: 'user', content: fixedPromptWithFacts},
       ],
       response_format: {
         type: 'json_schema',
@@ -237,64 +226,43 @@ export function createBackgroundProviderBoundary(
       const controller = new AbortController();
       pendingByScope.set(key, controller);
       let timedOut = false;
-      let timeout: unknown;
+      const fixed = fixedRequest(provider, openRouterSecretsByScope.get(scopeKey(scope)), request);
+      let fetchPromise: Promise<ProviderResponse>;
+      try {
+        fetchPromise = configuration.fetch(fixed.endpoint, {
+          method: 'POST',
+          headers: fixed.headers,
+          body: fixed.body,
+          signal: controller.signal,
+        });
+      } catch {
+        pendingByScope.delete(key);
+        return {status: 'transport-failed'};
+      }
+      const timeout = timer.set(() => {
+        timedOut = true;
+        controller.abort();
+      }, timeoutMs);
 
       try {
-        const requestProvider = async (repairCollectedSectionPlaceholder: boolean): Promise<Readonly<{
-          result: ProviderGenerationResult;
-          output?: string;
-        }>> => {
-          const fixed = fixedRequest(
-            provider,
-            openRouterSecretsByScope.get(scopeKey(scope)),
-            request,
-            repairCollectedSectionPlaceholder,
-          );
-          let fetchPromise: Promise<ProviderResponse>;
-          try {
-            fetchPromise = configuration.fetch(fixed.endpoint, {
-              method: 'POST',
-              headers: fixed.headers,
-              body: fixed.body,
-              signal: controller.signal,
-            });
-          } catch {
-            return {result: {status: 'transport-failed'}};
-          }
-          let response: ProviderResponse;
-          try {
-            response = await fetchPromise;
-          } catch {
-            return {result: timedOut
-              ? {status: 'timeout'}
-              : controller.signal.aborted ? {status: 'cancelled'} : {status: 'transport-failed'}};
-          }
-          if (!response.ok) return {result: {status: 'provider-http-failed'}};
-          let payload: unknown;
-          try {
-            payload = await response.json();
-          } catch {
-            return {result: {status: 'response-unreadable'}};
-          }
-          const output = outputFromResponse(payload);
-          return output.status === 'completed'
-            ? {result: validateProviderSummaryOutput(output.output, request), output: output.output}
-            : {result: output};
-        };
-        const firstAttempt = requestProvider(false);
-        timeout = timer.set(() => {
-          timedOut = true;
-          controller.abort();
-        }, timeoutMs);
-        const first = await firstAttempt;
-        if (
-          provider === 'openrouter' &&
-          first.result.status === 'validation-content-failed' &&
-          isCollectedSectionPlaceholderOutput(first.output, request)
-        ) {
-          return (await requestProvider(true)).result;
+        let response: ProviderResponse;
+        try {
+          response = await fetchPromise;
+        } catch {
+          if (timedOut) return {status: 'timeout'};
+          return controller.signal.aborted ? {status: 'cancelled'} : {status: 'transport-failed'};
         }
-        return first.result;
+        if (!response.ok) return {status: 'provider-http-failed'};
+        let payload: unknown;
+        try {
+          payload = await response.json();
+        } catch {
+          return {status: 'response-unreadable'};
+        }
+        const output = outputFromResponse(payload);
+        return output.status === 'completed'
+          ? validateProviderSummaryOutput(output.output, request)
+          : output;
       } catch {
         return {status: 'response-unreadable'};
       } finally {

@@ -230,31 +230,6 @@ function isAliasIssuePath(path: readonly PropertyKey[]): boolean {
   return sourceAliasesIndex >= 0 && typeof path[sourceAliasesIndex + 1] === 'number';
 }
 
-function hasCollectedSectionPlaceholder(
-  sections: readonly CoverageRenderableSection[],
-  coverage: SnapshotCoverage,
-): boolean {
-  return sections.some((section) =>
-    section.content === LOCAL_RENDERED_NEUTRAL_PLACEHOLDER &&
-    sectionHasCollectedFacts(section.heading, coverage));
-}
-
-/** Identifies the sole bounded Provider response eligible for one fixed repair. */
-export function isCollectedSectionPlaceholderOutput(
-  output: unknown,
-  request: SealedSummaryRequest,
-): boolean {
-  if (typeof output !== 'string') return false;
-  let document: unknown;
-  try {
-    document = JSON.parse(output);
-  } catch {
-    return false;
-  }
-  const parsed = providerSummarySchema.safeParse(document);
-  return parsed.success && hasCollectedSectionPlaceholder(parsed.data.sections, request.coverage);
-}
-
 const declaredAliasCitationPattern = /\bS[1-9]\d{0,3}\b/gu;
 const noneBeforeAllergyPhrasePattern =
   /無([^，；。無]{0,6})過敏(?:紀錄|記錄|史|資料|資訊)?/gu;
@@ -421,7 +396,9 @@ export function validateProviderSummaryOutput(
       : {status: 'validation-structure-failed'};
   }
 
-  if (hasCollectedSectionPlaceholder(parsed.data.sections, request.coverage)) {
+  if (parsed.data.sections.some((section) =>
+    section.content === LOCAL_RENDERED_NEUTRAL_PLACEHOLDER &&
+    sectionHasCollectedFacts(section.heading, request.coverage))) {
     return {status: 'validation-content-failed'};
   }
 
