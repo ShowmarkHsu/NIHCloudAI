@@ -121,7 +121,7 @@ function fixedRequest(provider: SummaryProvider, secret: string | undefined, req
       top_p: 1,
       seed: 0,
       provider: {
-        order: [OPENROUTER_ROUTE.split('/')[0]],
+        only: [OPENROUTER_ROUTE],
         allow_fallbacks: false,
         require_parameters: true,
         data_collection: 'deny',

@@ -20,8 +20,8 @@ export const OLLAMA_MODEL_DIGEST =
   'sha256:07ea59a474013479c8b6b802bef095c40e964a1d776ba02f264c0e30e1aede0c' as const;
 export const OPENROUTER_ENDPOINT =
   'https://openrouter.ai/api/v1/chat/completions' as const;
-export const OPENROUTER_MODEL = 'openai/gpt-oss-120b' as const;
-export const OPENROUTER_ROUTE = 'deepinfra/bf16' as const;
+export const OPENROUTER_MODEL = 'openai/gpt-5.6-sol' as const;
+export const OPENROUTER_ROUTE = 'azure' as const;
 
 const gitCommitSchema = z.string().regex(/^[a-f0-9]{40}$/);
 const sha256Schema = z.string().regex(/^sha256:[a-f0-9]{64}$/);

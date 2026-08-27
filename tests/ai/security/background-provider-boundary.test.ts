@@ -100,7 +100,7 @@ describe('background-only Provider boundary', () => {
 
     expect(requests).toHaveLength(1);
     expect(requests[0]?.url).toBe(OPENROUTER_GENERATE_ENDPOINT);
-    expect(requests[0]?.init.body).toContain('openai/gpt-oss-120b');
+    expect(requests[0]?.init.body).toContain('openai/gpt-5.6-sol');
     expect(requests[0]?.init.body).not.toContain('patientId');
     expect(Object.keys(provider)).not.toContain('readOpenRouterSessionSecret');
     expect(Object.keys(provider)).not.toContain('fetch');
@@ -325,7 +325,7 @@ describe('background-only Provider boundary', () => {
     await expect(provider.generate(scope, 'openrouter', request()!)).resolves.toMatchObject({status: 'completed'});
     const sent = JSON.parse(requests[0]!.init.body);
     expect(sent.provider).toEqual({
-      order: ['deepinfra'], allow_fallbacks: false, require_parameters: true,
+      only: ['azure'], allow_fallbacks: false, require_parameters: true,
       data_collection: 'deny', zdr: true,
     });
     expect(sent.response_format).toMatchObject({

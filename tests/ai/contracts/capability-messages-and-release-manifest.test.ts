@@ -114,8 +114,8 @@ const releaseManifest = {
     },
     openRouter: {
       endpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      model: 'openai/gpt-oss-120b',
-      route: 'deepinfra/bf16',
+      model: 'openai/gpt-5.6-sol',
+      route: 'azure',
       temperature: 0,
       topP: 1,
       seed: 0,

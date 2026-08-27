@@ -61,8 +61,8 @@
           "required": ["endpoint", "model", "route", "temperature", "topP", "seed", "reasoningEffort", "reasoningExclude", "maxTokens", "stream", "strictJsonSchema", "tools", "plugins", "webSearch", "allowFallbacks", "quantization", "zdr", "dataCollection", "requireParameters"],
           "properties": {
             "endpoint": { "const": "https://openrouter.ai/api/v1/chat/completions" },
-            "model": { "const": "openai/gpt-oss-120b" },
-            "route": { "const": "deepinfra/bf16" },
+            "model": { "const": "openai/gpt-5.6-sol" },
+            "route": { "const": "azure" },
             "temperature": { "const": 0 },
             "topP": { "const": 1 },
             "seed": { "const": 0 },
