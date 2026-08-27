@@ -129,6 +129,18 @@ closed。這項規則不改寫 coverage 的
 | 臨床 reviewer | 全數 pass | 全數核准 | 核准 |
 | 藥事 reviewer | 全數 pass | 全數核准 | 核准 |
 
+## 新增 deterministic wording 的 bounded 決策表 — 2026-08-27
+
+下表只涵蓋 2026-08-26 之後新增的三組固定文字。每一角色必須對每一組分別記錄「核准」、
+「拒絕」或「待補」；不得以 2026-08-24 的歷史核准代替。`待補` 表示尚未取得該角色決策，
+不是默示核准。
+
+| 新增文字組 | 對應問題 | 臨床 reviewer | 藥事 reviewer |
+| --- | --- | --- | --- |
+| prompt v5 補長 context 第 5–6 句 | 5 | 待補 | 待補 |
+| clinical-rules.v3 的兩句來源明示過敏固定措辭 | 7–8 | 待補 | 待補 |
+| clinical-rules.v4 的固定移除提示與保留 aliases 供人工回查 | 9–10 | 待補 | 待補 |
+
 Repository 只記錄上述角色與 bounded 結果，未收集 reviewer identity、簽章、受控系統
 內容或簽核參照。任何後續文字變更都必須先更新合成 contract tests、保持完整 validator
 與資料邊界，再重新執行受控人工驗證並取得新的臨床與藥事核准。本次 wording 核准不得

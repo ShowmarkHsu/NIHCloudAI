@@ -259,8 +259,10 @@ v5。clinical-rules.v4 改由本機在【近期病程與檢查】／【住院、
 授權操作者重新載入 commit `da58d78` 的 built extension 後，回報 installed-extension
 direct-origin full-data Ollama generation／完整 validator bounded PASS。Repository 未收集
 摘要、aliases、來源值、畫面、log、HAR、clipboard 或其他 Provider 內容。這完成該
-rules-v4 工程重測，但不代表固定提示已取得臨床／藥事核准、整體摘要臨床品質通過、
-review/copy 所有人工步驟完成、artifact 核准或 release acceptance。
+rules-v4 工程重測。操作者另就同一筆成功結果回報 review 前 copy disabled，且只有在明確
+review 後 copy enabled；未收集 clipboard 內容或摘要文字。這完成該筆結果的 bounded
+review/copy UI gate，但不代表固定提示已取得臨床／藥事核准、整體摘要臨床品質通過、
+artifact 核准或 release acceptance。
 
 ## 已完成的 Phase 1 collection checkpoint（2026-08-25）
 
