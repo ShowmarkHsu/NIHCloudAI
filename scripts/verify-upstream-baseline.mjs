@@ -9,6 +9,7 @@ const EXPECTED = Object.freeze({
   sourceRepository: 'https://github.com/ShowmarkHsu/NIHCloudAI.git',
   sourceCommit: 'bab69c741e1f6a5b2da65276ce8fe955973e05ca',
   targetRepository: 'https://github.com/ShowmarkHsu/NHITW_cloud_analyzer_react_MUI.git',
+  remoteTopologyStatus: 'verified-final-fork-accessible',
 });
 
 const baseline = JSON.parse(await readFile(new URL('../docs/upstream-sync/baseline.json', import.meta.url)));
@@ -49,6 +50,10 @@ assert(
     baseline.remoteTopology.verificationStatus,
   ),
   'remote topology status is not allowed by baseline.schema.json',
+);
+assert(
+  baseline.remoteTopology.verificationStatus === EXPECTED.remoteTopologyStatus,
+  'remote topology verification status drifted',
 );
 assert(/^\d{4}-\d{2}-\d{2}$/.test(baseline.capturedAt), 'capturedAt must be an ISO date');
 assert(baseline.product.name === 'NIHCloudAI', 'product name must be NIHCloudAI');

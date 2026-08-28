@@ -265,6 +265,7 @@ describe('closed release manifest v1', () => {
         providers: {
           properties: {
             openRouter: {
+              additionalProperties: boolean;
               required: string[];
               properties: Record<string, {const: unknown}>;
             };
@@ -285,19 +286,15 @@ describe('closed release manifest v1', () => {
       .toBe(CLINICAL_RULES_VERSION);
 
     const openRouterSchema = schema.properties.providers.properties.openRouter;
+    expect(openRouterSchema.additionalProperties).toBe(false);
     expect([...openRouterSchema.required].sort()).toEqual(
       Object.keys(releaseManifest.providers.openRouter).sort(),
     );
+    for (const [key, value] of Object.entries(releaseManifest.providers.openRouter)) {
+      expect(schemaConst(openRouterSchema.properties, key), key).toBe(value);
+    }
     expect(schemaConst(openRouterSchema.properties, 'endpoint')).toBe(OPENROUTER_ENDPOINT);
     expect(schemaConst(openRouterSchema.properties, 'model')).toBe(OPENROUTER_MODEL);
     expect(schemaConst(openRouterSchema.properties, 'route')).toBe(OPENROUTER_ROUTE);
-    expect(schemaConst(openRouterSchema.properties, 'temperature')).toBe(0);
-    expect(schemaConst(openRouterSchema.properties, 'topP')).toBe(1);
-    expect(schemaConst(openRouterSchema.properties, 'seed')).toBe(0);
-    expect(schemaConst(openRouterSchema.properties, 'strictJsonSchema')).toBe(true);
-    expect(schemaConst(openRouterSchema.properties, 'allowFallbacks')).toBe(false);
-    expect(schemaConst(openRouterSchema.properties, 'zdr')).toBe(true);
-    expect(schemaConst(openRouterSchema.properties, 'dataCollection')).toBe('deny');
-    expect(schemaConst(openRouterSchema.properties, 'requireParameters')).toBe(true);
   });
 });
