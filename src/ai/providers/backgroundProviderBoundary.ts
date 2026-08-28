@@ -106,7 +106,7 @@ function fixedRequest(provider: SummaryProvider, secret: string | undefined, req
       model: OPENROUTER_MODEL,
       messages: [
         {role: 'system', content: FIXED_FIVE_SECTION_SYSTEM_PROMPT},
-        {role: 'user', content: fixedPromptWithFacts},
+        {role: 'user', content: request.prompt},
       ],
       response_format: {
         type: 'json_schema',

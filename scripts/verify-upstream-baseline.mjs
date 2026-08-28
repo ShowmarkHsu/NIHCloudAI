@@ -10,6 +10,20 @@ const EXPECTED = Object.freeze({
   sourceCommit: 'bab69c741e1f6a5b2da65276ce8fe955973e05ca',
   targetRepository: 'https://github.com/ShowmarkHsu/NHITW_cloud_analyzer_react_MUI.git',
   remoteTopologyStatus: 'verified-final-fork-accessible',
+  remoteRoles: {
+    origin: {
+      repository: 'https://github.com/ShowmarkHsu/NHITW_cloud_analyzer_react_MUI.git',
+      configured: true, readable: true, writable: true,
+    },
+    upstream: {
+      repository: 'https://github.com/leescot/NHITW_cloud_analyzer_react_MUI.git',
+      configured: true, readable: true, writable: false,
+    },
+    nicloudai: {
+      repository: 'https://github.com/ShowmarkHsu/NIHCloudAI.git',
+      configured: true, readable: true, writable: true,
+    },
+  },
 });
 
 const baseline = JSON.parse(await readFile(new URL('../docs/upstream-sync/baseline.json', import.meta.url)));
@@ -41,6 +55,12 @@ for (const [name, role] of Object.entries(baseline.remoteTopology.roles)) {
   assert(typeof role.readable === 'boolean', `${name}.readable must be boolean`);
   assert(typeof role.writable === 'boolean', `${name}.writable must be boolean`);
   assert(typeof role.note === 'string' && role.note.length > 0, `${name}.note is required`);
+  const expectedRole = EXPECTED.remoteRoles[name];
+  assert(expectedRole !== undefined, `unexpected remote role: ${name}`);
+  assert(role.repository === expectedRole.repository, `${name}.repository drifted`);
+  assert(role.configured === expectedRole.configured, `${name}.configured drifted`);
+  assert(role.readable === expectedRole.readable, `${name}.readable drifted`);
+  assert(role.writable === expectedRole.writable, `${name}.writable drifted`);
 }
 
 assert(baseline.$schema === './baseline.schema.json', 'unexpected schema reference');
