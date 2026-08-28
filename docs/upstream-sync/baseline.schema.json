@@ -73,7 +73,12 @@
       "required": ["verificationStatus", "checkedAt", "roles"],
       "properties": {
         "verificationStatus": {
-          "enum": ["verified", "blocked-final-fork-unavailable", "blocked-final-fork-permission"]
+          "enum": [
+            "verified",
+            "verified-final-fork-accessible",
+            "blocked-final-fork-unavailable",
+            "blocked-final-fork-permission"
+          ]
         },
         "checkedAt": {"type": "string", "format": "date"},
         "roles": {

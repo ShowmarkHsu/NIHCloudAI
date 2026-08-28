@@ -19,6 +19,9 @@ import {
 } from '../../../src/ai/contracts/versions';
 import {
   OLLAMA_MODEL_DIGEST,
+  OPENROUTER_ENDPOINT,
+  OPENROUTER_MODEL,
+  OPENROUTER_ROUTE,
   releaseManifestV1Schema,
 } from '../../../src/ai/release/runtimeManifest';
 
@@ -256,10 +259,45 @@ describe('closed release manifest v1', () => {
     const schemaPath = resolve(process.cwd(), 'release', 'manifest.schema.json');
     const schema = JSON.parse(readFileSync(schemaPath, 'utf8')) as {
       additionalProperties: boolean;
-      properties: { schemaVersion: { const: string } };
+      properties: {
+        schemaVersion: { const: string };
+        contracts: { properties: Record<string, {const: unknown}> };
+        providers: {
+          properties: {
+            openRouter: {
+              required: string[];
+              properties: Record<string, {const: unknown}>;
+            };
+          };
+        };
+      };
     };
+    const schemaConst = (
+      properties: Record<string, {const: unknown}>,
+      key: string,
+    ) => properties[key]?.const;
 
     expect(schema.additionalProperties).toBe(false);
     expect(schema.properties.schemaVersion.const).toBe(RELEASE_MANIFEST_SCHEMA_VERSION);
+    expect(schemaConst(schema.properties.contracts.properties, 'promptVersion'))
+      .toBe(CLINICAL_SUMMARY_PROMPT_VERSION);
+    expect(schemaConst(schema.properties.contracts.properties, 'rulesVersion'))
+      .toBe(CLINICAL_RULES_VERSION);
+
+    const openRouterSchema = schema.properties.providers.properties.openRouter;
+    expect([...openRouterSchema.required].sort()).toEqual(
+      Object.keys(releaseManifest.providers.openRouter).sort(),
+    );
+    expect(schemaConst(openRouterSchema.properties, 'endpoint')).toBe(OPENROUTER_ENDPOINT);
+    expect(schemaConst(openRouterSchema.properties, 'model')).toBe(OPENROUTER_MODEL);
+    expect(schemaConst(openRouterSchema.properties, 'route')).toBe(OPENROUTER_ROUTE);
+    expect(schemaConst(openRouterSchema.properties, 'temperature')).toBe(0);
+    expect(schemaConst(openRouterSchema.properties, 'topP')).toBe(1);
+    expect(schemaConst(openRouterSchema.properties, 'seed')).toBe(0);
+    expect(schemaConst(openRouterSchema.properties, 'strictJsonSchema')).toBe(true);
+    expect(schemaConst(openRouterSchema.properties, 'allowFallbacks')).toBe(false);
+    expect(schemaConst(openRouterSchema.properties, 'zdr')).toBe(true);
+    expect(schemaConst(openRouterSchema.properties, 'dataCollection')).toBe('deny');
+    expect(schemaConst(openRouterSchema.properties, 'requireParameters')).toBe(true);
   });
 });

@@ -324,6 +324,17 @@ describe('background-only Provider boundary', () => {
     ensureOptionalHostPermission.mockResolvedValueOnce(true);
     await expect(provider.generate(scope, 'openrouter', request()!)).resolves.toMatchObject({status: 'completed'});
     const sent = JSON.parse(requests[0]!.init.body);
+    expect(Object.keys(sent).sort()).toEqual([
+      'messages', 'model', 'provider', 'response_format', 'seed', 'stream',
+      'temperature', 'top_p',
+    ]);
+    expect(sent).toMatchObject({
+      model: 'openai/gpt-4.1-mini',
+      stream: false,
+      temperature: 0,
+      top_p: 1,
+      seed: 0,
+    });
     expect(sent.provider).toEqual({
       only: ['azure'], allow_fallbacks: false, require_parameters: true,
       data_collection: 'deny', zdr: true,

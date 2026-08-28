@@ -12,6 +12,7 @@ const EXPECTED = Object.freeze({
 });
 
 const baseline = JSON.parse(await readFile(new URL('../docs/upstream-sync/baseline.json', import.meta.url)));
+const baselineSchema = JSON.parse(await readFile(new URL('../docs/upstream-sync/baseline.schema.json', import.meta.url)));
 const packageJson = JSON.parse(await readFile(new URL('../package.json', import.meta.url)));
 const licenseBytes = await readFile(new URL('../LICENSE', import.meta.url));
 
@@ -43,6 +44,12 @@ for (const [name, role] of Object.entries(baseline.remoteTopology.roles)) {
 
 assert(baseline.$schema === './baseline.schema.json', 'unexpected schema reference');
 assert(baseline.schemaVersion === 1, 'unexpected schema version');
+assert(
+  baselineSchema.$defs.remoteTopology.properties.verificationStatus.enum.includes(
+    baseline.remoteTopology.verificationStatus,
+  ),
+  'remote topology status is not allowed by baseline.schema.json',
+);
 assert(/^\d{4}-\d{2}-\d{2}$/.test(baseline.capturedAt), 'capturedAt must be an ISO date');
 assert(baseline.product.name === 'NIHCloudAI', 'product name must be NIHCloudAI');
 assert(baseline.product.repositoryTarget === EXPECTED.targetRepository, 'target repository drifted');
