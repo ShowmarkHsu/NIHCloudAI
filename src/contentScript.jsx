@@ -1,43 +1,49 @@
 import { installContentDataSessionRuntime } from './ai/session/contentRuntime';
+import { NHI_CLOUD_ORIGIN } from './ai/session/closedDataSessionLifecycle';
 import { backgroundActiveSnapshotRecoveryRequestSchema } from './ai/contracts/messages';
 
 console.log("Content script loaded");
 
-const contentDataSessionRuntime = installContentDataSessionRuntime({
-  origin: window.location.origin,
-  send(message) {
-    return chrome.runtime.sendMessage(message);
-  },
-  newSessionId() {
-    return `ds_${crypto.randomUUID().replaceAll('-', '')}`;
-  },
-  newPatientId() {
-    return `pt_${crypto.randomUUID().replaceAll('-', '')}`;
-  },
-  now() {
-    return new Date().toISOString();
-  },
-  issueSourceReference() {
-    return `sr_${crypto.randomUUID().replaceAll('-', '')}`;
-  },
-  onLabSnapshotSealed(presentation) {
-    window.dispatchEvent(new CustomEvent('ai.lab-snapshot.sealed', {
-      detail: {...presentation, frameUrl: chrome.runtime.getURL('ai-frame.html')},
-    }));
-  },
-  onLabSnapshotInvalidated() {
-    window.dispatchEvent(new CustomEvent('ai.lab-snapshot.invalidated'));
-  },
-  addEventListener(type, listener) {
-    window.addEventListener(type, listener);
-  },
-  removeEventListener(type, listener) {
-    window.removeEventListener(type, listener);
-  },
-});
+const contentDataSessionRuntime = window.location.origin === NHI_CLOUD_ORIGIN
+  ? installContentDataSessionRuntime({
+    origin: window.location.origin,
+    send(message) {
+      return chrome.runtime.sendMessage(message);
+    },
+    newSessionId() {
+      return `ds_${crypto.randomUUID().replaceAll('-', '')}`;
+    },
+    newPatientId() {
+      return `pt_${crypto.randomUUID().replaceAll('-', '')}`;
+    },
+    now() {
+      return new Date().toISOString();
+    },
+    issueSourceReference() {
+      return `sr_${crypto.randomUUID().replaceAll('-', '')}`;
+    },
+    onLabSnapshotSealed(presentation) {
+      window.dispatchEvent(new CustomEvent('ai.lab-snapshot.sealed', {
+        detail: {...presentation, frameUrl: chrome.runtime.getURL('ai-frame.html')},
+      }));
+    },
+    onLabSnapshotInvalidated() {
+      window.dispatchEvent(new CustomEvent('ai.lab-snapshot.invalidated'));
+    },
+    addEventListener(type, listener) {
+      window.addEventListener(type, listener);
+    },
+    removeEventListener(type, listener) {
+      window.removeEventListener(type, listener);
+    },
+  })
+  : null;
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (!backgroundActiveSnapshotRecoveryRequestSchema.safeParse(message).success) return false;
+  if (
+    contentDataSessionRuntime === null
+    || !backgroundActiveSnapshotRecoveryRequestSchema.safeParse(message).success
+  ) return false;
   if (
     sender.id !== chrome.runtime.id
     || sender.tab !== undefined
