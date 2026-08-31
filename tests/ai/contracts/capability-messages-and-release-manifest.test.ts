@@ -256,6 +256,12 @@ describe('closed release manifest v1', () => {
     expect(releaseManifestV1Schema.safeParse(wrongType).success).toBe(false);
   });
 
+  it('requires an independent three-component SemVer release identity', () => {
+    const chromeFourComponentVersion = structuredClone(releaseManifest);
+    chromeFourComponentVersion.artifact.version = '1.2.3.4';
+    expect(releaseManifestV1Schema.safeParse(chromeFourComponentVersion).success).toBe(false);
+  });
+
   it('keeps the checked-in JSON Schema closed and aligned to the runtime schema version', () => {
     const schemaPath = resolve(process.cwd(), 'release', 'manifest.schema.json');
     const schema = JSON.parse(readFileSync(schemaPath, 'utf8')) as {

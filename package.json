@@ -19,6 +19,7 @@
     "build": "vite build && node scripts/build.js",
     "build:zip": "vite build && node scripts/build.js --zip",
     "build:alpha": "vite build && node scripts/build.js --alpha",
+    "release:artifact": "node scripts/create-release-artifact.mjs",
     "test": "vite build && node scripts/build.js --test && node tests/serve.js",
     "test:characterization": "node tests/characterization/run-non-ai-contracts.mjs",
     "test:fixtures": "node tests/characterization/replay-fixtures.mjs",

@@ -25,13 +25,13 @@ export const OPENROUTER_ROUTE = 'azure' as const;
 
 const gitCommitSchema = z.string().regex(/^[a-f0-9]{40}$/);
 const sha256Schema = z.string().regex(/^sha256:[a-f0-9]{64}$/);
-// Chrome accepts three or four numeric version components. This is deliberately
-// not called a NIHCloudAI SemVer schema: the current branch has no release identity.
+const releaseSemverSchema = z.string().regex(/^\d+\.\d+\.\d+$/);
+// Upstream Chrome provenance may use three or four numeric version components.
 const chromeBuildVersionSchema = z.string().regex(/^\d+(?:\.\d+){2,3}$/);
 
 const artifactSchema = z.object({
   artifact: z.literal('nihcloudai-extension.zip'),
-  version: chromeBuildVersionSchema,
+  version: releaseSemverSchema,
   sha256: sha256Schema,
 }).strict().readonly();
 
