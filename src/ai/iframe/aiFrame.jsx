@@ -134,6 +134,9 @@ function AiFrame() {
   const generate = async (provider) => {
     if (!scope || status === "generating") return;
     const currentGeneration = ++generationEpoch.current;
+    setSummary(null);
+    setDraft(null);
+    setReviewed(false);
     if (!(await requestHost(provider))) {
       if (generationEpoch.current !== currentGeneration) return;
       setStatus("permission-required");
@@ -159,9 +162,6 @@ function AiFrame() {
       setOpenRouterSecret("");
     }
     setStatus("generating");
-    setSummary(null);
-    setDraft(null);
-    setReviewed(false);
     const response = await message(scope, "iframe.summary.generate", {provider});
     if (generationEpoch.current !== currentGeneration) return;
     if (!response?.accepted) {

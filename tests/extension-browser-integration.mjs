@@ -326,6 +326,12 @@ try {
     throw new Error('OpenRouter request did not leave the MV3 background service worker');
   }
 
+  await liveFrame.getByRole('button', {name: '生成遠端 OpenRouter 摘要'}).click();
+  await liveFrame.getByText('遠端摘要需要本次 session 的 BYOK 與明確同意。').waitFor({timeout: 15_000});
+  if (await copyButton.isEnabled()) {
+    throw new Error('missing fresh OpenRouter authorization did not invalidate reviewed copy');
+  }
+
   if (runRealOllamaUi) {
     for (let run = 1; run <= 3; run += 1) {
       const ollamaParent = await context.newPage();
