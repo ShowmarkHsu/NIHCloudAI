@@ -219,3 +219,10 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - Commit `f7debf6` 以 `f48a741` 到 upstream-integrated `cad76e5` 的直接 two-tree diff 導入應用基線；未建立 unrelated-history merge parent。Patch SHA-256：`B2C9209795B2F6EA832DD96163C496B26B21CAB8E64B0C1917E2CE7830183236`。
 - 基線 `npm run build` 通過。`cad76e5` 本身沒有 lockfile，因此本批不能執行 `npm ci`；lockfile 由後續 integration commits 恢復後再執行 clean-install gate。
 - P0.4 改為 `IN PROGRESS`。下一步依原順序分段移植 `cad76e5..26db24a` 的既有 commits，每段執行相應測試；之後再分批套用未提交的 visual、文件、provenance、identity、release contract、builder 與 workflow hardening。
+
+### 2026-09-02 — 方案 B batch 1：provenance／characterization／visual 基線
+
+- 依原順序移植來源 `75b0486..4a06360` 六個 commits；新分支對應範圍為 `866aa46..b534697`，保留每個原始 commit 的作者、訊息與可審查邊界。
+- 驗證通過：synthetic fixtures 6/6、non-AI characterization 8/8、Browser Mocha 106 passed、Playwright visual 40 passed。
+- `baseline:check` 在本批預期失敗：舊 gate 只接受 `cad76e5` 為 Git ancestor，但方案 B 以可驗證 two-tree patch 導入且刻意不連接 unrelated history。後續 provenance hardening 必須改以固定來源 tree／patch hash 驗證此 migration，並在最終 `npm run verify` 前補回全綠。
+- 未建立 tag、artifact 或 release；原 dirty worktree 保持不變。下一批移植 typed boundary、lint、AI contracts 與 release schema。
