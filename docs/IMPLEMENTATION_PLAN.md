@@ -242,3 +242,10 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - 後半批驗證通過：AI 125 passed、2 real-Ollama skipped、typecheck、build、23-artifact readiness、Extension iframe integration。
 - `baseline:check` 的 ancestry-only 限制仍是已知 migration gate，留待 provenance batch 修正；P2/P3 文件中的舊 bounded observations 不升級為本次正式 acceptance。
 - 下一批移植剩餘 summary/provider/release/extension closure 與 immutable builder commits。
+
+### 2026-09-02 — 方案 B batch 6：完成 committed integration history 移植
+
+- 依原順序移植來源 `5a4231a..26db24a` 最後二十六個 commits；累計 109 個 `cad76e5` 之後的既有 commits 全數移植，未建立 unrelated-history merge。
+- 排除本 migration 新增的 `docs/history/v0.1.0/` 與本計畫文件後，新分支 tree 與來源 `26db24a` 無差異。
+- 驗證通過：AI 138 passed、5 real-Ollama skipped、typecheck、lint、characterization 9/9、build、23-artifact readiness、Browser 106、Extension iframe 與 localhost injection integration、visual CLI 1 與 Playwright 46 passed。
+- `baseline:check` 仍只因 ancestry-only 假設 blocked。下一步分批套用原 dirty delta，並在 provenance batch 以 canonical snapshot migration evidence 修正此 gate。
