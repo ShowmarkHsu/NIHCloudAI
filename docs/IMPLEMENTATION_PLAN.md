@@ -226,3 +226,9 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - 驗證通過：synthetic fixtures 6/6、non-AI characterization 8/8、Browser Mocha 106 passed、Playwright visual 40 passed。
 - `baseline:check` 在本批預期失敗：舊 gate 只接受 `cad76e5` 為 Git ancestor，但方案 B 以可驗證 two-tree patch 導入且刻意不連接 unrelated history。後續 provenance hardening 必須改以固定來源 tree／patch hash 驗證此 migration，並在最終 `npm run verify` 前補回全綠。
 - 未建立 tag、artifact 或 release；原 dirty worktree 保持不變。下一批移植 typed boundary、lint、AI contracts 與 release schema。
+
+### 2026-09-02 — 方案 B batch 2：typed boundary／AI contracts
+
+- 依原順序移植來源 `821483c..c5c162a` 五個 commits；新分支對應範圍為 `287250d..0e3162a`。
+- 驗證通過：AI 18 passed、TypeScript AI typecheck、B1/AI lint scope 與 lint。
+- 下一批移植 projection、session/security、summary state 與 B6 readiness；publication 與 P2/P3 gates 維持 blocked。
