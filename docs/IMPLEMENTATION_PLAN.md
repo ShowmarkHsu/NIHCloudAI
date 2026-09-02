@@ -232,3 +232,13 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - 依原順序移植來源 `821483c..c5c162a` 五個 commits；新分支對應範圍為 `287250d..0e3162a`。
 - 驗證通過：AI 18 passed、TypeScript AI typecheck、B1/AI lint scope 與 lint。
 - 下一批移植 projection、session/security、summary state 與 B6 readiness；publication 與 P2/P3 gates 維持 blocked。
+
+### 2026-09-02 — 方案 B batches 3–5：closed AI runtime 與 controlled-validation code
+
+- 依原順序移植來源 `aeec581..6419eea` 七十二個 commits，涵蓋 projection、tab-scoped session/security、fixed summary、runtime/provider/iframe、permission、transport、coverage、phase-one clinical sources 與 extension UI tests。
+- 中途 byte-level summary golden 因 Windows 初次 materialization 為 CRLF 而失敗；來源 commit `8857722` 已加入 `eol=lf`，將原工作樹的相同 blob 以 LF 物化並重新索引後，未產生內容差異，相關 formatter test 回復通過。
+- 乾淨安裝：移除本次建立的 `node_modules` junction 並確認原工作樹依賴仍存在；隔離 worktree 的 `npm ci` 通過。
+- 前半批驗證通過：AI 118 passed、typecheck、lint、characterization 9/9、build、23-artifact readiness、Browser 106、Extension iframe integration、visual CLI 1 與 Playwright 46 passed。
+- 後半批驗證通過：AI 125 passed、2 real-Ollama skipped、typecheck、build、23-artifact readiness、Extension iframe integration。
+- `baseline:check` 的 ancestry-only 限制仍是已知 migration gate，留待 provenance batch 修正；P2/P3 文件中的舊 bounded observations 不升級為本次正式 acceptance。
+- 下一批移植剩餘 summary/provider/release/extension closure 與 immutable builder commits。
