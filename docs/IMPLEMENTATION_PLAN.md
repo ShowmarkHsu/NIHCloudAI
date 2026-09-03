@@ -23,7 +23,7 @@
 
 - 工程實作估計完成度：85–90%。
 - 正式／臨床發布準備估計完成度：60–70%。
-- 分支較 `main`：0 behind、109 commits ahead。
+- 方案 B 分支直接以 canonical `main@f48a741` 為祖先；未連接原本的 unrelated integration history。
 - `npm run verify:release`：通過。
 - AI tests：141 passed、5 個真實 Ollama cases skipped。
 - Browser Mocha：106 passed。
@@ -295,3 +295,14 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - Workflow YAML 以 lockfile 既有 `js-yaml` 成功解析；兩支 shell script 通過 `bash -n`；`npm run verify:release` 通過：AI 141 passed／5 real-Ollama skipped、typecheck、lint、characterization 9/9、build、23-artifact readiness 全綠。
 - 未 dispatch workflow、未建立 tag、未建立正式 artifact 或 GitHub release。Protected environment/required reviewer/signed-tag ruleset/immutable releases/attestation 在 gh 重新授權並可驗證前，Publication gate 仍 blocked。
 - 原 dirty delta 已全部按批次移植。下一步稽核 tree 差異與原 dirty worktree 完整性，更新 ledger 後執行最終 `npm run verify` 與 `npm run test:visual`。
+
+### 2026-09-03 — 方案 B 本地移植完成與最終 gates
+
+- 原 dirty delta 已完成移植。22 個不需 migration 特化的 dirty/untracked 路徑以 Git blob hash 逐一比對，來源工作樹與新 branch 22/22 相同；五個 upstream provenance 路徑則包含方案 B 所需的 schema v3、import commit/tree 與 patch hash 擴充。
+- 原 `codex/integration-recovery` 仍保有 26 個 tracked modifications 與兩個 untracked docs；全程未 reset、checkout、clean、force-push 或覆寫該工作樹。隔離 `codex/canonical-integration-0.2.0` worktree 在本進度更新前乾淨。
+- 最終 `npm run verify` 通過：AI 141 passed、5 real-Ollama skipped；typecheck、lint、characterization 9/9、build、23-artifact readiness、Browser 106、Extension localhost 與 iframe integration 全通過。
+- 最終 `npm run test:visual` 通過：visual CLI 1 passed；Playwright 45 passed、1 skipped。
+- GitHub canonical `main` 再次以 `git ls-remote` 確認仍為 `f48a741`。`gh auth status` 仍顯示 `ShowmarkHsu` token invalid，因此尚未 push、建立 PR 或檢查 repository protection settings；P0.4 維持 `IN PROGRESS`。
+- Publication gate 維持 blocked：尚未驗證 protected `release` environment、required reviewer、signed-tag ruleset、immutable releases/attestation，且 P2/P3 evidence 與臨床／藥事 acceptance 未完成。不得建立 RC tag、正式 artifact 或發布。
+
+下一個可執行工作：由使用者執行 `gh auth login -h github.com` 後，唯讀稽核 canonical branch protection、release environment、ruleset、immutable releases/attestation；確認安全後再 push `codex/canonical-integration-0.2.0` 並建立 reconciliation PR。
