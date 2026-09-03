@@ -1,5 +1,11 @@
 # NIHCloudAI 專案復原計畫
 
+> **Current-status 指引（2026-09-02）**：本文件保留 2026-08-27 復原決策、checkpoint
+> 與稽核證據，屬於歷史 recovery evidence，不再作為目前工作的執行清單。最新里程碑、
+> 依賴、驗收條件與執行狀態一律以 [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md)
+> 為準；若兩者對目前狀態的描述不同，應以該執行計畫為準，但不得回寫或改寫本文的
+> 歷史證據。
+
 狀態日期：2026-08-27
 工作主線：`codex/integration-recovery`  
 穩定基準：`main` = `origin/main` = `upstream/main` @ `cad76e5`（26.0702.1）

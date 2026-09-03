@@ -1,5 +1,10 @@
 # CKM SummaryBar 篩檢指標 實作計畫
 
+> **狀態註記（2026-09-02）**：Tasks 1–4 的實作、設定串接、測試與對應 commits 已存在，
+> 但本計畫的 checkbox 曾未同步而過時。本次依目前 repository 的程式、測試、建置結果
+> 與 git history 補登完成項目；無法由現有證據確認的 mock、手動驗證與收尾步驟仍保留
+> 未勾選，不以推測補登。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 依 `docs/superpowers/specs/2026-07-02-ckm-screening-indicators-design.md`，在 CKM SummaryBar 新增第三區塊「篩檢」，計算並以三色 chip 顯示 FIB-4、TyG、KFRE、HOMA-IR。
@@ -36,7 +41,7 @@
 - Create: `tests/test_screeningIndicators.js`
 - Modify: `tests/test.js`（註冊測試檔）
 
-- [ ] **Step 1.1: 寫測試檔 `tests/test_screeningIndicators.js`**
+- [x] **Step 1.1: 寫測試檔 `tests/test_screeningIndicators.js`**
 
 ```js
 import {assert} from './lib/chai.js';
@@ -192,7 +197,7 @@ describe('utils/screeningIndicators', function () {
 });
 ```
 
-- [ ] **Step 1.2: 在 `tests/test.js` 註冊**
+- [x] **Step 1.2: 在 `tests/test.js` 註冊**
 
 在 `await import('./test_ckmUtils.js');` 之後加一行：
 
@@ -200,7 +205,7 @@ describe('utils/screeningIndicators', function () {
 await import('./test_screeningIndicators.js');
 ```
 
-- [ ] **Step 1.3: 建立 `src/utils/screeningIndicators.js`**
+- [x] **Step 1.3: 建立 `src/utils/screeningIndicators.js`**
 
 ```js
 // CKM 篩檢指標計算（FIB-4 / TyG / KFRE / HOMA-IR）
@@ -423,7 +428,7 @@ export function computeScreeningIndicators({ groupedLabs, summary, userInfo }) {
 }
 ```
 
-- [ ] **Step 1.4: Node 煙霧測試（驗證公式）**
+- [x] **Step 1.4: Node 煙霧測試（驗證公式）**
 
 建立暫存檔 `scratchpad/screen_check.mjs`（用絕對路徑 import），內容驗證上方參考值，執行：
 
@@ -440,12 +445,12 @@ node -e "import('file:///D:/github/NHITW_cloud_analyzer_react_MUI/src/utils/scre
 
 Expected: `FIB4 1.826`、`TyG 8.923`、`HOMA 3.704`、`KFRE5y 3.29 2y 0.86`
 
-- [ ] **Step 1.5: 編譯 + lint**
+- [x] **Step 1.5: 編譯 + lint**
 
 Run: `npm run build` → 成功
 Run: `npx eslint src/utils/screeningIndicators.js tests/test_screeningIndicators.js` → 僅可能有 `'React' unused` 之類既有樣式警告，無 undefined
 
-- [ ] **Step 1.6: Commit**
+- [x] **Step 1.6: Commit**
 
 ```bash
 git add src/utils/screeningIndicators.js tests/test_screeningIndicators.js tests/test.js
@@ -459,7 +464,7 @@ git commit -m "feat: 新增 CKM 篩檢指標計算（FIB-4/TyG/KFRE/HOMA-IR）�
 **Files:**
 - Modify: `src/components/tabs/ckm/CKMSummaryBar.jsx`
 
-- [ ] **Step 2.1: 改寫 `CKMSummaryBar.jsx`**
+- [x] **Step 2.1: 改寫 `CKMSummaryBar.jsx`**
 
 整檔改為（新增 `useMemo`、`groupedLabs`/`userInfo` props、第三區塊）：
 
@@ -547,12 +552,12 @@ const CKMSummaryBar = ({ summary, medications, groupedLabs, userInfo, gds }) => 
 export default CKMSummaryBar;
 ```
 
-- [ ] **Step 2.2: 編譯 + lint**
+- [x] **Step 2.2: 編譯 + lint**
 
 Run: `npm run build` → 成功
 Run: `npx eslint src/components/tabs/ckm/CKMSummaryBar.jsx` 2>&1 | grep -E "no-undef|react-hooks" → 無輸出（無 undefined、無 hooks 規則違反）
 
-- [ ] **Step 2.3: Commit**
+- [x] **Step 2.3: Commit**
 
 ```bash
 git add src/components/tabs/ckm/CKMSummaryBar.jsx
@@ -567,7 +572,7 @@ git commit -m "feat: CKMSummaryBar 新增篩檢指標第三區塊"
 - Modify: `src/components/tabs/Overview.jsx`
 - Modify: `src/components/tabs/CKMData.jsx`
 
-- [ ] **Step 3.1: `Overview.jsx` — SummaryBar 補傳 props**
+- [x] **Step 3.1: `Overview.jsx` — SummaryBar 補傳 props**
 
 將：
 
@@ -591,7 +596,7 @@ git commit -m "feat: CKMSummaryBar 新增篩檢指標第三區塊"
       )}
 ```
 
-- [ ] **Step 3.2: `CKMData.jsx` — SummaryBar 補傳 props**
+- [x] **Step 3.2: `CKMData.jsx` — SummaryBar 補傳 props**
 
 將：
 
@@ -607,7 +612,7 @@ git commit -m "feat: CKMSummaryBar 新增篩檢指標第三區塊"
 
 （`groupedLabs`、`userInfo` 已是 `CKMData` 現有 props，無需再改簽名。）
 
-- [ ] **Step 3.3: 編譯 + Commit**
+- [x] **Step 3.3: 編譯 + Commit**
 
 Run: `npm run build` → 成功
 
@@ -625,7 +630,7 @@ git commit -m "feat: Overview/CKMData 傳入 groupedLabs 與 userInfo 供篩檢�
 - Modify: `src/utils/settingsManager.js`
 - Modify: `src/components/settings/AdvancedSettings.jsx`
 
-- [ ] **Step 4.1: `defaultSettings.js` — 新增預設值**
+- [x] **Step 4.1: `defaultSettings.js` — 新增預設值**
 
 在 `general` 區塊 `enableNephroReport: false,` 之後加：
 
@@ -633,7 +638,7 @@ git commit -m "feat: Overview/CKMData 傳入 groupedLabs 與 userInfo 供篩檢�
     enableCKMScreening: false,
 ```
 
-- [ ] **Step 4.2: `settingsManager.js` — 三處串接**
+- [x] **Step 4.2: `settingsManager.js` — 三處串接**
 
 (a) `chrome.storage.sync.get` 的預設物件，`enableNephroReport: DEFAULT_SETTINGS.general.enableNephroReport,` 之後加：
 
@@ -653,7 +658,7 @@ git commit -m "feat: Overview/CKMData 傳入 groupedLabs 與 userInfo 供篩檢�
       enableCKMScreening: event.detail.allSettings.enableCKMScreening,
 ```
 
-- [ ] **Step 4.3: `AdvancedSettings.jsx` — state 與 UI 開關**
+- [x] **Step 4.3: `AdvancedSettings.jsx` — state 與 UI 開關**
 
 (a) `useState` 初值物件，`enableNephroReport: false,` 之後加 `enableCKMScreening: false,`
 (b) `chrome.storage.sync.get` 預設物件，`enableNephroReport: false,` 之後加 `enableCKMScreening: false,`
@@ -689,7 +694,7 @@ git commit -m "feat: Overview/CKMData 傳入 groupedLabs 與 userInfo 供篩檢�
 
 （`Box` 通常已在該檔 import；若無則一併補入。`β` badge 用橘色 `#f57c00` 標示實驗性質。）
 
-- [ ] **Step 4.4: 編譯 + Commit**
+- [x] **Step 4.4: 編譯 + Commit**
 
 Run: `npm run build` → 成功
 
@@ -732,12 +737,12 @@ console.log('inserted AST 09025C 2026/05/11 =28');
 
 Expected: `inserted AST 09025C 2026/05/11 =28`
 
-- [ ] **Step 5.2: 完整建置**
+- [x] **Step 5.2: 完整建置**
 
 Run: `npm run build`
 Expected: 成功
 
-- [ ] **Step 5.3: 瀏覽器單元測試**
+- [x] **Step 5.3: 瀏覽器單元測試**
 
 Run: `npm run test`（背景執行），開 `http://localhost:5173/test.html`，確認 `utils/screeningIndicators` 區塊全綠、既有測試無退步。
 

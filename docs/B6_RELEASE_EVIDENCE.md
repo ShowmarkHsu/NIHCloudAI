@@ -1,5 +1,11 @@
 # B6 Engineering Gate Evidence
 
+> **Current-status 指引（2026-09-02）**：本文件保留 B6 engineering gate、受控人工觀察
+> 與 release-owner 決策的歷史稽核證據，不是目前工作的執行清單，也不代表最新 release
+> readiness。最新里程碑、依賴、驗收條件與執行狀態一律以
+> [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) 為準；本文既有證據與歷史決策
+> 應原樣保留。
+
 > **狀態說明（2026-08-27）**：本文件區分 machine-verifiable engineering gate 與
 > bounded controlled manual evidence。
 > AI 頁籤已透過 extension-origin iframe 接上 sealed request 與 background-only
