@@ -262,3 +262,10 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - Commit `acbd304` 移植 `B6_RELEASE_EVIDENCE.md`、`PROJECT_RECOVERY_PLAN.md` 與 CKM screening plan 的 current-status 更新；保留原歷史內容並避免把舊 evidence 誤列為 v0.2.0 的 P2/P3 acceptance。
 - `git diff --check` 通過，僅有 Windows LF→CRLF 提示；未改動產品程式。
 - 下一批處理 upstream provenance schema/checker，並修正方案 B 不具 upstream ancestor 的可驗證 snapshot migration gate。
+
+### 2026-09-03 — 方案 B dirty batch C：canonical snapshot provenance
+
+- Commit `ba3c56a` 將 upstream baseline schema 升至 v3，記錄 canonical base、upstream snapshot/tree、import commit/tree 與 two-tree patch SHA-256。
+- `baseline:check` 現在保留原 upstream-ancestor 模式，並增加 canonical-two-tree-patch 模式；本分支驗證 canonical base/import ancestry 與 immutable import tree 後通過。
+- Package-coupled focused contract test 已驗證 migration assertions，但因 identity 尚為 `nhitw-cloud-analyzer@26.0702.1` 而預期失敗；該 test 不納入本 commit，留待下一個 `nihcloudai@0.2.0` identity 批次一起轉綠。
+- 下一批移植 package/lock、Chrome manifest、品牌 UI、README/CHANGELOG、build 與 test mock identity。
