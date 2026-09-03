@@ -248,9 +248,9 @@ Options:
     const version = packageJson.version;
 
     if (args.values.zip) {
-      createZip(`NHITW_cloud_analyzer_v${version}_${dateStr}.zip`);
+      createZip(`nihcloudai-extension_v${version}_${dateStr}.zip`);
     } else {
-      createZip(`NHITW_cloud_analyzer_v${version}_${dateStr}_ALPHA.zip`);
+      createZip(`nihcloudai-extension_v${version}_${dateStr}_ALPHA.zip`);
     }
     return;
   }

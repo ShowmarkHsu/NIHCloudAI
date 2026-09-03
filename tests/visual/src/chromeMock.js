@@ -75,7 +75,7 @@ export function installChromeMock(initialSync = {}, sourceStates = {}) {
       onMessage: runtimeMessages,
       getManifest: () => ({
         name: 'NIHCloudAI synthetic characterization',
-        version: '26.0702.1',
+        version: '26.702.2',
         description: 'Synthetic-only visual baseline harness',
       }),
       getURL: (path) => new URL(path, window.location.href).href,

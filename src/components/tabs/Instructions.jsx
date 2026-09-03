@@ -18,14 +18,14 @@ const documents = [
 
 ### 1. 安裝 Chrome 擴充功能
 
-- 從 Chrome 網上應用店安裝「健保雲端藥歷整理器2.0」
+- 從 Chrome 網上應用店安裝「NIHCloudAI」
 
 ### 2. 將擴充功能固定在工具列
 
-為了方便使用，建議將「健保雲端藥歷整理器2.0」固定在 Chrome 工具列：
+為了方便使用，建議將「NIHCloudAI」固定在 Chrome 工具列：
 
 1. 點擊 Chrome 右上角的「擴充功能」圖示 (拼圖形狀)
-2. 找到「健保雲端藥歷整理器2.0」，點擊旁邊的「釘選」圖示
+2. 找到「NIHCloudAI」，點擊旁邊的「釘選」圖示
 
 IMAGE_PLACEHOLDER(pin_extension_01, 點擊旁邊的「釘選」圖示)
 

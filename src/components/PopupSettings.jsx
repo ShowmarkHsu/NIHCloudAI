@@ -109,7 +109,7 @@ const PopupSettings = () => {
       <Box>
         <Typography variant="h6" align="center" gutterBottom>贊助我們</Typography>
         <Typography paragraph  align="center">
-          感謝您使用「更好的健保雲端2.0」</Typography><Typography paragraph align="center">
+          感謝您使用「NIHCloudAI」</Typography><Typography paragraph align="center">
           如果您覺得這個工具對您醫療上有所幫助，您可以考慮贊助我們，幫助我們持續改進和維護這個專案。
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 2 }}>
@@ -433,7 +433,7 @@ const PopupSettings = () => {
             }
           }}
         >
-          更好的健保雲端2.0
+          NIHCloudAI
           {developerMode && (
             <span style={{ fontSize: '0.8em', marginLeft: '4px' }}>
               (開發模式)

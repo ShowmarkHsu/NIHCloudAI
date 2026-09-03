@@ -21,11 +21,13 @@ MV3 iframe fail-closed 與本機合成 Provider transport browser test；測試�
 暫存 artifact 將固定 endpoint 改寫至 loopback，不會連線實際 OpenRouter。它不是
 實際 AI Provider、臨床驗收或部署核准。
 
-目前擴充功能的 Chrome build version 仍為 upstream fork 相容所需的
-`26.0702.1`。這不是 NIHCloudAI 的獨立 SemVer release，也沒有任何已指派的
-NIHCloudAI 發布版本；`release/` 的 manifest 只是一個供未來受控發布使用的
-契約／provenance schema。任何獨立版本、tag 或部署都必須由 release owner
-在完成臨床與治理 gate 後另行核定。
+NIHCloudAI 產品版本為 `0.2.0`，Chrome 擴充功能則使用獨立、單調遞增的 build
+version `26.702.2`；Chrome 介面透過 `version_name` 顯示 `NIHCloudAI 0.2.0`。
+產品的 canonical repository 是
+[`ShowmarkHsu/NIHCloudAI`](https://github.com/ShowmarkHsu/NIHCloudAI)。版本定版不
+代表已完成發布核准；任何 tag、artifact 或部署仍須通過臨床與治理 gate。
+版本、signed tag、RC、artifact 與 rollback 規則見
+[`docs/RELEASE_GOVERNANCE.md`](docs/RELEASE_GOVERNANCE.md)。
 
 ## Upstream project
 
@@ -57,7 +59,7 @@ NIHCloudAI 發布版本；`release/` 的 manifest 只是一個供未來受控發
 
 ### 使用 Chrome 開發人員模式安裝
 
-1. 至本專案版本庫 Tags => Releases 下載[最新版的壓縮檔](https://github.com/leescot/NHITW_cloud_analyzer_react_MUI/releases/latest)
+1. 至本專案版本庫 Releases 下載[最新版的 `nihcloudai-extension` 壓縮檔](https://github.com/ShowmarkHsu/NIHCloudAI/releases/latest)
 2. 將下載的壓縮檔解壓縮為資料夾
 3. 在 Chrome 瀏覽器中，前往「管理擴充功能」頁面（或造訪網址 `chrome://extensions/`）
 4. 在右上角啟用「開發人員模式」
@@ -72,7 +74,7 @@ NIHCloudAI 發布版本；`release/` 的 manifest 只是一個供未來受控發
 3. 執行以下命令安裝相依套件並建置專案：
 
    ```
-   npm install --omit=dev && npm run build
+   npm ci && npm run build
    ```
 
 4. 比照上一節的步驟 3–7 在瀏覽器安裝，其中在步驟 6 選擇專案中的 `dist` 資料夾
@@ -171,8 +173,8 @@ NIHCloudAI 發布版本；`release/` 的 manifest 只是一個供未來受控發
 
 如有問題或建議，歡迎透過以下方式聯繫：
 
-- 提交 [GitHub Issue](https://github.com/leescot/NHITW_cloud_analyzer_react_MUI/issues)
-- 查看 [GitHub Discussions](https://github.com/leescot/NHITW_cloud_analyzer_react_MUI/discussions)
+- 提交 [GitHub Issue](https://github.com/ShowmarkHsu/NIHCloudAI/issues)
+- 查看 [GitHub Discussions](https://github.com/ShowmarkHsu/NIHCloudAI/discussions)
 
 ---
 
