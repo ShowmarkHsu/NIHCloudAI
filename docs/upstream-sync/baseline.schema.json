@@ -1,29 +1,31 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/ShowmarkHsu/NHITW_cloud_analyzer_react_MUI/blob/main/docs/upstream-sync/baseline.schema.json",
+  "$id": "https://github.com/ShowmarkHsu/NIHCloudAI/blob/main/docs/upstream-sync/baseline.schema.json",
   "title": "NIHCloudAI upstream baseline",
   "type": "object",
   "additionalProperties": false,
-  "required": ["$schema", "schemaVersion", "capturedAt", "product", "upstream", "nicloudaiSource", "remoteTopology"],
+  "required": ["$schema", "schemaVersion", "capturedAt", "product", "upstream", "nicloudaiSource", "canonicalMigration", "remoteTopology"],
   "properties": {
     "$schema": {"const": "./baseline.schema.json"},
-    "schemaVersion": {"const": 1},
+    "schemaVersion": {"const": 3},
     "capturedAt": {"type": "string", "format": "date"},
     "product": {"$ref": "#/$defs/product"},
     "upstream": {"$ref": "#/$defs/upstream"},
     "nicloudaiSource": {"$ref": "#/$defs/source"},
+    "canonicalMigration": {"$ref": "#/$defs/canonicalMigration"},
     "remoteTopology": {"$ref": "#/$defs/remoteTopology"}
   },
   "$defs": {
     "gitUrl": {"type": "string", "pattern": "^https://github\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\\.git$"},
     "sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "product": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "repositoryTarget"],
+      "required": ["name", "integrationRepositoryAtCapture"],
       "properties": {
         "name": {"const": "NIHCloudAI"},
-        "repositoryTarget": {"$ref": "#/$defs/gitUrl"}
+        "integrationRepositoryAtCapture": {"$ref": "#/$defs/gitUrl"}
       }
     },
     "upstream": {
@@ -53,6 +55,28 @@
       "properties": {
         "repository": {"$ref": "#/$defs/gitUrl"},
         "commit": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "canonicalMigration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "canonicalBaseCommit",
+        "upstreamSnapshotCommit",
+        "upstreamSnapshotTree",
+        "importCommit",
+        "importTree",
+        "patchSha256"
+      ],
+      "properties": {
+        "method": {"const": "two-tree-patch"},
+        "canonicalBaseCommit": {"$ref": "#/$defs/sha"},
+        "upstreamSnapshotCommit": {"$ref": "#/$defs/sha"},
+        "upstreamSnapshotTree": {"$ref": "#/$defs/sha"},
+        "importCommit": {"$ref": "#/$defs/sha"},
+        "importTree": {"$ref": "#/$defs/sha"},
+        "patchSha256": {"$ref": "#/$defs/sha256"}
       }
     },
     "remoteRole": {

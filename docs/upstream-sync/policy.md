@@ -6,13 +6,20 @@ The intended repository topology is fixed:
 
 | Remote | Role | Repository |
 | --- | --- | --- |
-| `origin` | NIHCloudAI product fork | `ShowmarkHsu/NHITW_cloud_analyzer_react_MUI` |
+| `origin` | Historical upstream integration fork | `ShowmarkHsu/NHITW_cloud_analyzer_react_MUI` |
 | `upstream` | NHITW Cloud Analyzer source | `leescot/NHITW_cloud_analyzer_react_MUI` |
-| `nicloudai` | NIHCloudAI AI/security source | `ShowmarkHsu/NIHCloudAI` |
+| `nicloudai` | Canonical NIHCloudAI product repository | `ShowmarkHsu/NIHCloudAI` |
 
 On 2026-08-14 the final fork was verified through the GitHub API as a fork of
 the configured upstream, and the authenticated maintainer had push permission.
 The independent integration worktree now uses the three remote roles above.
+The 2026-09-02 release-owner decision designates `nicloudai` as canonical. Its
+`main` history and the original integration history do not share an ancestor.
+The 2026-09-03 reconciliation therefore starts a new branch from canonical
+`main`, preserves the v0.1.0 evidence, imports the upstream snapshot with a
+recorded two-tree patch, and replays the integration commits without attaching
+the unrelated history. Remote push or PR remains blocked until authentication
+and repository protection settings are verified.
 The exact result is recorded in [`baseline.json`](baseline.json); this topology
 verification did not push, create a branch on GitHub, or modify `main`.
 
@@ -23,16 +30,21 @@ force-pushed.
 ## Fixed baseline and provenance
 
 - The integration baseline is upstream commit
-  `cad76e59c60eafc2947939fc44d7683ba9f7ab9d`, product version `26.0702.1`.
+  `cad76e59c60eafc2947939fc44d7683ba9f7ab9d`, upstream extension version
+  `26.0702.1`.
+- `baseline:check` accepts either the original upstream-ancestor history or the
+  fixed canonical two-tree-patch migration recorded in `baseline.json`. In the
+  migration form, canonical base/import ancestry and the immutable import tree
+  are verified locally; the upstream snapshot tree and patch SHA-256 remain
+  pinned provenance values.
 - Reused NIHCloudAI concepts or code must cite source commit
   `bab69c741e1f6a5b2da65276ce8fe955973e05ca` in the implementing commit or PR.
 - The upstream Apache-2.0 [`LICENSE`](../../LICENSE) is retained unchanged.
   [`NOTICE`](../../NOTICE) records upstream and NIHCloudAI attribution.
-- 此分支尚未有 NIHCloudAI release identity、獨立 Semantic Version 或 annotated
-  tag。現有 Chrome extension version `26.0702.1` 是 upstream fork 相容版本，
-  不得在文件、artifact 或 UI 中誤稱為 NIHCloudAI release。未來 release owner
-  僅能在完成治理與臨床 gate 後指派獨立 SemVer；upstream version 同時仍須保留
-  為 provenance。
+- Release owner 已於 2026-09-02 指派 NIHCloudAI 產品版本 `0.2.0`；Chrome
+  build version 另以單調遞增且合法的 `26.702.2` 維護，兩者不得混用。這項產品身份
+  決策不代表 artifact、臨床或 publication gate 已核准；upstream version
+  `26.0702.1` 仍只作為 provenance 保留。
 
 ## Synchronization triggers
 

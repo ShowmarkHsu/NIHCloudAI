@@ -1,10 +1,10 @@
 {
   "$schema": "./baseline.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 3,
   "capturedAt": "2026-08-14",
   "product": {
     "name": "NIHCloudAI",
-    "repositoryTarget": "https://github.com/ShowmarkHsu/NHITW_cloud_analyzer_react_MUI.git"
+    "integrationRepositoryAtCapture": "https://github.com/ShowmarkHsu/NHITW_cloud_analyzer_react_MUI.git"
   },
   "upstream": {
     "repository": "https://github.com/leescot/NHITW_cloud_analyzer_react_MUI.git",
@@ -19,6 +19,15 @@
   "nicloudaiSource": {
     "repository": "https://github.com/ShowmarkHsu/NIHCloudAI.git",
     "commit": "bab69c741e1f6a5b2da65276ce8fe955973e05ca"
+  },
+  "canonicalMigration": {
+    "method": "two-tree-patch",
+    "canonicalBaseCommit": "f48a7411786ecd7b6586ff26e33a446827d378b0",
+    "upstreamSnapshotCommit": "cad76e59c60eafc2947939fc44d7683ba9f7ab9d",
+    "upstreamSnapshotTree": "935820baf34e8e8f2ae01e26b29eac3af786f559",
+    "importCommit": "f7debf69835bd8261cb767c9c27a741b255456c9",
+    "importTree": "eb743c59a961a7782c4aaed028c316a120f9d9a0",
+    "patchSha256": "b2c9209795b2f6ea832dd96163c496b26b21cab8e64b0c1917e2ce7830183236"
   },
   "remoteTopology": {
     "verificationStatus": "verified-final-fork-accessible",
