@@ -249,3 +249,10 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - 排除本 migration 新增的 `docs/history/v0.1.0/` 與本計畫文件後，新分支 tree 與來源 `26db24a` 無差異。
 - 驗證通過：AI 138 passed、5 real-Ollama skipped、typecheck、lint、characterization 9/9、build、23-artifact readiness、Browser 106、Extension iframe 與 localhost injection integration、visual CLI 1 與 Playwright 46 passed。
 - `baseline:check` 仍只因 ancestry-only 假設 blocked。下一步分批套用原 dirty delta，並在 provenance batch 以 canonical snapshot migration evidence 修正此 gate。
+
+### 2026-09-03 — 方案 B dirty batch A：visual golden
+
+- Commit `9dade0c` 只移植 `settings-accordion-lab-desktop-1440x900.png`，SHA-256 為 `FF5381C3ACC87D7E11015603D534310418F69EE1BB5C87F239002575A3E822A9`。
+- 專案 visual runner 的 settings-accordion 單一 case 2/2 通過；完整 visual CLI 1 passed、Playwright 46 passed。
+- 直接呼叫 Playwright CLI 曾因未啟動 Vite server 出現 `ERR_CONNECTION_REFUSED`；改用專案自帶且負責 server lifecycle 的 runner 後通過，未修改產品或測試門檻。
+- 下一批移植 recovery/B6/CKM 文件 current-status 收斂；P2/P3 與 publication 仍 blocked。
