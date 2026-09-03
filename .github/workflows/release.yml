@@ -8,67 +8,169 @@ on:
         type: boolean
         default: false
         required: false
+      release_version:
+        description: '產品 SemVer（必須與目前 tag 相同，例如 0.2.0-rc.1）'
+        type: string
+        required: true
+      ollama_configuration_sha256:
+        description: 'Ollama configuration evidence（sha256:...）'
+        type: string
+        required: true
+      ollama_clinical_acceptance_sha256:
+        description: 'Ollama clinical acceptance evidence（sha256:...）'
+        type: string
+        required: true
+      openrouter_configuration_sha256:
+        description: 'OpenRouter configuration evidence（sha256:...）'
+        type: string
+        required: true
+      openrouter_clinical_acceptance_sha256:
+        description: 'OpenRouter clinical acceptance evidence（sha256:...）'
+        type: string
+        required: true
+      openrouter_metadata_sha256:
+        description: 'OpenRouter metadata evidence（sha256:...）'
+        type: string
+        required: true
+      approved_rc_tag:
+        description: 'Stable 必填：與此 commit 相同的已核准 RC tag（例如 v0.2.0-rc.3）'
+        type: string
+        default: ''
+        required: false
       message:
         description: '更新說明'
         default: ''
         required: false
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  build-and-release:
-    runs-on: ubuntu-latest
-    
-    # Add explicit permissions for releases
+  verify-and-package:
+    runs-on: windows-latest
     permissions:
-      contents: write
-    
+      contents: read
+    defaults:
+      run:
+        shell: bash
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify canonical release tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ inputs.release_version }}
+          IS_PRERELEASE: ${{ inputs.is_pre }}
+          APPROVED_RC_TAG: ${{ inputs.approved_rc_tag }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "ShowmarkHsu/NIHCloudAI"
+          test "$GITHUB_REF_TYPE" = "tag"
+          test "$GITHUB_REF_NAME" = "v${RELEASE_VERSION}"
+          if [[ "$RELEASE_VERSION" == *-* ]]; then
+            test "$IS_PRERELEASE" = "true"
+            test -z "$APPROVED_RC_TAG"
+          else
+            test "$IS_PRERELEASE" = "false"
+            test "$APPROVED_RC_TAG" != ""
+            [[ "$APPROVED_RC_TAG" =~ ^v${RELEASE_VERSION}-rc\.[1-9][0-9]*$ ]]
+            test "$(git rev-list -n 1 "$APPROVED_RC_TAG")" = "$GITHUB_SHA"
+            test "$(gh release view "$APPROVED_RC_TAG" --json isPrerelease --jq '.isPrerelease')" = "true"
+          fi
+          test "$(git cat-file -t "refs/tags/${GITHUB_REF_NAME}")" = "tag"
+          TAG_OBJECT_SHA=$(git rev-parse "refs/tags/${GITHUB_REF_NAME}^{tag}")
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/git/tags/${TAG_OBJECT_SHA}" --jq '.verification.verified')" = "true"
+          MAIN_STATUS=$(gh api "repos/${GITHUB_REPOSITORY}/compare/${GITHUB_SHA}...main" --jq '.status')
+          [[ "$MAIN_STATUS" = "ahead" || "$MAIN_STATUS" = "identical" ]]
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release already exists for ${GITHUB_REF_NAME}; immutable releases cannot be rerun." >&2
+            exit 1
+          fi
       
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
-          # Remove the cache option that's causing issues
       
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium
+
+      - name: Verify release
+        run: npm run verify
+
+      - name: Run visual tests
+        run: npm run test:visual
       
-      - name: Build project
-        run: npm run build
-      
-      - name: Get version from package.json
-        id: get_version
-        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-      
-      - name: Create version tag
-        id: create_tag
+      - name: Create immutable release artifact
+        run: >-
+          npm run release:artifact --
+          --version "${{ inputs.release_version }}"
+          --output-directory release-output
+          --ollama-configuration-sha256 "${{ inputs.ollama_configuration_sha256 }}"
+          --ollama-clinical-acceptance-sha256 "${{ inputs.ollama_clinical_acceptance_sha256 }}"
+          --openrouter-configuration-sha256 "${{ inputs.openrouter_configuration_sha256 }}"
+          --openrouter-clinical-acceptance-sha256 "${{ inputs.openrouter_clinical_acceptance_sha256 }}"
+          --openrouter-metadata-sha256 "${{ inputs.openrouter_metadata_sha256 }}"
+
+      - name: Stage immutable release files
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-${{ github.ref_name }}
+          path: release-output/
+          if-no-files-found: error
+          retention-days: 1
+
+  create-draft-release:
+    needs: verify-and-package
+    runs-on: windows-latest
+    environment: release
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Download immutable release files
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-${{ github.ref_name }}
+          path: release-output
+
+      - name: Refuse an existing release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=${{ steps.get_version.outputs.VERSION }}
-          TIMESTAMP=$(date +'%Y%m%d')
-          echo "TAG_NAME=v${VERSION}-${TIMESTAMP}" >> $GITHUB_OUTPUT
-      
-      - name: Create Git Tag
-        run: |
-          git tag ${{ steps.create_tag.outputs.TAG_NAME }}
-          git push origin ${{ steps.create_tag.outputs.TAG_NAME }}
-      
-      - name: Create Zip Archive
-        run: |
-          cd dist
-          zip -r ../NHITW_cloud_analyzer_${{ steps.create_tag.outputs.TAG_NAME }}.zip .
-          cd ..
-      
+          set -euo pipefail
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release already exists for ${GITHUB_REF_NAME}; refusing to replace assets." >&2
+            exit 1
+          fi
+
       - name: Create GitHub Release
         id: create_release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@5113cdc90fd4d541c801c55356214017bf5ae34b # v3
         with:
-          tag_name: ${{ steps.create_tag.outputs.TAG_NAME }}
-          name: Release ${{ steps.create_tag.outputs.TAG_NAME }}
+          tag_name: ${{ github.ref_name }}
+          name: NIHCloudAI ${{ inputs.release_version }}
           body: ${{ github.event.inputs.message }}
-          draft: false
+          draft: true
           prerelease: ${{ github.event.inputs.is_pre }}
-          make_latest: 'legacy'
-          files: NHITW_cloud_analyzer_${{ steps.create_tag.outputs.TAG_NAME }}.zip
+          make_latest: false
+          overwrite_files: false
+          fail_on_unmatched_files: true
+          files: |
+            release-output/nihcloudai-extension.zip
+            release-output/release-manifest.json
+            release-output/SHA256SUMS
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
