@@ -256,3 +256,9 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - 專案 visual runner 的 settings-accordion 單一 case 2/2 通過；完整 visual CLI 1 passed、Playwright 46 passed。
 - 直接呼叫 Playwright CLI 曾因未啟動 Vite server 出現 `ERR_CONNECTION_REFUSED`；改用專案自帶且負責 server lifecycle 的 runner 後通過，未修改產品或測試門檻。
 - 下一批移植 recovery/B6/CKM 文件 current-status 收斂；P2/P3 與 publication 仍 blocked。
+
+### 2026-09-03 — 方案 B dirty batch B：current-status 文件收斂
+
+- Commit `acbd304` 移植 `B6_RELEASE_EVIDENCE.md`、`PROJECT_RECOVERY_PLAN.md` 與 CKM screening plan 的 current-status 更新；保留原歷史內容並避免把舊 evidence 誤列為 v0.2.0 的 P2/P3 acceptance。
+- `git diff --check` 通過，僅有 Windows LF→CRLF 提示；未改動產品程式。
+- 下一批處理 upstream provenance schema/checker，並修正方案 B 不具 upstream ancestor 的可驗證 snapshot migration gate。
