@@ -337,3 +337,9 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - Draft PR #1 在 evidence 準備 commit 推送後仍為 Open／Draft，base `main@f48a741`、head `codex/canonical-integration-0.2.0@5aa18f8`，mergeable 只表示 Git 可合併，不代表治理 gate 通過。PR 現為 134 commits、485 files、約 +130630/−13199；沒有 reviews、review requests、comments、status checks、check runs 或 workflow runs。
 - PR body 的 canonical 起點、unrelated-history 隔離、two-tree snapshot provenance、109 commits replay、dirty-worktree 保留及 publication blockers 與實況一致；但遠端完全沒有 CI／review evidence，因此 P0.4 維持 `IN PROGRESS`，PR 不具 Ready 或 merge 條件。
 - GitHub plan 升級或 visibility 變更前，branch protection、required checks 與 `v*` signed-tag ruleset 保持外部 blocker；visibility 是重大設定，不由代理自行變更。Protected environment、required reviewer、immutable release／attestation、P2/P3 evidence 與臨床／藥事 acceptance 也仍未完成，不得轉 Ready、merge、建立 RC tag、artifact 或 release。
+
+### 2026-09-03 — 本 session 最終工程 gates
+
+- `npm run verify` 通過：AI 141 passed／5 real-Ollama skipped、typecheck、lint、characterization 9/9、build、23-artifact readiness、Browser 106、Extension localhost 與 iframe integration 全部通過。
+- `npm run test:visual` 通過：visual CLI 1 passed；Playwright 45 passed、1 skipped。
+- 本次只有治理／evidence 文件變更，沒有建立或發布 RC tag、artifact 或 release；完整 gates 通過不會解除上述 GitHub 治理、人工 P2/P3、臨床／藥事或 release-owner blockers。
