@@ -343,3 +343,9 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - `npm run verify` 通過：AI 141 passed／5 real-Ollama skipped、typecheck、lint、characterization 9/9、build、23-artifact readiness、Browser 106、Extension localhost 與 iframe integration 全部通過。
 - `npm run test:visual` 通過：visual CLI 1 passed；Playwright 45 passed、1 skipped。
 - 本次只有治理／evidence 文件變更，沒有建立或發布 RC tag、artifact 或 release；完整 gates 通過不會解除上述 GitHub 治理、人工 P2/P3、臨床／藥事或 release-owner blockers。
+
+### 2026-09-03 — PR standards review：React lint 與 visual harness 文件
+
+- 兩軸 PR review 的 Standards 軸發現 production lint 固定為 React 18.3、visual lint 固定為 19.0，但 package runtime 已是 React 19；兩個 scope 均改用 eslint-plugin-react 的 `detect`，避免後續版本再漂移。
+- Visual README 移除「unchanged upstream」的失真敘述，改為直接 import／mount production components、不複製 rendering，並補記 sealed AI safe-empty、coverage、opaque alias 與 raw alias 不外洩的現有案例。
+- `npm run lint` 通過，production／visual `eslint --print-config` 均解析 `react.version=detect`；此批不改產品 runtime，也不改任何 release gate 狀態。

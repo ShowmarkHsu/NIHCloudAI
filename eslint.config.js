@@ -65,7 +65,7 @@ export default [
         sourceType: 'module',
       },
     },
-    settings: { react: { version: '18.3' } },
+    settings: { react: { version: 'detect' } },
     plugins: {
       react,
       'react-hooks': reactHooks,
@@ -126,7 +126,7 @@ export default [
         sourceType: 'module',
       },
     },
-    settings: { react: { version: '19.0' } },
+    settings: { react: { version: 'detect' } },
     plugins: { react },
     rules: {
       'react/jsx-uses-vars': 'error',
