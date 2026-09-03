@@ -47,7 +47,9 @@ async function createBuildableRepository(root: string, extraPermissions: string[
   const repository = join(root, 'repository');
   const extensionManifest = {
     manifest_version: 3,
-    version: '26.0702.1',
+    name: 'NIHCloudAI',
+    version: '26.702.1',
+    version_name: 'NIHCloudAI 1.0.0',
     permissions: ['storage', 'clipboardWrite', ...extraPermissions],
     host_permissions: ['https://medcloud2.nhi.gov.tw/*', 'https://drugtw.com/*'],
     optional_host_permissions: ['http://127.0.0.1:11434/*', 'https://openrouter.ai/*'],
@@ -56,6 +58,8 @@ async function createBuildableRepository(root: string, extraPermissions: string[
   await mkdir(join(repository, 'docs', 'upstream-sync'), {recursive: true});
   await writeFile(join(repository, '.gitignore'), 'dist/\n');
   await writeFile(join(repository, 'package.json'), JSON.stringify({
+    name: 'nihcloudai',
+    version: '1.0.0',
     private: true,
     type: 'module',
     scripts: {build: 'node build.mjs'},
@@ -153,11 +157,23 @@ describe('immutable NIHCloudAI release artifact', () => {
     expect(manifest.source).toEqual({
       upstreamCommit: '2'.repeat(40),
       nihCloudAiCommit: sourceCommit,
-      extensionVersion: '26.0702.1',
+      extensionVersion: '26.702.1',
     });
     expect(releaseManifestV1Schema.safeParse(manifest).success).toBe(true);
     expect(await readFile(join(output, 'nihcloudai-extension.zip'))).not.toHaveLength(0);
   }, 15_000);
+
+  it('refuses to label source metadata as a different product release', async () => {
+    const root = await temporaryDirectory();
+    const repository = await createBuildableRepository(root);
+
+    await expect(createReleaseFromRepository({
+      repositoryRoot: repository,
+      outputDirectory: join(root, 'release-output'),
+      releaseVersion: '1.0.1',
+      evidence: fixedEvidence,
+    })).rejects.toThrow('package identity must match NIHCloudAI release version');
+  });
 
   it('refuses a reproducible dist that violates the fixed release-readiness policy', async () => {
     const root = await temporaryDirectory();
@@ -173,18 +189,44 @@ describe('immutable NIHCloudAI release artifact', () => {
     await expect(readFile(join(output, 'nihcloudai-extension.zip'))).rejects.toThrow();
   });
 
-  it('binds the ZIP, source commits, extension build, and external evidence hashes in a closed manifest and SHA256SUMS', async () => {
+  it('rejects malformed SemVer prereleases and invalid Chrome build versions', async () => {
+    const root = await temporaryDirectory();
+    const dist = join(root, 'dist');
+    await mkdir(dist, {recursive: true});
+    await writeFile(join(dist, 'manifest.json'), JSON.stringify({version: '26.702.1'}));
+
+    await expect(createReleasePackage({
+      sourceDirectory: dist,
+      outputDirectory: join(root, 'invalid-release-version'),
+      releaseVersion: '0.2.0-rc.01',
+      sourceCommit: '1'.repeat(40),
+      upstreamCommit: '2'.repeat(40),
+      evidence: fixedEvidence,
+    })).rejects.toThrow('release version is invalid');
+
+    await writeFile(join(dist, 'manifest.json'), JSON.stringify({version: '26.0702.1'}));
+    await expect(createReleasePackage({
+      sourceDirectory: dist,
+      outputDirectory: join(root, 'invalid-extension-version'),
+      releaseVersion: '0.2.0-rc.1',
+      sourceCommit: '1'.repeat(40),
+      upstreamCommit: '2'.repeat(40),
+      evidence: fixedEvidence,
+    })).rejects.toThrow('extension build version is invalid');
+  });
+
+  it('binds a SemVer prerelease and four-component extension build in the closed manifest', async () => {
     const root = await temporaryDirectory();
     const dist = join(root, 'dist');
     const output = join(root, 'release-output');
     await mkdir(dist, {recursive: true});
-    await writeFile(join(dist, 'manifest.json'), JSON.stringify({version: '26.0702.1'}));
+    await writeFile(join(dist, 'manifest.json'), JSON.stringify({version: '26.702.1.4'}));
     await writeFile(join(dist, 'content.js'), '(()=>{})();\n');
 
     await createReleasePackage({
       sourceDirectory: dist,
       outputDirectory: output,
-      releaseVersion: '1.0.0',
+      releaseVersion: '0.2.0-rc.1',
       sourceCommit: '1'.repeat(40),
       upstreamCommit: '2'.repeat(40),
       evidence: fixedEvidence,
@@ -200,13 +242,13 @@ describe('immutable NIHCloudAI release artifact', () => {
     expect(manifest).toMatchObject({
       artifact: {
         artifact: 'nihcloudai-extension.zip',
-        version: '1.0.0',
+        version: '0.2.0-rc.1',
         sha256: `sha256:${zipSha256}`,
       },
       source: {
         upstreamCommit: '2'.repeat(40),
         nihCloudAiCommit: '1'.repeat(40),
-        extensionVersion: '26.0702.1',
+        extensionVersion: '26.702.1.4',
       },
       evidence: fixedEvidence,
     });

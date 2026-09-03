@@ -20,7 +20,7 @@ const ZIP_FIXED_DOS_DATE = 0x0021;
 const ZIP32_MAXIMUM = 0xffffffff;
 const SHA256_PATTERN = /^sha256:[a-f0-9]{64}$/;
 const GIT_COMMIT_PATTERN = /^[a-f0-9]{40}$/;
-const SEMVER_PATTERN = /^\d+\.\d+\.\d+$/;
+const SEMVER_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
 const moduleDirectory = path.dirname(fileURLToPath(import.meta.url));
 const defaultReleaseSchema = path.resolve(moduleDirectory, '..', 'release', 'manifest.schema.json');
 const requiredReleaseOptions = [
@@ -31,6 +31,16 @@ const requiredReleaseOptions = [
   'openrouter-clinical-acceptance-sha256',
   'openrouter-metadata-sha256',
 ];
+
+function isValidChromeBuildVersion(value) {
+  if (typeof value !== 'string') return false;
+  const components = value.split('.');
+  return components.length >= 1
+    && components.length <= 4
+    && components.some((component) => component !== '0')
+    && components.every((component) =>
+      /^(?:0|[1-9]\d*)$/.test(component) && Number(component) <= 65535);
+}
 
 const crc32Table = Array.from({length: 256}, (_, index) => {
   let value = index;
@@ -247,7 +257,9 @@ export async function createReleasePackage({
   const extensionManifest = JSON.parse(
     await readFile(path.join(sourceDirectory, 'manifest.json'), 'utf8'),
   );
-  assertMatches(extensionManifest.version, SEMVER_PATTERN, 'extension build version');
+  if (!isValidChromeBuildVersion(extensionManifest.version)) {
+    throw new Error('extension build version is invalid');
+  }
   await mkdir(path.dirname(outputDirectory), {recursive: true});
   await mkdir(outputDirectory);
 
@@ -329,6 +341,14 @@ export async function createReleaseFromRepository({
     }
   };
   assertClean();
+  assertMatches(releaseVersion, SEMVER_PATTERN, 'release version');
+  const packageJson = JSON.parse(await readFile(
+    path.join(repositoryRoot, 'package.json'),
+    'utf8',
+  ));
+  if (packageJson.name !== 'nihcloudai' || packageJson.version !== releaseVersion) {
+    throw new Error('package identity must match NIHCloudAI release version');
+  }
   const sourceCommit = gitOutput('rev-parse', 'HEAD');
   assertMatches(sourceCommit, GIT_COMMIT_PATTERN, 'source commit');
   const baseline = JSON.parse(await readFile(
@@ -344,6 +364,16 @@ export async function createReleaseFromRepository({
   try {
     runProductionBuild(repositoryRoot);
     assertClean();
+    const firstManifest = JSON.parse(await readFile(
+      path.join(repositoryRoot, 'dist', 'manifest.json'),
+      'utf8',
+    ));
+    if (
+      firstManifest.name !== 'NIHCloudAI'
+      || firstManifest.version_name !== `NIHCloudAI ${releaseVersion}`
+    ) {
+      throw new Error('extension display identity must match NIHCloudAI release version');
+    }
     await assertReleaseReady(path.join(repositoryRoot, 'dist'));
     await createDeterministicZip({
       sourceDirectory: path.join(repositoryRoot, 'dist'),
