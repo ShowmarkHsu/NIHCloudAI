@@ -269,3 +269,10 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - `baseline:check` 現在保留原 upstream-ancestor 模式，並增加 canonical-two-tree-patch 模式；本分支驗證 canonical base/import ancestry 與 immutable import tree 後通過。
 - Package-coupled focused contract test 已驗證 migration assertions，但因 identity 尚為 `nhitw-cloud-analyzer@26.0702.1` 而預期失敗；該 test 不納入本 commit，留待下一個 `nihcloudai@0.2.0` identity 批次一起轉綠。
 - 下一批移植 package/lock、Chrome manifest、品牌 UI、README/CHANGELOG、build 與 test mock identity。
+
+### 2026-09-03 — 方案 B dirty batch D：NIHCloudAI 0.2.0 identity
+
+- Commit `4297bed` 統一 package/lock、canonical URLs、Chrome manifest、build、UI、README/CHANGELOG 與 visual mock：`nihcloudai@0.2.0`、Chrome `26.702.2`、`NIHCloudAI 0.2.0`。
+- 隔離 worktree 的 `npm ci` 完成：added 506 packages、0 vulnerabilities。期間一次 partial install 造成 `ENOTEMPTY`；確認無殘留 npm/node process後，重跑同一 clean install 成功。
+- 驗證通過：canonical snapshot `baseline:check`、focused identity/provenance contract 2/2、build、Browser 106、visual CLI 1、Playwright 45 passed／1 skipped。
+- 下一批移植 release SemVer/Chrome schema 與 runtime contract；仍不建立 RC tag 或 artifact。
