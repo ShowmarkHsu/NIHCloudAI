@@ -306,3 +306,12 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - Publication gate 維持 blocked：尚未驗證 protected `release` environment、required reviewer、signed-tag ruleset、immutable releases/attestation，且 P2/P3 evidence 與臨床／藥事 acceptance 未完成。不得建立 RC tag、正式 artifact 或發布。
 
 下一個可執行工作：由使用者執行 `gh auth login -h github.com` 後，唯讀稽核 canonical branch protection、release environment、ruleset、immutable releases/attestation；確認安全後再 push `codex/canonical-integration-0.2.0` 並建立 reconciliation PR。
+
+### 2026-09-03 — GitHub authentication 與 publication-control 稽核
+
+- `gh auth status` 已恢復：`ShowmarkHsu` 為 active account，具 `repo` 與 `workflow` scopes；canonical repository 為 private `ShowmarkHsu/NIHCloudAI`，default branch 為 `main`。
+- Canonical `main` 再次確認仍為 `f48a741`，遠端尚無 `codex/canonical-integration-0.2.0`，因此沒有覆寫既有 branch 的風險。
+- `main` branch protection 與 repository rulesets API 均回覆 HTTP 403：目前 private repository 方案需升級 GitHub Pro 或改為 public 才能啟用。不得把無法設定誤記為已保護。
+- Repository environments 回覆 `total_count: 0`，`release` environment 不存在，因此沒有 required reviewer gate。
+- Immutable releases API 回覆 `enabled: false`、`enforced_by_owner: false`；attestation publication control 尚未建立可驗證設定。
+- Publication gate 維持 `BLOCKED`。允許下一步只做非 force push 的 integration branch 與 draft reconciliation PR；不得 merge、建立 tag、RC artifact 或 release。
