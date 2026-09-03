@@ -328,3 +328,12 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - 新增 `RELEASE_EVIDENCE_PREPARATION.md`，把 release workflow 所需的 Ollama configuration、Ollama clinical acceptance、OpenRouter configuration、OpenRouter clinical acceptance 與 OpenRouter metadata 定義為五個獨立、不可變 evidence objects。
 - 文件固定每個 object 的最小封面、候選 commit／contract 綁定、必要核准角色、受控 locator、雙實作 SHA-256 核對與 release-owner digest ledger；明確禁止把空白範本、歷史觀察或自動化測試結果當成 acceptance。
 - Runbook 已連到此封裝流程。此批只完成不需臨床授權的準備工作；沒有填造結果、簽核或 digest。P2.1–P2.4、P3.1–P3.4 均維持 `BLOCKED`，且不得建立 tag、artifact 或 release。
+
+### 2026-09-03 — Handoff／GitHub 治理／Draft PR 再稽核
+
+- 原 dirty worktree 仍位於 `codex/integration-recovery@26db24a`，保有 26 個 tracked modifications 與兩個 untracked documents；隔離分支在本次文件更新前為 `ce187d2`、乾淨且追蹤遠端同名分支。Canonical `main` 與遠端均仍為 `f48a741`，原 integration history 與 canonical main 仍無共同祖先，handoff 無漂移。
+- Canonical repository 仍為 private；GitHub API 不揭露 account plan 名稱，但 `main` 回報 `protected: false`，branch protection 與 repository rulesets API 均回 HTTP 403：`Upgrade to GitHub Pro or make this repository public to enable this feature.`。不得繞過或把不可用功能記為已設定。
+- Repository environments 仍為 0，沒有 `release` environment 或 required reviewer；immutable releases 仍為 `enabled: false`／`enforced_by_owner: false`。Releases、Actions artifacts 與 deployments 均為空；tags 只有既有 `v0.1.0`。
+- Draft PR #1 在 evidence 準備 commit 推送後仍為 Open／Draft，base `main@f48a741`、head `codex/canonical-integration-0.2.0@5aa18f8`，mergeable 只表示 Git 可合併，不代表治理 gate 通過。PR 現為 134 commits、485 files、約 +130630/−13199；沒有 reviews、review requests、comments、status checks、check runs 或 workflow runs。
+- PR body 的 canonical 起點、unrelated-history 隔離、two-tree snapshot provenance、109 commits replay、dirty-worktree 保留及 publication blockers 與實況一致；但遠端完全沒有 CI／review evidence，因此 P0.4 維持 `IN PROGRESS`，PR 不具 Ready 或 merge 條件。
+- GitHub plan 升級或 visibility 變更前，branch protection、required checks 與 `v*` signed-tag ruleset 保持外部 blocker；visibility 是重大設定，不由代理自行變更。Protected environment、required reviewer、immutable release／attestation、P2/P3 evidence 與臨床／藥事 acceptance 也仍未完成，不得轉 Ready、merge、建立 RC tag、artifact 或 release。
