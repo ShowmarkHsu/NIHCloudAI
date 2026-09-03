@@ -276,3 +276,9 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - 隔離 worktree 的 `npm ci` 完成：added 506 packages、0 vulnerabilities。期間一次 partial install 造成 `ENOTEMPTY`；確認無殘留 npm/node process後，重跑同一 clean install 成功。
 - 驗證通過：canonical snapshot `baseline:check`、focused identity/provenance contract 2/2、build、Browser 106、visual CLI 1、Playwright 45 passed／1 skipped。
 - 下一批移植 release SemVer/Chrome schema 與 runtime contract；仍不建立 RC tag 或 artifact。
+
+### 2026-09-03 — 方案 B dirty batch E：release version contracts
+
+- Commit `ee9ed0f` 對齊 JSON Schema、runtime validator 與 contract tests，支援完整 SemVer prerelease 及合法 Chrome 1–4 段 build version，並拒絕前導零、超界、全零與段數 drift。
+- Focused release contract 7/7 與 AI typecheck 通過；`git diff --check` 無錯誤。
+- 下一批移植 deterministic builder 的 source-identity fail-closed gate 與 immutable artifact tests；只執行測試內的 temporary artifacts，不建立 RC 或正式 artifact。
