@@ -93,13 +93,13 @@ const releaseManifest = {
   schemaVersion: RELEASE_MANIFEST_SCHEMA_VERSION,
   artifact: {
     artifact: 'nihcloudai-extension.zip',
-    version: '26.0702.1',
+    version: '0.2.0',
     sha256: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
   },
   source: {
     upstreamCommit: 'cad76e59c60eafc2947939fc44d7683ba9f7ab9d',
     nihCloudAiCommit: 'f89997b6c45e61546ff92f2ecceb82e7170a2daf',
-    extensionVersion: '26.0702.1',
+    extensionVersion: '26.702.1',
   },
   contracts: {
     projectionVersion: CLINICAL_PROJECTION_CONTRACT_VERSION,
@@ -256,10 +256,17 @@ describe('closed release manifest v1', () => {
     expect(releaseManifestV1Schema.safeParse(wrongType).success).toBe(false);
   });
 
-  it('requires an independent three-component SemVer release identity', () => {
-    const chromeFourComponentVersion = structuredClone(releaseManifest);
-    chromeFourComponentVersion.artifact.version = '1.2.3.4';
-    expect(releaseManifestV1Schema.safeParse(chromeFourComponentVersion).success).toBe(false);
+  it('accepts a SemVer 2.0 prerelease as the independent release identity', () => {
+    const releaseCandidate = structuredClone(releaseManifest);
+    releaseCandidate.artifact.version = '0.2.0-rc.1';
+    expect(releaseManifestV1Schema.safeParse(releaseCandidate).success).toBe(true);
+
+    for (const invalidVersion of ['01.2.3', '1.2.3-rc.01', '1.2.3.4']) {
+      const invalidRelease = structuredClone(releaseManifest);
+      invalidRelease.artifact.version = invalidVersion;
+      expect(releaseManifestV1Schema.safeParse(invalidRelease).success, invalidVersion)
+        .toBe(false);
+    }
   });
 
   it('keeps the checked-in JSON Schema closed and aligned to the runtime schema version', () => {
@@ -268,6 +275,8 @@ describe('closed release manifest v1', () => {
       additionalProperties: boolean;
       properties: {
         schemaVersion: { const: string };
+        artifact: { properties: { version: { $ref: string } } };
+        source: { properties: { extensionVersion: { $ref: string } } };
         contracts: { properties: Record<string, {const: unknown}> };
         providers: {
           properties: {
@@ -279,6 +288,10 @@ describe('closed release manifest v1', () => {
           };
         };
       };
+      $defs: {
+        version: { type: string; pattern: string };
+        chromeBuildVersion: { type: string; pattern: string };
+      };
     };
     const schemaConst = (
       properties: Record<string, {const: unknown}>,
@@ -287,6 +300,21 @@ describe('closed release manifest v1', () => {
 
     expect(schema.additionalProperties).toBe(false);
     expect(schema.properties.schemaVersion.const).toBe(RELEASE_MANIFEST_SCHEMA_VERSION);
+    expect(schema.properties.artifact.properties.version.$ref).toBe('#/$defs/version');
+    expect(schema.properties.source.properties.extensionVersion.$ref)
+      .toBe('#/$defs/chromeBuildVersion');
+    const releaseVersionPattern = new RegExp(schema.$defs.version.pattern);
+    expect(releaseVersionPattern.test('0.2.0-rc.1')).toBe(true);
+    expect(releaseVersionPattern.test('01.2.3')).toBe(false);
+    expect(releaseVersionPattern.test('1.2.3-rc.01')).toBe(false);
+    const extensionVersionPattern = new RegExp(schema.$defs.chromeBuildVersion.pattern);
+    expect(extensionVersionPattern.test('1')).toBe(true);
+    expect(extensionVersionPattern.test('26.702.1')).toBe(true);
+    expect(extensionVersionPattern.test('26.702.1.4')).toBe(true);
+    expect(extensionVersionPattern.test('26.0702.1')).toBe(false);
+    expect(extensionVersionPattern.test('0.0.0')).toBe(false);
+    expect(extensionVersionPattern.test('65536.1')).toBe(false);
+    expect(extensionVersionPattern.test('26.702.1.4.5')).toBe(false);
     expect(schemaConst(schema.properties.contracts.properties, 'promptVersion'))
       .toBe(CLINICAL_SUMMARY_PROMPT_VERSION);
     expect(schemaConst(schema.properties.contracts.properties, 'rulesVersion'))

@@ -24,7 +24,7 @@
       "properties": {
         "upstreamCommit": { "$ref": "#/$defs/gitCommit" },
         "nihCloudAiCommit": { "$ref": "#/$defs/gitCommit" },
-        "extensionVersion": { "$ref": "#/$defs/version" }
+        "extensionVersion": { "$ref": "#/$defs/chromeBuildVersion" }
       }
     },
     "contracts": {
@@ -97,7 +97,14 @@
   "$defs": {
     "gitCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
     "sha256": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
-    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-(?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "chromeBuildVersion": {
+      "type": "string",
+      "pattern": "^(?!0(?:\\.0){0,3}$)(?:0|[1-9]\\d{0,3}|[1-5]\\d{4}|6[0-4]\\d{3}|65[0-4]\\d{2}|655[0-2]\\d|6553[0-5])(?:\\.(?:0|[1-9]\\d{0,3}|[1-5]\\d{4}|6[0-4]\\d{3}|65[0-4]\\d{2}|655[0-2]\\d|6553[0-5])){0,3}$"
+    },
     "providerEvidence": {
       "type": "object",
       "additionalProperties": false,

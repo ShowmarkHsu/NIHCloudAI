@@ -25,9 +25,19 @@ export const OPENROUTER_ROUTE = 'azure' as const;
 
 const gitCommitSchema = z.string().regex(/^[a-f0-9]{40}$/);
 const sha256Schema = z.string().regex(/^sha256:[a-f0-9]{64}$/);
-const releaseSemverSchema = z.string().regex(/^\d+\.\d+\.\d+$/);
-// Upstream Chrome provenance may use three or four numeric version components.
-const chromeBuildVersionSchema = z.string().regex(/^\d+(?:\.\d+){2,3}$/);
+const releaseSemverSchema = z.string().regex(
+  /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/,
+);
+// Chrome accepts one to four integer components in [0, 65535], with no
+// leading zero on non-zero components, and rejects an all-zero version.
+const chromeBuildVersionSchema = z.string().refine((value) => {
+  const components = value.split('.');
+  return components.length >= 1
+    && components.length <= 4
+    && components.some((component) => component !== '0')
+    && components.every((component) =>
+      /^(?:0|[1-9]\d*)$/.test(component) && Number(component) <= 65535);
+});
 
 const artifactSchema = z.object({
   artifact: z.literal('nihcloudai-extension.zip'),
