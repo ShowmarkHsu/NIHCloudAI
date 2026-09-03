@@ -282,3 +282,9 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - Commit `ee9ed0f` 對齊 JSON Schema、runtime validator 與 contract tests，支援完整 SemVer prerelease 及合法 Chrome 1–4 段 build version，並拒絕前導零、超界、全零與段數 drift。
 - Focused release contract 7/7 與 AI typecheck 通過；`git diff --check` 無錯誤。
 - 下一批移植 deterministic builder 的 source-identity fail-closed gate 與 immutable artifact tests；只執行測試內的 temporary artifacts，不建立 RC 或正式 artifact。
+
+### 2026-09-03 — 方案 B dirty batch F：immutable builder hardening
+
+- Commit `9ddb53e` 移植 builder 的 source-identity fail-closed gate：release input/tag version 必須與 package version、Chrome `version_name` 一致。
+- Immutable artifact suite 8/8 與 AI typecheck 通過；測試產物僅位於 temporary repos/directories，未建立 RC tag 或正式 release artifact。
+- 下一批移植 signed-tag、canonical-main、evidence-hash、protected-environment draft publication workflow 與 fail-fast legacy release scripts。
