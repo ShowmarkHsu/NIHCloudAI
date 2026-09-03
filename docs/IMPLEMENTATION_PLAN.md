@@ -322,3 +322,9 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - 建立 draft reconciliation PR #1：`https://github.com/ShowmarkHsu/NIHCloudAI/pull/1`。PR 明列 v0.1.0 evidence 保存、two-tree snapshot provenance、109 個 commit replay、dirty batches、完整測試與 publication blockers。
 - P0.4 的 remote tracking、PR 與 review/merge 策略已建立，但在人工作業完成 review 前維持 `IN PROGRESS`；PR 必須保持 draft，不得因 repository 無 protection 而直接合併。
 - 下一步由 release owner 決定 GitHub plan/visibility 方案以取得 branch/ruleset 功能，並安排 reconciliation review。改為 public 是重大 visibility 變更，不得由代理自行執行。
+
+### 2026-09-03 — P2/P3 evidence 封裝準備
+
+- 新增 `RELEASE_EVIDENCE_PREPARATION.md`，把 release workflow 所需的 Ollama configuration、Ollama clinical acceptance、OpenRouter configuration、OpenRouter clinical acceptance 與 OpenRouter metadata 定義為五個獨立、不可變 evidence objects。
+- 文件固定每個 object 的最小封面、候選 commit／contract 綁定、必要核准角色、受控 locator、雙實作 SHA-256 核對與 release-owner digest ledger；明確禁止把空白範本、歷史觀察或自動化測試結果當成 acceptance。
+- Runbook 已連到此封裝流程。此批只完成不需臨床授權的準備工作；沒有填造結果、簽核或 digest。P2.1–P2.4、P3.1–P3.4 均維持 `BLOCKED`，且不得建立 tag、artifact 或 release。

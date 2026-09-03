@@ -8,6 +8,8 @@ DevTools 匯出或 screenshot。
 
 每次執行以[受控人工驗證證據與簽核紀錄](./CONTROLLED_VALIDATION_EVIDENCE_TEMPLATE.md)
 記錄最小、非敏感的證據與外部簽核狀態。
+完成的結果須依[Release evidence 封裝與雜湊準備](./RELEASE_EVIDENCE_PREPARATION.md)
+拆成五個獨立、不可變的 evidence objects；空白範本與歷史觀察不得產生 release input。
 
 ## 前置與可保存的最小證據
 
