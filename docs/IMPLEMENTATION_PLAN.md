@@ -315,3 +315,10 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - Repository environments 回覆 `total_count: 0`，`release` environment 不存在，因此沒有 required reviewer gate。
 - Immutable releases API 回覆 `enabled: false`、`enforced_by_owner: false`；attestation publication control 尚未建立可驗證設定。
 - Publication gate 維持 `BLOCKED`。允許下一步只做非 force push 的 integration branch 與 draft reconciliation PR；不得 merge、建立 tag、RC artifact 或 release。
+
+### 2026-09-03 — Remote integration branch 與 draft PR
+
+- 以一般 push 建立 remote branch `nicloudai/codex/canonical-integration-0.2.0`，tracking 已設定；push 前確認遠端 branch 不存在、canonical `main@f48a741` 是本分支 ancestor，未使用 force、rebase 或 unrelated-history merge。
+- 建立 draft reconciliation PR #1：`https://github.com/ShowmarkHsu/NIHCloudAI/pull/1`。PR 明列 v0.1.0 evidence 保存、two-tree snapshot provenance、109 個 commit replay、dirty batches、完整測試與 publication blockers。
+- P0.4 的 remote tracking、PR 與 review/merge 策略已建立，但在人工作業完成 review 前維持 `IN PROGRESS`；PR 必須保持 draft，不得因 repository 無 protection 而直接合併。
+- 下一步由 release owner 決定 GitHub plan/visibility 方案以取得 branch/ruleset 功能，並安排 reconciliation review。改為 public 是重大 visibility 變更，不得由代理自行執行。
