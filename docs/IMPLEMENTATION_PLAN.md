@@ -288,3 +288,10 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - Commit `9ddb53e` 移植 builder 的 source-identity fail-closed gate：release input/tag version 必須與 package version、Chrome `version_name` 一致。
 - Immutable artifact suite 8/8 與 AI typecheck 通過；測試產物僅位於 temporary repos/directories，未建立 RC tag 或正式 release artifact。
 - 下一批移植 signed-tag、canonical-main、evidence-hash、protected-environment draft publication workflow 與 fail-fast legacy release scripts。
+
+### 2026-09-03 — 方案 B dirty batch G：release workflow 與治理
+
+- Commit `40082c1` 移植 signed annotated tag、canonical-main ancestry、evidence hashes、stable-to-approved-RC、existing-release refusal、protected `release` environment 與 draft-only publication workflow；legacy alpha/stable scripts 改為 fail fast。
+- Workflow YAML 以 lockfile 既有 `js-yaml` 成功解析；兩支 shell script 通過 `bash -n`；`npm run verify:release` 通過：AI 141 passed／5 real-Ollama skipped、typecheck、lint、characterization 9/9、build、23-artifact readiness 全綠。
+- 未 dispatch workflow、未建立 tag、未建立正式 artifact 或 GitHub release。Protected environment/required reviewer/signed-tag ruleset/immutable releases/attestation 在 gh 重新授權並可驗證前，Publication gate 仍 blocked。
+- 原 dirty delta 已全部按批次移植。下一步稽核 tree 差異與原 dirty worktree 完整性，更新 ledger 後執行最終 `npm run verify` 與 `npm run test:visual`。
