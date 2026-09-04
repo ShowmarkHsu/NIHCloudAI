@@ -80,3 +80,10 @@ Release owner 必須逐列確認 locator 可讀且不可變、object 與候選 c
 角色完整、兩種 SHA-256 實作一致，才可把 digest 傳入 workflow。完成五個雜湊仍不會
 自動解除 Artifact、Provenance 或 Publication gate，也不授權建立 tag、artifact 或
 release。
+
+Release workflow 不會也不應從 repository 讀取受控 evidence object 內容；五個 digest
+本身只能證明內容識別，不能證明 locator、狀態或簽核。受保護的 `release` environment
+因此必須放在 `verify-and-package` job：required reviewer 應在任何正式 artifact 建立前
+以受控系統逐列核對上表，並拒絕空白、`PENDING`、不可定位、candidate commit 不符或
+簽核未完成的輸入。Environment approval 是必要的人工作業邊界，不會取代 P2/P3 或
+release-owner 的最終 Artifact／Provenance／Publication 決策。

@@ -17,7 +17,7 @@ Canonical repository：`ShowmarkHsu/NIHCloudAI`
 只有 release owner 可建立 release tag。建立前必須同時符合：
 
 1. 來源位於 canonical `main`，工作樹乾淨，且 commit 已完成 review。
-2. `npm ci`、`npm run verify`、`npm run test:visual` 全部通過。
+2. `npm ci`、`npm run verify`、`npm run test:visual` 全部通過；canonical `main` 的 required checks 固定為 PR workflow 的 `verify` 與 `visual`，不得以無關 check 代替。
 3. Developer-mode install/update/remove 與 Provider lifecycle 已依受控 runbook 完成。
 4. 當前 prompt/schema/rules/model 組合已有整體臨床與藥事 acceptance。
 5. Ollama/OpenRouter configuration、clinical acceptance 與 OpenRouter metadata 的五個 evidence SHA-256 已備妥。
@@ -41,7 +41,7 @@ Canonical repository：`ShowmarkHsu/NIHCloudAI`
 9. Builder 必須在乾淨 commit 上完成兩次 byte-identical build；不得用一般 `zip` 取代，且 source metadata 不一致時必須 fail closed。
 10. Workflow 只建立 draft release，拒絕既有 tag release、禁止覆寫 assets；release owner 驗證 hashes 與 evidence binding 後才能手動發布。
 
-Canonical repository 必須預先保護 `main` 並設定 strict required status checks，建立受保護的 `release` GitHub Environment、設定 required reviewer 且禁止 self-review；tag ruleset 必須限制只有授權 release owner `ShowmarkHsu`（GitHub user ID `12873164`）可 bypass `v*` 的 creation／update／deletion restrictions，tag 本身仍須通過 GitHub signature verification，且 immutable releases 必須啟用。Release workflow 使用只供 governance read 的 `RELEASE_GOVERNANCE_TOKEN`，在建置任何正式 artifact 前以 API fail closed 驗證 main protection／required checks、environment reviewer、active tag ruleset 與 immutable releases；token 缺失、權限不足、API 失敗或任一設定不符時停止。若上述設定未完成或無法確認，Publication gate 維持 blocked。
+Canonical repository 必須預先保護 `main` 並以 strict 模式要求 `verify` 與 `visual` checks，建立受保護的 `release` GitHub Environment、設定 required reviewer 且禁止 self-review；tag ruleset 必須限制只有授權 release owner `ShowmarkHsu`（GitHub user ID `12873164`）可 bypass `v*` 的 creation／update／deletion restrictions，tag 本身仍須通過 GitHub signature verification，且 immutable releases 必須啟用。`release` environment 必須保護 `verify-and-package` job，使 required reviewer 在 repository code、正式 artifact 或 Actions artifact 被建立前，先核對已核准的五件 evidence object、不可變 locator、candidate commit 與 digest ledger；空白、`PENDING` 或無法定位的 digest 不得核准。Release workflow 使用只供 governance read 的 `RELEASE_GOVERNANCE_TOKEN`，在建置任何正式 artifact 前以 API fail closed 驗證 main protection／上述兩個 required checks、environment reviewer、active tag ruleset 與 immutable releases；token 缺失、權限不足、API 失敗或任一設定不符時停止。若上述設定未完成或無法確認，Publication gate 維持 blocked。
 
 ## RC 升版
 

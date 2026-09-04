@@ -7,6 +7,10 @@ import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const workflow = readFileSync(path.join(repositoryRoot, '.github/workflows/release.yml'), 'utf8');
+const pullRequestWorkflow = readFileSync(
+  path.join(repositoryRoot, '.github/workflows/pull-request.yml'),
+  'utf8',
+);
 const bashExecutable = process.platform === 'win32' ? 'C:\\Program Files\\Git\\bin\\bash.exe' : 'bash';
 
 function workflowScript(stepName) {
@@ -120,7 +124,15 @@ test('release governance fails closed without strict required status checks', ()
     protectionJson: '{"required_status_checks":{"strict":false,"contexts":[],"checks":[]}}',
   });
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /canonical main has no strict required status checks/);
+  assert.match(result.stderr, /must strictly require verify and visual checks/);
+});
+
+test('release governance fails closed when an approved required check is missing', () => {
+  const result = runGovernanceGate({
+    protectionJson: '{"required_status_checks":{"strict":true,"contexts":["unrelated"],"checks":[{"context":"verify"}]}}',
+  });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /must strictly require verify and visual checks/);
 });
 
 test('release governance fails closed when immutable releases are disabled', () => {
@@ -145,4 +157,21 @@ test('release governance rejects a v-star ruleset bypassable by another actor', 
 
 test('release governance fails closed without its read token', () => {
   assert.notEqual(runGovernanceGate({ token: '' }).status, 0);
+});
+
+test('pull request workflow exposes the exact required verify and visual checks', () => {
+  assert.match(pullRequestWorkflow, /^\s{2}pull_request:\s*$/m);
+  assert.match(pullRequestWorkflow, /^\s{2}verify:\s*\r?\n\s{4}name: verify$/m);
+  assert.match(pullRequestWorkflow, /^\s{2}visual:\s*\r?\n\s{4}name: visual$/m);
+  assert.match(pullRequestWorkflow, /run: npm run verify/);
+  assert.match(pullRequestWorkflow, /run: npm run test:visual/);
+});
+
+test('release environment approval protects the job before artifact creation', () => {
+  const verifyJob = workflow.match(/  verify-and-package:[\s\S]*?(?=\n  create-draft-release:)/)?.[0];
+  assert.ok(verifyJob);
+  assert.match(verifyJob, /^\s{4}environment: release$/m);
+  assert.ok(
+    verifyJob.indexOf('environment: release') < verifyJob.indexOf('Create immutable release artifact'),
+  );
 });
