@@ -6,11 +6,15 @@ import {join, resolve} from 'node:path';
 
 import {describe, expect, it} from 'vitest';
 
+// @ts-expect-error The production verifier is an executable ESM script without a declaration file.
 import {verifyCanonicalMigration} from '../../../scripts/verify-upstream-baseline.mjs';
 
 function git(cwd: string, args: string[], encoding: 'buffer'): Buffer;
 function git(cwd: string, args: string[], encoding?: BufferEncoding): string;
-function git(cwd: string, args: string[], encoding: BufferEncoding | 'buffer' = 'utf8') {
+function git(cwd: string, args: string[], encoding: BufferEncoding | 'buffer' = 'utf8'): string | Buffer {
+  if (encoding === 'buffer') {
+    return execFileSync('git', args, {cwd, maxBuffer: 8 * 1024 * 1024});
+  }
   return execFileSync('git', args, {cwd, encoding, maxBuffer: 8 * 1024 * 1024});
 }
 

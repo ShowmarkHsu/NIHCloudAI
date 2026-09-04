@@ -356,6 +356,7 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - Verifier 現在在缺少 snapshot object 時由 baseline repository fetch 固定 commit 到 temporary ref，驗證 commit 與 upstream tree，完成後刪除 temporary ref且不新增 permanent remote；fetch、tree 或 digest 任一步失敗即 fail closed。
 - 稽核亦確認舊 ledger 的 `b2c920…` 無法依已記錄的 two-tree 定義重現，且不能改用不同的 import-parent→import 意義硬湊。現明確固定 canonical-base→upstream-snapshot 的 `git diff --binary --full-index --no-ext-diff --no-textconv` bytes，新可重現 SHA-256 為 `aa9d8bc02ff40ee43c33c36237fe9dcbe910134b513d21341c23efcbb8ea44ca`；舊值保留在本歷史紀錄但不再作有效 provenance input。
 - Regression tests 覆蓋 temporary fetch/no permanent remote、snapshot 無法取得、snapshot tree tamper 與 patch digest tamper；AI 145 passed、5 real-Ollama skipped，`baseline:check` 通過。此工程 provenance 修正不等於 P3.2 外部 evidence hashes 或 P3.4 release-owner 核准。
+- 初次完整 gate 另抓到 `.mjs` verifier test import 與 Buffer helper overload 的 TypeScript 邊界問題；保留 strict typecheck，以明確的 executable-script boundary 註記及相容 overload 修正，`npm run typecheck:ai` 隨後通過。
 
 ### 2026-09-04 — PR spec review：stable promotion 與 publication fail-closed
 
