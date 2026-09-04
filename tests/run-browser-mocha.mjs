@@ -36,7 +36,23 @@ try {
   const pageErrors = [];
   page.on('pageerror', (error) => pageErrors.push(error.message));
   await page.goto(`${baseUrl}/test.html`);
-  await page.waitForSelector('#mocha-stats.pass', {timeout: 60_000});
+  try {
+    await page.waitForSelector('#mocha-stats.pass', {timeout: 60_000});
+  } catch (error) {
+    const pageState = await page.evaluate(() => ({
+      readyState: globalThis.document.readyState,
+      hasMocha: typeof globalThis.mocha !== 'undefined',
+      hasMochaStats: globalThis.document.querySelector('#mocha-stats') !== null,
+      scripts: [...globalThis.document.scripts].map((script) => ({
+        src: script.src,
+        type: script.type,
+      })),
+    }));
+    throw new Error(
+      `Browser Mocha did not start: ${JSON.stringify({pageErrors, pageState, serverLog})}`,
+      {cause: error},
+    );
+  }
   const stats = await page.evaluate(() => {
     const value = (selector) => Number(globalThis.document.querySelector(selector)?.textContent || 0);
     return {
