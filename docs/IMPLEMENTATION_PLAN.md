@@ -356,3 +356,11 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - Verifier 現在在缺少 snapshot object 時由 baseline repository fetch 固定 commit 到 temporary ref，驗證 commit 與 upstream tree，完成後刪除 temporary ref且不新增 permanent remote；fetch、tree 或 digest 任一步失敗即 fail closed。
 - 稽核亦確認舊 ledger 的 `b2c920…` 無法依已記錄的 two-tree 定義重現，且不能改用不同的 import-parent→import 意義硬湊。現明確固定 canonical-base→upstream-snapshot 的 `git diff --binary --full-index --no-ext-diff --no-textconv` bytes，新可重現 SHA-256 為 `aa9d8bc02ff40ee43c33c36237fe9dcbe910134b513d21341c23efcbb8ea44ca`；舊值保留在本歷史紀錄但不再作有效 provenance input。
 - Regression tests 覆蓋 temporary fetch/no permanent remote、snapshot 無法取得、snapshot tree tamper 與 patch digest tamper；AI 145 passed、5 real-Ollama skipped，`baseline:check` 通過。此工程 provenance 修正不等於 P3.2 外部 evidence hashes 或 P3.4 release-owner 核准。
+
+### 2026-09-04 — PR spec review：stable promotion 與 publication fail-closed
+
+- Spec review 確認舊規則同時要求 RC/stable 指向同一 commit，又要求該 commit 的 package／Chrome identity 分別等於 RC 與 stable，形成永遠無法通過的矛盾。現改為 stable promotion commit：必須是最後一個已核准且已發布 RC commit 的直接 child，且只可修改 `package.json`、`package-lock.json`、`public/manifest.json` 三個版本身份檔；stable 自身仍須重跑 gates 與重新綁定適用 evidence。
+- `approved_rc_tag` 現須對應 `isPrerelease=true` 且 `isDraft=false` 的已發布 RC，不再讓任意 draft prerelease 冒充核准 RC。
+- Verify/package job 在建置任何正式 artifact 前，先以 `RELEASE_GOVERNANCE_TOKEN` fail closed 查核 canonical main 已保護且有 strict required status checks、`release` environment 含 required reviewer 且禁止 self-review、immutable releases 已啟用，以及唯一由 `ShowmarkHsu`（user ID `12873164`）bypass 的 active `refs/tags/v*` creation/update/deletion ruleset；token 缺失、API 無權或任何設定不符皆停止。Signed annotated tag 仍另由 GitHub verification 驗證。
+- 新增納入 `verify:release` 的 workflow contract suite：11/11 通過，覆蓋 promotion direct-parent/allowlist、draft RC 拒絕、strict required checks、environment reviewer/no-self-review、immutable releases、tag ruleset唯一 bypass actor與 governance token。Workflow YAML parse 通過。
+- 現有 GitHub private plan blocker、未建立 environment/ruleset、immutable releases disabled 與 token 未配置，會讓新 preflight 預期 fail closed；這是正確阻擋，不是 gate 完成。PR 繼續保持 Draft，不得 merge、tag、artifact 或 release。

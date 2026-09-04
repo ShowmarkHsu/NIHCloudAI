@@ -32,7 +32,7 @@ Canonical repository：`ShowmarkHsu/NIHCloudAI`
 3. Release workflow 必須從該 tag ref 手動啟動，且輸入版本必須與 tag 完全相同。
 4. Tag、workflow 輸入、`package.json` 版本與 Chrome `version_name` 必須完全一致；建立 RC commit 前先把 source metadata 切換為該 RC，例如 `0.2.0-rc.1`／`NIHCloudAI 0.2.0-rc.1`。
 5. Workflow 驗證 tag 是 annotated 且 GitHub signature verification 為通過，不在 CI 中建立或移動 tag。
-6. Workflow 驗證 tag commit 已存在 canonical `main`；stable tag 另須指向與已核准 RC 相同的 commit。
+6. Workflow 驗證 tag commit 已存在 canonical `main`。Stable 使用一個直接接在已發布、已核准 RC commit 後的 promotion commit；該 commit 只可把 `package.json`、`package-lock.json` 與 `public/manifest.json` 的 RC 身份切換為 stable，不得改動其他檔案。
 7. Verify/package job 僅有 `contents: read` 且不保存 checkout credential；具有 `contents: write` 的 publish job 不 checkout、不安裝 dependency，也不執行 repository code。
 8. Workflow 以 `scripts/create-release-artifact.mjs` 產生：
    - `nihcloudai-extension.zip`
@@ -41,13 +41,13 @@ Canonical repository：`ShowmarkHsu/NIHCloudAI`
 9. Builder 必須在乾淨 commit 上完成兩次 byte-identical build；不得用一般 `zip` 取代，且 source metadata 不一致時必須 fail closed。
 10. Workflow 只建立 draft release，拒絕既有 tag release、禁止覆寫 assets；release owner 驗證 hashes 與 evidence binding 後才能手動發布。
 
-Canonical repository 必須預先建立受保護的 `release` GitHub Environment，設定 required reviewer；tag ruleset 必須限制只有授權 release owner 可建立 `v*` signed tags。若 environment/ruleset 未設定或無法確認，Publication gate 維持 blocked。
+Canonical repository 必須預先保護 `main` 並設定 strict required status checks，建立受保護的 `release` GitHub Environment、設定 required reviewer 且禁止 self-review；tag ruleset 必須限制只有授權 release owner `ShowmarkHsu`（GitHub user ID `12873164`）可 bypass `v*` 的 creation／update／deletion restrictions，tag 本身仍須通過 GitHub signature verification，且 immutable releases 必須啟用。Release workflow 使用只供 governance read 的 `RELEASE_GOVERNANCE_TOKEN`，在建置任何正式 artifact 前以 API fail closed 驗證 main protection／required checks、environment reviewer、active tag ruleset 與 immutable releases；token 缺失、權限不足、API 失敗或任一設定不符時停止。若上述設定未完成或無法確認，Publication gate 維持 blocked。
 
 ## RC 升版
 
 - 同一產品內容的修正依序使用 `rc.1`、`rc.2`……；每個 RC 都是新 tag、新 artifact 與新 evidence binding。
 - 若變更使既有臨床或 Provider evidence 失效，必須重跑相應 gate，不得沿用舊 hash。
-- Stable `0.2.0` 只能由最後一個已核准 RC 的內容產生；若 source commit 改變，必須重新驗證。
+- Stable `0.2.0` 只能由最後一個已核准且已發布的 RC promotion：stable commit 必須是該 RC commit 的直接 child，且只修改三個版本身份檔。因 source commit 與 artifact identity 仍會改變，必須重跑工程 gates，並重新綁定或重作所有要求 candidate commit 一致的 evidence；不得把 RC digest 直接冒充 stable digest。
 
 ## 撤回與 rollback
 

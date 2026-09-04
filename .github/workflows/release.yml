@@ -33,7 +33,7 @@ on:
         type: string
         required: true
       approved_rc_tag:
-        description: 'Stable 必填：與此 commit 相同的已核准 RC tag（例如 v0.2.0-rc.3）'
+        description: 'Stable 必填：promotion commit 的直接 parent、已發布且核准的 RC tag（例如 v0.2.0-rc.3）'
         type: string
         default: ''
         required: false
@@ -62,6 +62,87 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Verify release governance
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_GOVERNANCE_TOKEN }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "ShowmarkHsu/NIHCloudAI"
+          test -n "${GH_TOKEN:-}"
+
+          MAIN_JSON=$(gh api -H "X-GitHub-Api-Version: 2022-11-28" "repos/${GITHUB_REPOSITORY}/branches/main")
+          GOVERNANCE_JSON="$MAIN_JSON" node -e '
+            const value = JSON.parse(process.env.GOVERNANCE_JSON);
+            if (value.protected !== true) throw new Error("canonical main is not protected");
+          '
+
+          PROTECTION_JSON=$(gh api -H "X-GitHub-Api-Version: 2022-11-28" "repos/${GITHUB_REPOSITORY}/branches/main/protection")
+          GOVERNANCE_JSON="$PROTECTION_JSON" node -e '
+            const value = JSON.parse(process.env.GOVERNANCE_JSON);
+            const checks = value.required_status_checks?.checks;
+            const contexts = value.required_status_checks?.contexts;
+            const hasChecks = (Array.isArray(checks) && checks.length > 0)
+              || (Array.isArray(contexts) && contexts.length > 0);
+            if (value.required_status_checks?.strict !== true || !hasChecks) {
+              throw new Error("canonical main has no strict required status checks");
+            }
+          '
+
+          ENVIRONMENT_JSON=$(gh api -H "X-GitHub-Api-Version: 2022-11-28" "repos/${GITHUB_REPOSITORY}/environments/release")
+          GOVERNANCE_JSON="$ENVIRONMENT_JSON" node -e '
+            const value = JSON.parse(process.env.GOVERNANCE_JSON);
+            const rule = value.protection_rules?.find(item => item.type === "required_reviewers");
+            if (!rule || !Array.isArray(rule.reviewers) || rule.reviewers.length === 0
+              || value.prevent_self_review !== true) {
+              throw new Error("release environment has no required reviewer");
+            }
+          '
+
+          IMMUTABLE_JSON=$(gh api -H "X-GitHub-Api-Version: 2022-11-28" "repos/${GITHUB_REPOSITORY}/immutable-releases")
+          GOVERNANCE_JSON="$IMMUTABLE_JSON" node -e '
+            const value = JSON.parse(process.env.GOVERNANCE_JSON);
+            if (value.enabled !== true) throw new Error("immutable releases are not enabled");
+          '
+
+          RULESETS_JSON=$(gh api -H "X-GitHub-Api-Version: 2022-11-28" "repos/${GITHUB_REPOSITORY}/rulesets?per_page=100")
+          RULESET_IDS=$(GOVERNANCE_JSON="$RULESETS_JSON" node -e '
+            const value = JSON.parse(process.env.GOVERNANCE_JSON);
+            if (!Array.isArray(value)) throw new Error("rulesets response is not an array");
+            for (const item of value) {
+              if (Number.isSafeInteger(item.id) && item.id > 0) process.stdout.write(`${item.id}\n`);
+            }
+          ')
+          test -n "$RULESET_IDS"
+          HAS_CONTROLLED_TAG_RULESET=false
+          while IFS= read -r RULESET_ID; do
+            RULESET_JSON=$(gh api -H "X-GitHub-Api-Version: 2022-11-28" "repos/${GITHUB_REPOSITORY}/rulesets/${RULESET_ID}")
+            if GOVERNANCE_JSON="$RULESET_JSON" node -e '
+              const value = JSON.parse(process.env.GOVERNANCE_JSON);
+              const includes = value.conditions?.ref_name?.include;
+              const excludes = value.conditions?.ref_name?.exclude;
+              const ruleTypes = new Set(value.rules?.map(rule => rule.type));
+              const bypassActors = value.bypass_actors;
+              const controlled = value.target === "tag"
+                && value.enforcement === "active"
+                && Array.isArray(includes)
+                && includes.length === 1
+                && includes[0] === "refs/tags/v*"
+                && Array.isArray(excludes)
+                && excludes.length === 0
+                && Array.isArray(bypassActors)
+                && bypassActors.length === 1
+                && bypassActors[0].actor_type === "User"
+                && bypassActors[0].actor_id === 12873164
+                && bypassActors[0].bypass_mode === "always"
+                && ["creation", "update", "deletion"].every(type => ruleTypes.has(type));
+              if (!controlled) process.exit(1);
+            '; then
+              HAS_CONTROLLED_TAG_RULESET=true
+              break
+            fi
+          done <<< "$RULESET_IDS"
+          test "$HAS_CONTROLLED_TAG_RULESET" = "true"
+
       - name: Verify canonical release tag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -73,6 +154,19 @@ jobs:
           test "$GITHUB_REPOSITORY" = "ShowmarkHsu/NIHCloudAI"
           test "$GITHUB_REF_TYPE" = "tag"
           test "$GITHUB_REF_NAME" = "v${RELEASE_VERSION}"
+          RELEASE_VERSION="$RELEASE_VERSION" node -e '
+            const fs = require("node:fs");
+            const expected = process.env.RELEASE_VERSION;
+            const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"));
+            const packageLock = JSON.parse(fs.readFileSync("package-lock.json", "utf8"));
+            const manifest = JSON.parse(fs.readFileSync("public/manifest.json", "utf8"));
+            if (packageJson.version !== expected
+              || packageLock.version !== expected
+              || packageLock.packages?.[""]?.version !== expected
+              || manifest.version_name !== `NIHCloudAI ${expected}`) {
+              throw new Error("tag, workflow input, and source version identities differ");
+            }
+          '
           if [[ "$RELEASE_VERSION" == *-* ]]; then
             test "$IS_PRERELEASE" = "true"
             test -z "$APPROVED_RC_TAG"
@@ -80,13 +174,39 @@ jobs:
             test "$IS_PRERELEASE" = "false"
             test "$APPROVED_RC_TAG" != ""
             [[ "$APPROVED_RC_TAG" =~ ^v${RELEASE_VERSION}-rc\.[1-9][0-9]*$ ]]
-            test "$(git rev-list -n 1 "$APPROVED_RC_TAG")" = "$GITHUB_SHA"
-            test "$(gh release view "$APPROVED_RC_TAG" --json isPrerelease --jq '.isPrerelease')" = "true"
+            RC_COMMIT=$(git rev-list -n 1 "$APPROVED_RC_TAG")
+            read -r -a PROMOTION_LINE <<< "$(git rev-list --parents -n 1 "$GITHUB_SHA")"
+            test "${#PROMOTION_LINE[@]}" -eq 2
+            test "${PROMOTION_LINE[1]}" = "$RC_COMMIT"
+            mapfile -t PROMOTION_FILES < <(git diff --name-only "$RC_COMMIT" "$GITHUB_SHA")
+            test "${#PROMOTION_FILES[@]}" -gt 0
+            for FILE in "${PROMOTION_FILES[@]}"; do
+              case "$FILE" in
+                package.json|package-lock.json|public/manifest.json) ;;
+                *) echo "Stable promotion changes forbidden file: $FILE" >&2; exit 1 ;;
+              esac
+            done
+            RC_RELEASE_JSON=$(gh release view "$APPROVED_RC_TAG" --json isPrerelease,isDraft)
+            RC_RELEASE_JSON="$RC_RELEASE_JSON" node -e '
+              const value = JSON.parse(process.env.RC_RELEASE_JSON);
+              if (value.isPrerelease !== true || value.isDraft !== false) {
+                throw new Error("approved RC must be a published prerelease");
+              }
+            '
           fi
           test "$(git cat-file -t "refs/tags/${GITHUB_REF_NAME}")" = "tag"
           TAG_OBJECT_SHA=$(git rev-parse "refs/tags/${GITHUB_REF_NAME}^{tag}")
-          test "$(gh api "repos/${GITHUB_REPOSITORY}/git/tags/${TAG_OBJECT_SHA}" --jq '.verification.verified')" = "true"
-          MAIN_STATUS=$(gh api "repos/${GITHUB_REPOSITORY}/compare/${GITHUB_SHA}...main" --jq '.status')
+          TAG_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/git/tags/${TAG_OBJECT_SHA}")
+          TAG_JSON="$TAG_JSON" node -e '
+            const value = JSON.parse(process.env.TAG_JSON);
+            if (value.verification?.verified !== true) throw new Error("release tag signature is not verified");
+          '
+          COMPARE_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/compare/${GITHUB_SHA}...main")
+          MAIN_STATUS=$(COMPARE_JSON="$COMPARE_JSON" node -e '
+            const value = JSON.parse(process.env.COMPARE_JSON);
+            if (typeof value.status !== "string") throw new Error("compare response has no status");
+            process.stdout.write(value.status);
+          ')
           [[ "$MAIN_STATUS" = "ahead" || "$MAIN_STATUS" = "identical" ]]
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             echo "Release already exists for ${GITHUB_REF_NAME}; immutable releases cannot be rerun." >&2
