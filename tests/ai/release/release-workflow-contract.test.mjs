@@ -173,6 +173,15 @@ test('pull request verify check fetches full history for canonical provenance', 
   assert.match(verifyJob, /fetch-depth: 0/);
 });
 
+test('pull request verify check installs Chromium before browser verification', () => {
+  const verifyJob = pullRequestWorkflow.match(/  verify:[\s\S]*?(?=\n  visual:)/)?.[0];
+  assert.ok(verifyJob);
+  assert.match(verifyJob, /run: npx playwright install chromium/);
+  assert.ok(
+    verifyJob.indexOf('npx playwright install chromium') < verifyJob.indexOf('npm run verify'),
+  );
+});
+
 test('release environment approval protects the job before artifact creation', () => {
   const verifyJob = workflow.match(/  verify-and-package:[\s\S]*?(?=\n  create-draft-release:)/)?.[0];
   assert.ok(verifyJob);
