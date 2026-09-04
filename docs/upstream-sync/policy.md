@@ -35,8 +35,13 @@ force-pushed.
 - `baseline:check` accepts either the original upstream-ancestor history or the
   fixed canonical two-tree-patch migration recorded in `baseline.json`. In the
   migration form, canonical base/import ancestry and the immutable import tree
-  are verified locally; the upstream snapshot tree and patch SHA-256 remain
-  pinned provenance values.
+  are verified locally. If the pinned upstream snapshot object is absent, the
+  verifier fetches only that commit from the baseline repository into a
+  temporary ref, removes the ref after verification, and never changes the
+  configured remotes. It then verifies the snapshot tree and byte-for-byte
+  recomputes the recorded canonical-base-to-upstream-snapshot patch with deterministic
+  `git diff --binary --full-index` options. An unavailable snapshot, tree drift,
+  or patch digest drift fails closed.
 - Reused NIHCloudAI concepts or code must cite source commit
   `bab69c741e1f6a5b2da65276ce8fe955973e05ca` in the implementing commit or PR.
 - The upstream Apache-2.0 [`LICENSE`](../../LICENSE) is retained unchanged.

@@ -349,3 +349,10 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - 兩軸 PR review 的 Standards 軸發現 production lint 固定為 React 18.3、visual lint 固定為 19.0，但 package runtime 已是 React 19；兩個 scope 均改用 eslint-plugin-react 的 `detect`，避免後續版本再漂移。
 - Visual README 移除「unchanged upstream」的失真敘述，改為直接 import／mount production components、不複製 rendering，並補記 sealed AI safe-empty、coverage、opaque alias 與 raw alias 不外洩的現有案例。
 - `npm run lint` 通過，production／visual `eslint --print-config` 均解析 `react.version=detect`；此批不改產品 runtime，也不改任何 release gate 狀態。
+
+### 2026-09-04 — PR spec review：方案 B provenance fail-closed 修正
+
+- Spec review 發現 canonical-two-tree-patch mode 只驗 canonical base/import ancestry 與 import tree，沒有取得 pinned upstream snapshot、驗 snapshot tree 或重算 patch digest；fresh canonical clone 可能在缺少 source object 時仍把 provenance 誤列為通過。
+- Verifier 現在在缺少 snapshot object 時由 baseline repository fetch 固定 commit 到 temporary ref，驗證 commit 與 upstream tree，完成後刪除 temporary ref且不新增 permanent remote；fetch、tree 或 digest 任一步失敗即 fail closed。
+- 稽核亦確認舊 ledger 的 `b2c920…` 無法依已記錄的 two-tree 定義重現，且不能改用不同的 import-parent→import 意義硬湊。現明確固定 canonical-base→upstream-snapshot 的 `git diff --binary --full-index --no-ext-diff --no-textconv` bytes，新可重現 SHA-256 為 `aa9d8bc02ff40ee43c33c36237fe9dcbe910134b513d21341c23efcbb8ea44ca`；舊值保留在本歷史紀錄但不再作有效 provenance input。
+- Regression tests 覆蓋 temporary fetch/no permanent remote、snapshot 無法取得、snapshot tree tamper 與 patch digest tamper；AI 145 passed、5 real-Ollama skipped，`baseline:check` 通過。此工程 provenance 修正不等於 P3.2 外部 evidence hashes 或 P3.4 release-owner 核准。
