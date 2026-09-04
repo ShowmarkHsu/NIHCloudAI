@@ -167,6 +167,12 @@ test('pull request workflow exposes the exact required verify and visual checks'
   assert.match(pullRequestWorkflow, /run: npm run test:visual/);
 });
 
+test('pull request verify check fetches full history for canonical provenance', () => {
+  const verifyJob = pullRequestWorkflow.match(/  verify:[\s\S]*?(?=\n  visual:)/)?.[0];
+  assert.ok(verifyJob);
+  assert.match(verifyJob, /fetch-depth: 0/);
+});
+
 test('release environment approval protects the job before artifact creation', () => {
   const verifyJob = workflow.match(/  verify-and-package:[\s\S]*?(?=\n  create-draft-release:)/)?.[0];
   assert.ok(verifyJob);
