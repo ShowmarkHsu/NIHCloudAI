@@ -365,3 +365,10 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - Verify/package job 在建置任何正式 artifact 前，先以 `RELEASE_GOVERNANCE_TOKEN` fail closed 查核 canonical main 已保護且有 strict required status checks、`release` environment 含 required reviewer 且禁止 self-review、immutable releases 已啟用，以及唯一由 `ShowmarkHsu`（user ID `12873164`）bypass 的 active `refs/tags/v*` creation/update/deletion ruleset；token 缺失、API 無權或任何設定不符皆停止。Signed annotated tag 仍另由 GitHub verification 驗證。
 - 新增納入 `verify:release` 的 workflow contract suite：11/11 通過，覆蓋 promotion direct-parent/allowlist、draft RC 拒絕、strict required checks、environment reviewer/no-self-review、immutable releases、tag ruleset唯一 bypass actor與 governance token。Workflow YAML parse 通過。
 - 現有 GitHub private plan blocker、未建立 environment/ruleset、immutable releases disabled 與 token 未配置，會讓新 preflight 預期 fail closed；這是正確阻擋，不是 gate 完成。PR 繼續保持 Draft，不得 merge、tag、artifact 或 release。
+
+### 2026-09-04 — Review 修正後完整 gates
+
+- `npm run verify` 通過：AI 145 passed／5 real-Ollama skipped、release workflow contracts 11/11、typecheck、lint、characterization 9/9、build、23-artifact readiness、Browser 106、Extension localhost 與 iframe integration 全部通過。
+- `npm run test:visual` 通過：visual CLI 1 passed；Playwright 45 passed、1 skipped。
+- Review 的 Standards 軸共 4 項（2 hard、2 judgement calls）；本次完成兩項 hard drift。Spec 軸共 4 項（2 high、2 medium）；本次完成 stable promotion、publication fail-closed、approved RC 與 two-tree provenance 四項修正。較低風險的 format-editor duplication／legacy no-op 重構不混入本次 release 收斂批次。
+- 工程 gates 全綠仍不解除 GitHub 方案／治理、PR review、P2/P3、臨床／藥事與 release-owner blockers；PR 必須維持 Draft。
