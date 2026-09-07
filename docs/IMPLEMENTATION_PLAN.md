@@ -404,5 +404,5 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - 依 release owner 指示，canonical repository `ShowmarkHsu/NIHCloudAI` 已改為 public；原始 dirty worktree 未修改。
 - `main` protection 已啟用：strict required checks 為 `verify` 與 `visual`、至少 1 個 PR approval、dismiss stale reviews、require last-push approval、linear history、conversation resolution、禁止 force-push 與 deletion。
 - 已建立 active `protected-release-tags` ruleset，限制 `refs/tags/v*` 的 creation/update/deletion；唯一 bypass actor 為 `ShowmarkHsu`（user ID `12873164`）。Immutable releases API 已回報 `enabled: true`。
-- `RELEASE_GOVERNANCE_TOKEN` repository secret 已存在；secret value 不寫入 repository 或文件。
+- 原先暴露於對話的 `RELEASE_GOVERNANCE_TOKEN` 已立即從 repository secrets 移除；secret value 不寫入 repository 或文件。待 release owner 在 GitHub Settings 撤銷舊 PAT、建立具最小必要權限的新 PAT，並以安全管道重新設定 secret 前，release workflow 必須 fail closed。
 - 目前唯一未完成的自動化治理設定是 `release` environment required reviewer。現有 environment 僅為 `NIHCloudAI` 且無 protection rules；collaborators 只有 `ShowmarkHsu`，無法在禁止 self-review 的前提下代填 reviewer。Publication gate 仍維持 `BLOCKED`。
