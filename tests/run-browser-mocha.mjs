@@ -60,7 +60,11 @@ try {
       {cause: error},
     );
   }
-  const stats = await page.evaluate(() => globalThis.__browserMochaResult);
+  const stats = await page.evaluate(() => ({
+    ...globalThis.__browserMochaResult,
+    failedTests: [...globalThis.document.querySelectorAll('#mocha-report .test.fail')]
+      .map((node) => node.textContent?.trim() ?? ''),
+  }));
   if (stats.failures !== 0 || pageErrors.length > 0) {
     throw new Error(`Browser Mocha failed: ${JSON.stringify({stats, pageErrors})}`);
   }
