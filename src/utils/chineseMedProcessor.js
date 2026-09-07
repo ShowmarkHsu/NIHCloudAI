@@ -157,21 +157,26 @@ export const chineseMedProcessor = {
 
   // 計算剩餘用藥天數
   calculateRemainingDays(days, dateOrder, dateNow = Date.now()) {
+    const normalizeDate = (value) => {
+      if (typeof value === 'string') {
+        const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+        if (match) {
+          return Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+        }
+      }
+      const date = new Date(value);
+      date.setHours(0);
+      date.setMinutes(0);
+      date.setSeconds(0);
+      date.setMilliseconds(0);
+      return date.valueOf();
+    };
+
     if (typeof dateOrder === 'string' || Number.isInteger(dateOrder)) {
-      dateOrder = new Date(dateOrder);
-      dateOrder.setHours(0);
-      dateOrder.setMinutes(0);
-      dateOrder.setSeconds(0);
-      dateOrder.setMilliseconds(0);
-      dateOrder = dateOrder.valueOf();
+      dateOrder = normalizeDate(dateOrder);
     }
     if (typeof dateNow === 'string' || Number.isInteger(dateNow)) {
-      dateNow = new Date(dateNow);
-      dateNow.setHours(0);
-      dateNow.setMinutes(0);
-      dateNow.setSeconds(0);
-      dateNow.setMilliseconds(0);
-      dateNow = dateNow.valueOf();
+      dateNow = normalizeDate(dateNow);
     }
 
     const msPerDay = 86400000;
