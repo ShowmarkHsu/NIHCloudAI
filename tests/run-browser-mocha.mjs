@@ -37,31 +37,30 @@ try {
   page.on('pageerror', (error) => pageErrors.push(error.message));
   await page.goto(`${baseUrl}/test.html`);
   try {
-    await page.waitForSelector('#mocha-stats.pass', {timeout: 60_000});
+    await page.waitForFunction(
+      () => globalThis.__browserMochaResult !== undefined,
+      null,
+      {timeout: 60_000},
+    );
   } catch (error) {
     const pageState = await page.evaluate(() => ({
       readyState: globalThis.document.readyState,
-      hasMocha: typeof globalThis.mocha !== 'undefined',
-      hasMochaStats: globalThis.document.querySelector('#mocha-stats') !== null,
-      scripts: [...globalThis.document.scripts].map((script) => ({
-        src: script.src,
-        type: script.type,
-      })),
+      result: globalThis.__browserMochaResult ?? null,
+      statsText: globalThis.document.querySelector('#mocha-stats')?.textContent?.trim() ?? null,
+      unfinishedTests: [...globalThis.document.querySelectorAll('#mocha-report .test')]
+        .filter((node) => !node.classList.contains('pass') && !node.classList.contains('fail') && !node.classList.contains('pending'))
+        .map((node) => node.textContent?.trim() ?? ''),
+      bootstrap: {
+        mocha: typeof globalThis.mocha,
+        testModule: globalThis.document.querySelector('script[src$="test.js"]') !== null,
+      },
     }));
     throw new Error(
-      `Browser Mocha did not start: ${JSON.stringify({pageErrors, pageState, serverLog})}`,
+      `Browser Mocha did not complete: ${JSON.stringify({pageErrors, pageState, serverLog})}`,
       {cause: error},
     );
   }
-  const stats = await page.evaluate(() => {
-    const value = (selector) => Number(globalThis.document.querySelector(selector)?.textContent || 0);
-    return {
-      passes: value('#mocha-stats .passes em'),
-      failures: value('#mocha-stats .failures em'),
-      pending: value('#mocha-stats .pending em'),
-      duration: globalThis.document.querySelector('#mocha-stats .duration em')?.textContent || '0',
-    };
-  });
+  const stats = await page.evaluate(() => globalThis.__browserMochaResult);
   if (stats.failures !== 0 || pageErrors.length > 0) {
     throw new Error(`Browser Mocha failed: ${JSON.stringify({stats, pageErrors})}`);
   }

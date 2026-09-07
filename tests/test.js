@@ -26,4 +26,13 @@ await import('./test_patientSummaryProcessor.js');
 await import('./test_ckmUtils.js');
 await import('./test_screeningIndicators.js');
 
-mocha.run();
+let browserMochaRunner;
+browserMochaRunner = mocha.run((failures) => {
+  const stats = browserMochaRunner.stats;
+  globalThis.__browserMochaResult = {
+    failures,
+    passes: stats.passes,
+    pending: stats.pending,
+    duration: stats.duration,
+  };
+});
