@@ -160,7 +160,7 @@ export const chineseMedProcessor = {
     const normalizeDate = (value) => {
       if (typeof value === 'string') {
         const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
-        if (match) {
+        if (match && /T.*(?:Z|[+-]\d{2}:?\d{2})$/.test(value)) {
           return Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
         }
       }
