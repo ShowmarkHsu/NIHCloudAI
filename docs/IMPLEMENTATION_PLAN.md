@@ -372,3 +372,14 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - `npm run test:visual` 通過：visual CLI 1 passed；Playwright 45 passed、1 skipped。
 - Review 的 Standards 軸共 4 項（2 hard、2 judgement calls）；本次完成兩項 hard drift。Spec 軸共 4 項（2 high、2 medium）；本次完成 stable promotion、publication fail-closed、approved RC 與 two-tree provenance 四項修正。較低風險的 format-editor duplication／legacy no-op 重構不混入本次 release 收斂批次。
 - 工程 gates 全綠仍不解除 GitHub 方案／治理、PR review、P2/P3、臨床／藥事與 release-owner blockers；PR 必須維持 Draft。
+
+### 2026-09-07 — Browser Mocha completion-signal closure
+
+- 維持原始 dirty worktree `codex/integration-recovery@26db24a9176a2ed1d46179173a07e5ac2d6f994f` 不變；保留 26 個 tracked modifications 與 2 個 untracked documents。所有工程變更均在隔離 worktree `codex/canonical-integration-0.2.0` 完成。
+- 本 session 延續並推送 `c84133d`、`a423052`、`897ce56`、`c307d17`；最新工程修正為 `9ad46f4 fix(test): wait for browser mocha runner completion`。
+- CI failure chain：PR run `33849218995` 的 visual SUCCESS、verify FAILURE；verify 在 `npm run test:browser` 等待 `#mocha-stats.pass` 60 秒超時，pageErrors 為空、readyState=complete、Mocha/stats/scripts 均已載入。實測 Mocha DOM 會完成，但 reporter DOM class 不應作為唯一完成協定。
+- 先建立 `tests/browser-mocha-completion.test.mjs` red-capable regression test；修正前以 3 秒超時變紅。根因是 browser runner 未暴露可靠的 runner lifecycle completion signal，而非測試本身未完成。
+- 修正 `tests/test.js` 使用 `mocha.run(callback)`，將 runner stats 暴露為 `globalThis.__browserMochaResult`；`tests/run-browser-mocha.mjs` 改等待明確結果，並在未完成時回報 stats、page errors、未完成測試、readyState 與 bootstrap 狀態。新增 focused npm script `test:browser:completion`。
+- 修正後 focused completion test、`npm run test:browser` 均通過（106 passed, 0 failures, 0 pending）；未增加 timeout、skip、移除 required check 或重跑掩蓋失敗。
+- 推送後 PR #1 仍為 OPEN/Draft，base `main@f48a7411786ecd7b6586ff26e33a446827d378b0`；新 workflow run `34077774836` 已針對 `9ad46f4` 啟動，最終狀態須於本次 docs commit 後重新追蹤。
+- 治理與 release blockers 維持：private repository plan gate 使 main protection/rulesets API 回 403；`release` environment/required reviewer 未建立；immutable releases disabled；`RELEASE_GOVERNANCE_TOKEN` 未設定；P2/P3 evidence、臨床／藥事 acceptance、release-owner artifact/provenance/publication gates 未完成。因此不得 Ready、merge、tag、建立正式 artifact 或 release。
