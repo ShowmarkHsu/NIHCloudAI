@@ -383,3 +383,11 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - 修正後 focused completion test、`npm run test:browser` 均通過（106 passed, 0 failures, 0 pending）；未增加 timeout、skip、移除 required check 或重跑掩蓋失敗。
 - 推送後 PR #1 仍為 OPEN/Draft，base `main@f48a7411786ecd7b6586ff26e33a446827d378b0`；新 workflow run `34077774836` 已針對 `9ad46f4` 啟動，最終狀態須於本次 docs commit 後重新追蹤。
 - 治理與 release blockers 維持：private repository plan gate 使 main protection/rulesets API 回 403；`release` environment/required reviewer 未建立；immutable releases disabled；`RELEASE_GOVERNANCE_TOKEN` 未設定；P2/P3 evidence、臨床／藥事 acceptance、release-owner artifact/provenance/publication gates 未完成。因此不得 Ready、merge、tag、建立正式 artifact 或 release。
+
+### 2026-09-07 — CI failure follow-up：timezone portability
+
+- 工程 diagnostics commit `d538d0f` 讓 CI 在 completion signal 成功後回報實際失敗案例：`test_chineseMedProcessor.js:2222` 的 `calculateRemainingDays` 在非台北時區將含 `+0800` 日期以 runtime `setHours(0)` 正規化，造成 `1.041666...` 與預期 2 不一致；以 Playwright `America/Los_Angeles` 本地重現。
+- 修正 commit `b4ceb96 fix(test): normalize dated medication fixtures by calendar day`：日期字串改依自身 `YYYY-MM-DD` calendar date 使用 UTC day normalization，避免 CI timezone／DST 改變臨床日期語意；LA timezone browser run 與一般 browser run 均 106 passed。
+- run `34077863228`：visual SUCCESS（45 passed／1 skipped）；verify FAILURE（105 passed、1 failure，已由 `d538d0f` diagnostics 定位）。run `34078135707`：visual SUCCESS；verify 同一 timezone failure。`b4ceb96` 推送後 run `34078472772` 已啟動，最終結果待本次 session 追蹤。
+- 本地最後完整 `npm run verify` 與 `npm run test:visual`：在 `b74ec9e` 後完成成功；`d538d0f` 僅增加 diagnostics，`b4ceb96` 已另行通過 targeted LA/browser tests，docs commit 後仍須重跑最終兩個命令確認。
+- 治理 blockers 不變：PR #1 維持 OPEN/Draft；private repo plan gate 導致 main protection/rulesets 403；`release` environment/reviewer、immutable releases、`RELEASE_GOVERNANCE_TOKEN`、P2/P3 evidence、臨床／藥事 acceptance 與 release-owner gates 均未完成，不得 Ready、merge、tag、正式 artifact 或 release。
