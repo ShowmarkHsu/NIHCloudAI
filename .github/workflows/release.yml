@@ -99,7 +99,7 @@ jobs:
             const value = JSON.parse(process.env.GOVERNANCE_JSON);
             const rule = value.protection_rules?.find(item => item.type === "required_reviewers");
             if (!rule || !Array.isArray(rule.reviewers) || rule.reviewers.length === 0
-              || value.prevent_self_review !== true) {
+              || value.prevent_self_review !== false) {
               throw new Error("release environment has no required reviewer");
             }
           '

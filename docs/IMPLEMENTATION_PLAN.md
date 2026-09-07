@@ -406,3 +406,8 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - 已建立 active `protected-release-tags` ruleset，限制 `refs/tags/v*` 的 creation/update/deletion；唯一 bypass actor 為 `ShowmarkHsu`（user ID `12873164`）。Immutable releases API 已回報 `enabled: true`。
 - 原先暴露於對話的 PAT 已從 repository secrets 移除；release owner 已以安全管道重新設定新的 `RELEASE_GOVERNANCE_TOKEN`，secret value 不寫入 repository 或文件。舊 PAT 仍須確認已在 GitHub Settings revoke；在此確認前不得視為安全輪換完成。
 - 目前唯一未完成的自動化治理設定是 `release` environment required reviewer。現有 environment 僅為 `NIHCloudAI` 且無 protection rules；collaborators 只有 `ShowmarkHsu`，無法在禁止 self-review 的前提下代填 reviewer。Publication gate 仍維持 `BLOCKED`。
+
+### 2026-09-07 — Release environment self-review policy
+
+- 依 release owner 明確指示，`release` environment 已建立 required reviewer `ShowmarkHsu`（user ID `12873164`），並設定 `prevent_self_review: false`；此為有意識的治理弱化，因 repository 目前沒有第二位 reviewer。
+- `.github/workflows/release.yml` 與 release workflow contract 已同步改為要求 required reviewer 存在且明確允許 self-review；main protection、strict `verify`／`visual` checks、tag ruleset、immutable releases、token、P2/P3 evidence 與臨床／藥事 gates 不受此變更放寬。

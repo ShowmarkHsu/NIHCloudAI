@@ -67,7 +67,7 @@ gh() {
 case "$*" in
   *"repos/ShowmarkHsu/NIHCloudAI/branches/main") printf '%s\\n' '${overrides.mainJson ?? '{"protected":true}'}' ;;
   *"repos/ShowmarkHsu/NIHCloudAI/branches/main/protection") printf '%s\\n' '${overrides.protectionJson ?? '{"required_status_checks":{"strict":true,"contexts":["verify","visual"],"checks":[{"context":"verify"},{"context":"visual"}]}}'}' ;;
-  *"repos/ShowmarkHsu/NIHCloudAI/environments/release") printf '%s\\n' '${overrides.environmentJson ?? '{"protection_rules":[{"type":"required_reviewers","reviewers":[{"type":"User","reviewer":{"login":"release-reviewer"}}]}],"prevent_self_review":true}'}' ;;
+  *"repos/ShowmarkHsu/NIHCloudAI/environments/release") printf '%s\\n' '${overrides.environmentJson ?? '{"protection_rules":[{"type":"required_reviewers","reviewers":[{"type":"User","reviewer":{"login":"ShowmarkHsu"}}]}],"prevent_self_review":false}'}' ;;
   *"repos/ShowmarkHsu/NIHCloudAI/immutable-releases") printf '%s\\n' '${overrides.immutableJson ?? '{"enabled":true,"enforced_by_owner":false}'}' ;;
   *"repos/ShowmarkHsu/NIHCloudAI/rulesets?per_page=100") printf '%s\\n' '${overrides.rulesetsJson ?? '[{"id":7}]'}' ;;
   *"repos/ShowmarkHsu/NIHCloudAI/rulesets/7") printf '%s\\n' '${overrides.rulesetJson ?? '{"target":"tag","enforcement":"active","conditions":{"ref_name":{"include":["refs/tags/v*"],"exclude":[]}},"bypass_actors":[{"actor_type":"User","actor_id":12873164,"bypass_mode":"always"}],"rules":[{"type":"creation"},{"type":"update"},{"type":"deletion"}]}'}' ;;
