@@ -398,3 +398,11 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - GitHub Actions run `34078633478`（head `f788ff274715603aacc0ec2d2a260774243620ec`）已終態綠：verify SUCCESS、visual SUCCESS；verify 完整流程通過，visual 45 passed／1 skipped。PR #1 維持 OPEN/Draft。
 - 本地 targeted Browser Mocha、`America/Los_Angeles` browser regression、characterization 9/9、`npm run test:browser` 與 `npm run test:visual` 均曾成功；最後一次完整 `npm run verify` 在既有 `upstream-baseline-contract.test.ts:182` 以 15 秒測試界線 timeout，未更改 timeout 或弱化 gate。GitHub 完整 verify 綠提供 canonical Windows CI 終態證據。
 - 最終狀態：Browser Mocha 原始 completion blocker 已修正並由 CI 驗證；仍不得 Ready／merge／tag／正式 artifact／release，直到 PR review、GitHub governance controls、P2/P3 evidence、臨床／藥事 acceptance 及 release-owner gates 完成。
+
+### 2026-09-07 — GitHub governance controls configured
+
+- 依 release owner 指示，canonical repository `ShowmarkHsu/NIHCloudAI` 已改為 public；原始 dirty worktree 未修改。
+- `main` protection 已啟用：strict required checks 為 `verify` 與 `visual`、至少 1 個 PR approval、dismiss stale reviews、require last-push approval、linear history、conversation resolution、禁止 force-push 與 deletion。
+- 已建立 active `protected-release-tags` ruleset，限制 `refs/tags/v*` 的 creation/update/deletion；唯一 bypass actor 為 `ShowmarkHsu`（user ID `12873164`）。Immutable releases API 已回報 `enabled: true`。
+- `RELEASE_GOVERNANCE_TOKEN` repository secret 已存在；secret value 不寫入 repository 或文件。
+- 目前唯一未完成的自動化治理設定是 `release` environment required reviewer。現有 environment 僅為 `NIHCloudAI` 且無 protection rules；collaborators 只有 `ShowmarkHsu`，無法在禁止 self-review 的前提下代填 reviewer。Publication gate 仍維持 `BLOCKED`。
