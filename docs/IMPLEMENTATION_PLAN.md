@@ -391,3 +391,10 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - run `34077863228`：visual SUCCESS（45 passed／1 skipped）；verify FAILURE（105 passed、1 failure，已由 `d538d0f` diagnostics 定位）。run `34078135707`：visual SUCCESS；verify 同一 timezone failure。`b4ceb96` 推送後 run `34078472772` 已啟動，最終結果待本次 session 追蹤。
 - 本地最後完整 `npm run verify` 與 `npm run test:visual`：在 `b74ec9e` 後完成成功；`d538d0f` 僅增加 diagnostics，`b4ceb96` 已另行通過 targeted LA/browser tests，docs commit 後仍須重跑最終兩個命令確認。
 - 治理 blockers 不變：PR #1 維持 OPEN/Draft；private repo plan gate 導致 main protection/rulesets 403；`release` environment/reviewer、immutable releases、`RELEASE_GOVERNANCE_TOKEN`、P2/P3 evidence、臨床／藥事 acceptance 與 release-owner gates 均未完成，不得 Ready、merge、tag、正式 artifact 或 release。
+
+### 2026-09-07 — Final CI outcome
+
+- `f788ff2 fix(date): preserve local semantics for date-only inputs` 已推送至 `nicloudai/codex/canonical-integration-0.2.0`；它修正 `b4ceb96` 對 date-only string／numeric injected clock 的相容性回歸，未改寫任何 shared history。
+- GitHub Actions run `34078633478`（head `f788ff274715603aacc0ec2d2a260774243620ec`）已終態綠：verify SUCCESS、visual SUCCESS；verify 完整流程通過，visual 45 passed／1 skipped。PR #1 維持 OPEN/Draft。
+- 本地 targeted Browser Mocha、`America/Los_Angeles` browser regression、characterization 9/9、`npm run test:browser` 與 `npm run test:visual` 均曾成功；最後一次完整 `npm run verify` 在既有 `upstream-baseline-contract.test.ts:182` 以 15 秒測試界線 timeout，未更改 timeout 或弱化 gate。GitHub 完整 verify 綠提供 canonical Windows CI 終態證據。
+- 最終狀態：Browser Mocha 原始 completion blocker 已修正並由 CI 驗證；仍不得 Ready／merge／tag／正式 artifact／release，直到 PR review、GitHub governance controls、P2/P3 evidence、臨床／藥事 acceptance 及 release-owner gates 完成。
