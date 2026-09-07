@@ -411,3 +411,9 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 
 - 依 release owner 明確指示，`release` environment 已建立 required reviewer `ShowmarkHsu`（user ID `12873164`），並設定 `prevent_self_review: false`；此為有意識的治理弱化，因 repository 目前沒有第二位 reviewer。
 - `.github/workflows/release.yml` 與 release workflow contract 已同步改為要求 required reviewer 存在且明確允許 self-review；main protection、strict `verify`／`visual` checks、tag ruleset、immutable releases、token、P2/P3 evidence 與臨床／藥事 gates 不受此變更放寬。
+
+### 2026-09-07 — Controlled website/browser operation smoke
+
+- 以固定 `gemma4:e2b-it-qat`（digest `07ea59a474013479c8b6b802bef095c40e964a1d776ba02f264c0e30e1aede0c`）、loopback Ollama 與合成資料執行 `npm run test:extension:ollama`。
+- Build 成功；3/3 fresh synthetic `has-data` browser sessions 通過完整 validator、review/copy gating；同一流程亦確認 invalid scopes fail closed，並完成 synthetic loopback Provider round trip。
+- 這是 bounded engineering/browser operation evidence，不是臨床 acceptance、deployment approval 或 release approval；未保留 PHI、Provider output、畫面、clipboard 或 secrets。
