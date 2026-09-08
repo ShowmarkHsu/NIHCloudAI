@@ -294,12 +294,14 @@ function canonicalizeSourceStatedNoKnownAllergy(
 
 function canonicalizeUnsupportedAllergyNegativeWording(
   section: CoverageRenderableSection,
+  coverage: SnapshotCoverage,
   sourceEvidence: SealedSummaryRequest['sourceEvidence'],
 ): CoverageRenderableSection {
   if (
     section.heading !== FIXED_FIVE_SECTION_HEADINGS[0] &&
     section.heading !== FIXED_FIVE_SECTION_HEADINGS[1]
   ) return section;
+  if (coverage.allergy.status === 'has-data') return section;
   if (Object.values(sourceEvidence).includes('source-stated-no-known-allergy')) return section;
   const matches = [...section.content.matchAll(unsupportedAllergyNegativePhrasePattern)];
   if (matches.length !== 1) return section;
@@ -424,7 +426,7 @@ export function validateProviderSummaryOutput(
   const evidenceCanonicalizedSections = parsed.data.sections.map((section) =>
     canonicalizeSourceStatedNoKnownAllergy(section, request.sourceEvidence));
   const allergyNegativeCanonicalizedSections = evidenceCanonicalizedSections.map((section) =>
-    canonicalizeUnsupportedAllergyNegativeWording(section, request.sourceEvidence));
+    canonicalizeUnsupportedAllergyNegativeWording(section, request.coverage, request.sourceEvidence));
   const unsupportedNoneWordCanonicalizedSections = allergyNegativeCanonicalizedSections.map((section) =>
     canonicalizeUnsupportedNoneWordSection(section, request.sourceContainsNoneWord));
   const renderedSections = renderDeterministicCoverageSections(
