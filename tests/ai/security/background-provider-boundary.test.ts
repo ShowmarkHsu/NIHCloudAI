@@ -136,8 +136,12 @@ describe('background-only Provider boundary', () => {
       provider.storeOpenRouterSessionSecret(scope, 'synthetic-byok-value');
       provider.grantRemoteConsent(scope);
 
+      const sealedRequest = testCase.label === 'source-supported'
+        ? sourceSupportedAllergyRequest()
+        : request();
+      expect(sealedRequest).not.toBeNull();
       const result = await provider.generate(scope, 'openrouter',
-        testCase.label === 'source-supported' ? sourceSupportedAllergyRequest() : request());
+        sealedRequest!);
 
       expect(result.status).toBe(testCase.expected);
       if (testCase.label === 'unsupported') {
