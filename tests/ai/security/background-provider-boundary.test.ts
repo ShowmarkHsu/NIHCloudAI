@@ -11,6 +11,7 @@ import {
 } from '../../../src/ai/summary/providerRequest';
 import { FIXED_FIVE_SECTION_SYSTEM_PROMPT } from '../../../src/ai/providers/prompt';
 import { createLabVerticalSlice } from '../../../src/ai/integration/labVerticalSlice';
+import { createClinicalSnapshotCollector } from '../../../src/ai/integration/clinicalSnapshotCollector';
 
 const scope = {
   tabId: 17,
@@ -72,6 +73,24 @@ function emptyRequest() {
   }, sealed);
 }
 
+function sourceSupportedAllergyRequest() {
+  const scopeInput = {
+    tabId: scope.tabId, patientId: 'pt_provider_patient_00001', sessionId: scope.sessionId,
+    revision: scope.revision, contractVersion: 'clinical-projection.v1',
+  } as const;
+  const collector = createClinicalSnapshotCollector({
+    now: () => '2026-08-21T00:00:00.000Z',
+    issueSourceReference: () => 'sr_provider_allergy_source_00001',
+  });
+  const sealed = collector.ingest(scopeInput, [{
+    status: 'success', dataType: 'allergy', recordCount: 1,
+    data: {rObject: [{
+      upload_d: '115/08/20', hosp: 'Synthetic Clinic;0000000000', drug_name: '未過敏;;',
+    }]},
+  }])?.sealed;
+  return createSealedSummaryRequest(scopeInput, sealed);
+}
+
 type Request = { url: string; init: { body: string; signal: AbortSignal } };
 
 function successfulFetch() {
@@ -88,6 +107,54 @@ function successfulFetch() {
 }
 
 describe('background-only Provider boundary', () => {
+  it('keeps the OpenRouter allergy wording failure bounded while accepting a source-supported output', async () => {
+    const unsupported = JSON.parse(providerOutput());
+    unsupported.sections[0].content = `無已知過敏紀錄${'重'.repeat(25)}`;
+    const supported = JSON.parse(providerOutput());
+    supported.sections[0].content = `來源顯示無已知過敏紀錄，${'重'.repeat(25)}`;
+
+    const cases = [
+      {
+        label: 'unsupported',
+        output: unsupported,
+        expected: 'validation-content-negative-none-word-allergy-source-unsupported-failed',
+      },
+      {label: 'source-supported', output: supported, expected: 'completed'},
+    ] as const;
+
+    for (const testCase of cases) {
+      const requests: Request[] = [];
+      const fetch = vi.fn(async (url: string, init: Request['init']) => {
+        requests.push({url, init});
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({choices: [{finish_reason: 'stop', message: {content: JSON.stringify(testCase.output)}}]}),
+        };
+      });
+      const provider = createBackgroundProviderBoundary({fetch: fetch as never});
+      provider.storeOpenRouterSessionSecret(scope, 'synthetic-byok-value');
+      provider.grantRemoteConsent(scope);
+
+      const result = await provider.generate(scope, 'openrouter',
+        testCase.label === 'source-supported' ? sourceSupportedAllergyRequest() : request());
+
+      expect(result.status).toBe(testCase.expected);
+      if (testCase.label === 'unsupported') {
+        expect(result).toEqual({status: testCase.expected});
+        expect(JSON.stringify(result)).not.toContain('無已知過敏紀錄');
+      } else {
+        expect(result).toMatchObject({status: 'completed', summary: {sections: expect.any(Array)}});
+      }
+
+      const sent = JSON.parse(requests[0]!.init.body);
+      expect(sent.messages.map((message: {role: string}) => message.role)).toEqual(['system', 'user']);
+      expect(sent.response_format.json_schema.strict).toBe(true);
+      expect(sent.provider.only).toEqual(['azure']);
+      expect(JSON.stringify(sent)).not.toContain('pt_provider_patient_00001');
+    }
+  });
+
   it('uses only fixed Provider endpoint/model configuration and keeps the BYOK value session-only', async () => {
     const { fetch, requests } = successfulFetch();
     const provider = createBackgroundProviderBoundary({ fetch: fetch as never });
