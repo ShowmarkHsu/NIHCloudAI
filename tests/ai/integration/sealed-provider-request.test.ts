@@ -73,7 +73,7 @@ describe('sealed provider request and source alias round-trip', () => {
     expect(request?.prompt).toContain('"columns":["sourceAlias"');
     expect(request?.prompt).not.toContain('"facts"');
     expect(request?.prompt).toContain('"coveragePolicy"');
-    expect(request?.prompt).toContain('"allergyEvidencePolicy":"allergy-negative-findings-require-explicit-sealed-no-known-allergy-fact-v1"');
+    expect(request?.prompt).toContain('"allergyEvidencePolicy":"allergy-negative-findings-require-explicit-sealed-no-known-allergy-fact-v2;noneCharacterLimit=0;unsupportedAllergyWording=forbidden"');
     expect(request?.prompt).toContain('"confirmed-empty":"local-rendered"');
     expect(request?.prompt).toContain('"not-collected":"local-rendered"');
     expect(request?.prompt).not.toContain('你只能依據提供的臨床投影');
