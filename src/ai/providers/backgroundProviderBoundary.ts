@@ -16,6 +16,10 @@ import { FIXED_FIVE_SECTION_SYSTEM_PROMPT } from './prompt';
 export const OLLAMA_GENERATE_ENDPOINT = 'http://127.0.0.1:11434/api/generate' as const;
 export const OPENROUTER_GENERATE_ENDPOINT = OPENROUTER_ENDPOINT;
 export const PROVIDER_TIMEOUT_MS = 180_000;
+// Keep headroom for the fixed instructions and the model's bounded response.
+// This is a preflight guard, not a truncation policy: clinical facts are never
+// silently dropped to make a request fit.
+export const PROVIDER_PROMPT_CHAR_BUDGET = 100_000;
 
 export type SummaryProvider = 'ollama' | 'openrouter';
 
@@ -49,7 +53,7 @@ export type BackgroundProviderBoundaryConfiguration = Readonly<{
 
 export type ProviderGenerationResult =
   | Readonly<{ status: 'completed'; summary: FixedFiveSectionSummary }>
-  | Readonly<{ status: 'permission-required' | 'consent-required' | 'secret-unavailable' | 'timeout' | 'cancelled' | 'failed' | 'transport-failed' | 'response-unreadable' | 'provider-http-failed' | 'provider-http-4xx-failed' | 'provider-http-5xx-failed' | 'provider-output-missing' | 'provider-output-truncated' | 'validation-structure-failed' | 'validation-alias-failed' | 'validation-content-failed' | 'validation-content-metadata-failed' | 'validation-content-negative-failed' | 'validation-content-negative-not-found-failed' | 'validation-content-negative-normal-failed' | 'validation-content-negative-none-word-failed' | 'validation-content-negative-none-word-outside-supported-sections-failed' | 'validation-content-negative-none-word-recent-course-source-supported-failed' | 'validation-content-negative-none-word-recent-course-source-unsupported-failed' | 'validation-content-negative-none-word-admission-source-supported-failed' | 'validation-content-negative-none-word-admission-source-unsupported-failed' | 'validation-content-negative-none-word-data-gap-source-supported-failed' | 'validation-content-negative-none-word-data-gap-source-unsupported-failed' | 'validation-content-negative-none-word-multiple-failed' | 'validation-content-negative-none-word-unrelated-to-allergy-failed' | 'validation-content-negative-none-word-allergy-source-unsupported-failed' | 'validation-content-negative-none-word-allergy-phrase-unsupported-failed' | 'validation-content-data-gap-failed' | 'validation-content-bounds-failed' | 'validation-length-failed' }>;
+  | Readonly<{ status: 'permission-required' | 'consent-required' | 'secret-unavailable' | 'timeout' | 'cancelled' | 'failed' | 'transport-failed' | 'response-unreadable' | 'provider-http-failed' | 'provider-http-4xx-failed' | 'provider-http-5xx-failed' | 'provider-context-budget-exceeded' | 'provider-output-missing' | 'provider-output-truncated' | 'validation-structure-failed' | 'validation-alias-failed' | 'validation-content-failed' | 'validation-content-metadata-failed' | 'validation-content-negative-failed' | 'validation-content-negative-not-found-failed' | 'validation-content-negative-normal-failed' | 'validation-content-negative-none-word-failed' | 'validation-content-negative-none-word-outside-supported-sections-failed' | 'validation-content-negative-none-word-recent-course-source-supported-failed' | 'validation-content-negative-none-word-recent-course-source-unsupported-failed' | 'validation-content-negative-none-word-admission-source-supported-failed' | 'validation-content-negative-none-word-admission-source-unsupported-failed' | 'validation-content-negative-none-word-data-gap-source-supported-failed' | 'validation-content-negative-none-word-data-gap-source-unsupported-failed' | 'validation-content-negative-none-word-multiple-failed' | 'validation-content-negative-none-word-unrelated-to-allergy-failed' | 'validation-content-negative-none-word-allergy-source-unsupported-failed' | 'validation-content-negative-none-word-allergy-phrase-unsupported-failed' | 'validation-content-data-gap-failed' | 'validation-content-bounds-failed' | 'validation-length-failed' }>;
 
 function assertScope(scope: RevisionScope): void {
   if (!Number.isSafeInteger(scope.tabId) || scope.tabId < 0) {
@@ -213,6 +217,9 @@ export function createBackgroundProviderBoundary(
         request.scope.revision !== scope.revision ||
         request.prompt.length === 0 || request.prompt.length > 200_000
       ) return {status: 'failed'};
+      if (provider === 'ollama' && request.prompt.length > PROVIDER_PROMPT_CHAR_BUDGET) {
+        return {status: 'provider-context-budget-exceeded'};
+      }
       if (configuration.ensureOptionalHostPermission !== undefined && !(await configuration.ensureOptionalHostPermission(provider))) {
         return {status: 'permission-required'};
       }

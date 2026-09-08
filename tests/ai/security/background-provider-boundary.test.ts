@@ -110,6 +110,18 @@ function successfulFetch() {
 }
 
 describe('background-only Provider boundary', () => {
+  it('rejects an oversized provider prompt before making a network request', async () => {
+    const {fetch} = successfulFetch();
+    const provider = createBackgroundProviderBoundary({fetch: fetch as never});
+    const base = request()!;
+    const oversized = Object.freeze({...base, prompt: `${base.prompt}${'x'.repeat(120_000)}`});
+
+    await expect(provider.generate(scope, 'ollama', oversized)).resolves.toEqual({
+      status: 'provider-context-budget-exceeded',
+    });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it('neutralizes unsupported OpenRouter allergy negatives while accepting source-supported output', async () => {
     const unsupported = JSON.parse(providerOutput());
     unsupported.sections[0].content = `無已知過敏紀錄${'重'.repeat(25)}`;

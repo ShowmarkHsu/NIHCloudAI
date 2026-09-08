@@ -246,6 +246,7 @@ function AiFrame() {
       status === "response-unreadable" ? "Provider 回應無法安全讀取；沒有可複製內容。" :
       status === "provider-http-4xx-failed" ? "Ollama 拒絕請求（HTTP 4xx）；沒有可複製內容。" :
       status === "provider-http-5xx-failed" ? "Ollama 服務端錯誤（HTTP 5xx）；沒有可複製內容。" :
+      status === "provider-context-budget-exceeded" ? "本次密封資料超過本機模型可安全處理的大小；沒有可複製內容。" :
       status === "provider-http-failed" ? "Provider 拒絕請求；沒有可複製內容。" :
       status === "provider-output-missing" ? "Provider 未回傳可驗證的摘要內容；沒有可複製內容。" :
       status === "provider-output-truncated" ? "Provider 回應未完整結束；沒有可複製內容。" :
