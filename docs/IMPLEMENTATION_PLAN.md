@@ -417,3 +417,11 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - 以固定 `gemma4:e2b-it-qat`（digest `07ea59a474013479c8b6b802bef095c40e964a1d776ba02f264c0e30e1aede0c`）、loopback Ollama 與合成資料執行 `npm run test:extension:ollama`。
 - Build 成功；3/3 fresh synthetic `has-data` browser sessions 通過完整 validator、review/copy gating；同一流程亦確認 invalid scopes fail closed，並完成 synthetic loopback Provider round trip。
 - 這是 bounded engineering/browser operation evidence，不是臨床 acceptance、deployment approval 或 release approval；未保留 PHI、Provider output、畫面、clipboard 或 secrets。
+
+### 2026-09-08 — OpenRouter allergy-negative runtime closure
+
+- 延續 `524ddf2`、`8eeb7c0`、`bff022b`、`0f2134b` 的 OpenRouter prompt/schema/model route 收斂；真實網站仍回報 Provider 產生「無過敏」，而 sealed allergy source 未明示支持。
+- Diagnostics 已確認：OpenRouter response extraction、strict JSON schema、system/user prompt 傳遞及最新 `openai/gpt-4.1` dist 均正常；失敗發生在本機 clinical content validator，原本會 fail closed。
+- 先以 `tests/ai/integration/sealed-provider-request.test.ts` 建立 red regression，再由 `2641f34 fix(ai): neutralize unsupported allergy negatives` 加入窄範圍 deterministic boundary：只將精確的未受支持「無／沒有已知過敏紀錄」片語替換為不作陰性判定的來源核對提示；不產生「無過敏」、不放行其他陰性敘述，且保留 source aliases 供人工核對。
+- Focused AI regression 及 typecheck 通過；Browser Mocha completion regression 通過，`npm run test:browser` 為 106 passed。`2641f34` 已推送至 canonical remote；dist 必須由此 commit 重新 build 後載入 extension。
+- 本次仍不是臨床／藥事 acceptance，也不代表 Provider 摘要品質已獲授權；PR #1 維持 OPEN/Draft，未建立 tag、正式 artifact 或 release。治理 blockers 維持：P2/P3 evidence、臨床／藥事 acceptance、release-owner gates 尚未完成。
