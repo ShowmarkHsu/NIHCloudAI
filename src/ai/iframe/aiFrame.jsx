@@ -244,7 +244,7 @@ function AiFrame() {
       status === "remote-authorization-required" ? "遠端摘要需要本次 session 的 BYOK 與明確同意。" :
       status === "transport-failed" ? "無法連線至 Provider；沒有可複製內容。" :
       status === "response-unreadable" ? "Provider 回應無法安全讀取；沒有可複製內容。" :
-      status === "provider-http-4xx-failed" ? "Ollama 拒絕請求（HTTP 4xx）；沒有可複製內容。" :
+      typeof status === "string" && /^provider-http-4\d\d-failed$/.test(status) ? `Ollama 拒絕請求（${status.match(/\d{3}/)?.[0] ?? "HTTP 4xx"}）；沒有可複製內容。` :
       status === "provider-http-400-failed" ? "Ollama 拒絕請求（HTTP 400：請求格式或選項不被接受）；沒有可複製內容。" :
       status === "provider-http-404-failed" ? "Ollama 找不到模型或 endpoint（HTTP 404）；沒有可複製內容。" :
       status === "provider-http-413-failed" ? "Ollama 拒絕過大的請求（HTTP 413）；沒有可複製內容。" :

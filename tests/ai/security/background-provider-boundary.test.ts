@@ -375,7 +375,7 @@ describe('background-only Provider boundary', () => {
     }));
     const provider = createBackgroundProviderBoundary({fetch: fetch as never});
 
-    await expect(provider.generate(scope, 'ollama', request()!)).resolves.toEqual({status: 'provider-http-4xx-failed'});
+    await expect(provider.generate(scope, 'ollama', request()!)).resolves.toEqual({status: 'provider-http-401-failed'});
 
     const badRequestProvider = createBackgroundProviderBoundary({
       fetch: vi.fn(async () => ({ok: false, status: 400, json: async () => ({error: 'synthetic provider rejection'})})) as never,
