@@ -11,7 +11,10 @@ import {
 } from '../contracts/summary';
 import type { SnapshotCoverage } from '../contracts/coverage';
 import { type SealedPatientSnapshot, sealVersionedPatientSnapshot } from '../projection/builder';
-import { FIXED_FIVE_SECTION_COVERAGE_POLICY } from '../providers/prompt';
+import {
+  FIXED_FIVE_SECTION_ALLERGY_EVIDENCE_POLICY,
+  FIXED_FIVE_SECTION_COVERAGE_POLICY,
+} from '../providers/prompt';
 import {
   renderDeterministicCoverageSections,
   type CoverageRenderableSection,
@@ -198,6 +201,7 @@ export function createSealedSummaryRequest(
   const prompt = '請只輸出 JSON；每節使用 sourceAliases（S1…），不得輸出 sourceRefs。factTables 的 columns 依序對應每列 rows 的值。\n' +
     JSON.stringify({
       coveragePolicy: FIXED_FIVE_SECTION_COVERAGE_POLICY,
+      allergyEvidencePolicy: FIXED_FIVE_SECTION_ALLERGY_EVIDENCE_POLICY,
       coverage: rebuilt.snapshot.coverage,
       factTables,
     });

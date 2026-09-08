@@ -9,7 +9,10 @@ import {
   FIXED_FIVE_SECTION_PROVIDER_JSON_SCHEMA,
   createSealedSummaryRequest,
 } from '../../../src/ai/summary/providerRequest';
-import { FIXED_FIVE_SECTION_SYSTEM_PROMPT } from '../../../src/ai/providers/prompt';
+import {
+  FIXED_FIVE_SECTION_ALLERGY_EVIDENCE_POLICY,
+  FIXED_FIVE_SECTION_SYSTEM_PROMPT,
+} from '../../../src/ai/providers/prompt';
 import { createLabVerticalSlice } from '../../../src/ai/integration/labVerticalSlice';
 import { createClinicalSnapshotCollector } from '../../../src/ai/integration/clinicalSnapshotCollector';
 
@@ -520,6 +523,7 @@ describe('background-only Provider boundary', () => {
     const sent = JSON.parse(requests[0]!.init.body);
     expect(sent.messages.map((message: {role: string}) => message.role)).toEqual(['system', 'user']);
     expect(sent.messages[0].content).not.toContain('Synthetic analyte');
+    expect(sent.messages[0].content).toContain(FIXED_FIVE_SECTION_ALLERGY_EVIDENCE_POLICY);
     expect(sent.messages[0].content).toContain('只摘要 has-data facts');
     expect(sent.messages[0].content).toContain('本節內容由本機固定取代');
     expect(sent.messages[0].content).not.toContain('空 content');

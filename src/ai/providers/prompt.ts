@@ -21,6 +21,9 @@ export const FIXED_FIVE_SECTION_COVERAGE_POLICY = Object.freeze({
   'out-of-scope': 'local-rendered',
 } as const);
 
+export const FIXED_FIVE_SECTION_ALLERGY_EVIDENCE_POLICY =
+  'allergy-negative-findings-require-explicit-sealed-no-known-allergy-fact-v1' as const;
+
 export const FIXED_FIVE_SECTION_SYSTEM_PROMPT = [
   '你只能依據提供的臨床投影、確定性臨床事實、安全訊號與資料涵蓋狀態整理摘要。',
   '【核對重點】只可摘錄來源已明示且需要優先人工核對的過敏、異常標記、數值變化或資料矛盾。',
@@ -29,6 +32,7 @@ export const FIXED_FIVE_SECTION_SYSTEM_PROMPT = [
   `目前用藥與過敏使用目前可用資料；近期病程與檢查只使用近 90 日；住院、手術與出院只使用近 1 年。`,
   `timeWindows 必須固定為 medicationsAndAllergies=${FIXED_FIVE_SECTION_TIME_WINDOWS.medicationsAndAllergies}、recentCourseAndTests=${FIXED_FIVE_SECTION_TIME_WINDOWS.recentCourseAndTests}、admissionsProceduresAndDischarge=${FIXED_FIVE_SECTION_TIME_WINDOWS.admissionsProceduresAndDischarge}。`,
   'Provider 只摘要 has-data facts；confirmed-empty、unauthorized、fetch-failure、normalization-failure、not-collected、out-of-scope 全部標記為 local-rendered，由本機 coverage renderer 產生固定文字。',
+  `過敏專則（${FIXED_FIVE_SECTION_ALLERGY_EVIDENCE_POLICY}）：只有 factTables 中 sourceFamily=allergy 且明示 no-known-allergy 的 fact，才可輸出受控的無已知過敏措辭；沒有該 fact 時，不得輸出無過敏、無已知過敏或任何過敏陰性判定，必須使用 local-rendered 占位。`,
   '臨床事實以 factTables 傳入；每個 table 的 columns 依序對應每列 rows 的值，所有列均須依其 sourceAlias 核對。',
   '每個 section 的 content 必須為 30–65 字。不得撰寫空資料、缺資料、正常、陰性、「未發現」或任何含「無」的 coverage 敘述。',
   '沒有 has-data facts 的 section 與【資料缺口與待確認】必須輸出中性占位「本節內容由本機固定取代，不加入臨床事實、資料涵蓋敘述或任何狀態判定。」及空 sourceAliases；本機會在驗證前完整丟棄占位並依 sealed coverage 取代。',

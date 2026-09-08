@@ -25,7 +25,7 @@
 
 Configuration object 應與 `release/manifest.schema.json` 的固定 provider contract 一致。
 Clinical acceptance object 必須針對同一候選 commit 與同一組
-`clinical-projection.v1`、`clinical-summary-prompt.v5`、`clinical-summary.v1`、
+`clinical-projection.v1`、`clinical-summary-prompt.v6`、`clinical-summary.v1`、
 `clinical-rules.v4`、`clinical-case-set.v1`；逐組 wording 核准不能代替整體 acceptance。
 
 ## 每個 object 的最小封面

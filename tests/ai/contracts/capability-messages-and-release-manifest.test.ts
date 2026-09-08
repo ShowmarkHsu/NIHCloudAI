@@ -230,7 +230,7 @@ describe('closed capability messages', () => {
 
 describe('closed release manifest v1', () => {
   it('accepts the fixed artifact, exact contract versions, providers, and evidence hashes', () => {
-    expect(CLINICAL_SUMMARY_PROMPT_VERSION).toBe('clinical-summary-prompt.v5');
+    expect(CLINICAL_SUMMARY_PROMPT_VERSION).toBe('clinical-summary-prompt.v6');
     expect(releaseManifestV1Schema.safeParse(releaseManifest).success).toBe(true);
   });
 
