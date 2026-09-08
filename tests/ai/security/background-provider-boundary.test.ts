@@ -355,7 +355,7 @@ describe('background-only Provider boundary', () => {
     });
   });
 
-  it('reports a provider HTTP rejection without exposing its status or body', async () => {
+  it('reports a provider HTTP rejection category without exposing its status or body', async () => {
     const fetch = vi.fn(async () => ({
       ok: false,
       status: 401,
@@ -363,7 +363,16 @@ describe('background-only Provider boundary', () => {
     }));
     const provider = createBackgroundProviderBoundary({fetch: fetch as never});
 
-    await expect(provider.generate(scope, 'ollama', request()!)).resolves.toEqual({status: 'provider-http-failed'});
+    await expect(provider.generate(scope, 'ollama', request()!)).resolves.toEqual({status: 'provider-http-4xx-failed'});
+
+    const serverErrorProvider = createBackgroundProviderBoundary({
+      fetch: vi.fn(async () => ({
+        ok: false,
+        status: 500,
+        json: async () => ({error: 'synthetic provider failure'}),
+      })) as never,
+    });
+    await expect(serverErrorProvider.generate(scope, 'ollama', request()!)).resolves.toEqual({status: 'provider-http-5xx-failed'});
   });
 
   it('fails closed instead of replacing an in-flight request for the same scope', async () => {
