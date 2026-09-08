@@ -125,7 +125,13 @@ describe('sealed provider request and source alias round-trip', () => {
     expect(parseProviderSummaryOutput(JSON.stringify(safeLexicalOverlap), request!)).not.toBeNull();
 
     const unsupportedSource = JSON.parse(JSON.stringify(supported));
-    expect(parseProviderSummaryOutput(JSON.stringify(unsupportedSource), setup().request!)).toBeNull();
+    const unsupportedAccepted = parseProviderSummaryOutput(
+      JSON.stringify(unsupportedSource),
+      setup().request!,
+    );
+    expect(unsupportedAccepted).not.toBeNull();
+    expect(unsupportedAccepted?.sections[0]?.content).toContain('來源未提供過敏陰性證據');
+    expect(unsupportedAccepted?.sections[0]?.content).not.toContain('無過敏');
 
     const unrelatedNone = JSON.parse(output(['S1']));
     unrelatedNone.sections[0].content = `目前無用藥紀錄，${'重'.repeat(26)}`;
@@ -194,8 +200,17 @@ describe('sealed provider request and source alias round-trip', () => {
 
     const unsupportedSource = JSON.parse(output(['S1']));
     unsupportedSource.sections[0].content = `無已知過敏紀錄${'重'.repeat(25)}`;
-    expect(classify(unsupportedSource, labRequest))
-      .toBe('validation-content-negative-none-word-allergy-source-unsupported-failed');
+    const unsupportedSourceResult = validateProviderSummaryOutput(
+      JSON.stringify(unsupportedSource),
+      labRequest,
+    );
+    expect(unsupportedSourceResult.status).toBe('completed');
+    expect(unsupportedSourceResult.status === 'completed' &&
+      unsupportedSourceResult.summary.sections[0]?.content)
+      .not.toContain('無過敏');
+    expect(unsupportedSourceResult.status === 'completed' &&
+      unsupportedSourceResult.summary.sections[0]?.content)
+      .toContain('來源未提供過敏陰性證據');
 
     const unsupportedPhrase = JSON.parse(output(['S1']));
     unsupportedPhrase.sections[0].content = `無用藥及過敏紀錄${'重'.repeat(26)}`;

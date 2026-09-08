@@ -237,6 +237,8 @@ const allergyBeforeNonePhrasePattern =
   /過敏(?:紀錄|記錄|史|資料|資訊)?(?:顯示|為|：|:)?無(?:相關)?(?:紀錄|記錄|資料|資訊)?/gu;
 const unsupportedAllergyQualifierPattern =
   /(?:及|與|或|、|和|以及|疾病|症狀|檢驗|影像|手術|住院|出院|處置|就醫)/u;
+const unsupportedAllergyNegativePhrasePattern =
+  /(?:無|沒有)(?:已知)?過敏(?:紀錄|記錄|史|資料|資訊)?/gu;
 const canonicalNoKnownAllergyWording = '來源明示未有已知過敏紀錄';
 const canonicalConflictingAllergyWording =
   '來源同時明示過敏與未有已知過敏紀錄，資料可能矛盾，須逐項人工核對';
@@ -287,6 +289,29 @@ function canonicalizeSourceStatedNoKnownAllergy(
     heading: section.heading,
     content,
     sourceAliases: Object.freeze(sourceAliases),
+  });
+}
+
+function canonicalizeUnsupportedAllergyNegativeWording(
+  section: CoverageRenderableSection,
+  sourceEvidence: SealedSummaryRequest['sourceEvidence'],
+): CoverageRenderableSection {
+  if (
+    section.heading !== FIXED_FIVE_SECTION_HEADINGS[0] &&
+    section.heading !== FIXED_FIVE_SECTION_HEADINGS[1]
+  ) return section;
+  if (Object.values(sourceEvidence).includes('source-stated-no-known-allergy')) return section;
+  const matches = [...section.content.matchAll(unsupportedAllergyNegativePhrasePattern)];
+  if (matches.length !== 1) return section;
+  const content = section.content.replace(
+    unsupportedAllergyNegativePhrasePattern,
+    '來源未提供過敏陰性證據，本節保留目前可用資料狀態，請依來源內容確認',
+  );
+  if (content === section.content || content.includes('無過敏')) return section;
+  return Object.freeze({
+    heading: section.heading,
+    content,
+    sourceAliases: section.sourceAliases,
   });
 }
 
@@ -398,7 +423,9 @@ export function validateProviderSummaryOutput(
 
   const evidenceCanonicalizedSections = parsed.data.sections.map((section) =>
     canonicalizeSourceStatedNoKnownAllergy(section, request.sourceEvidence));
-  const unsupportedNoneWordCanonicalizedSections = evidenceCanonicalizedSections.map((section) =>
+  const allergyNegativeCanonicalizedSections = evidenceCanonicalizedSections.map((section) =>
+    canonicalizeUnsupportedAllergyNegativeWording(section, request.sourceEvidence));
+  const unsupportedNoneWordCanonicalizedSections = allergyNegativeCanonicalizedSections.map((section) =>
     canonicalizeUnsupportedNoneWordSection(section, request.sourceContainsNoneWord));
   const renderedSections = renderDeterministicCoverageSections(
     unsupportedNoneWordCanonicalizedSections,

@@ -110,7 +110,7 @@ function successfulFetch() {
 }
 
 describe('background-only Provider boundary', () => {
-  it('keeps the OpenRouter allergy wording failure bounded while accepting a source-supported output', async () => {
+  it('neutralizes unsupported OpenRouter allergy negatives while accepting source-supported output', async () => {
     const unsupported = JSON.parse(providerOutput());
     unsupported.sections[0].content = `無已知過敏紀錄${'重'.repeat(25)}`;
     const supported = JSON.parse(providerOutput());
@@ -120,7 +120,7 @@ describe('background-only Provider boundary', () => {
       {
         label: 'unsupported',
         output: unsupported,
-        expected: 'validation-content-negative-none-word-allergy-source-unsupported-failed',
+        expected: 'completed',
       },
       {label: 'source-supported', output: supported, expected: 'completed'},
     ] as const;
@@ -148,8 +148,9 @@ describe('background-only Provider boundary', () => {
 
       expect(result.status).toBe(testCase.expected);
       if (testCase.label === 'unsupported') {
-        expect(result).toEqual({status: testCase.expected});
-        expect(JSON.stringify(result)).not.toContain('無已知過敏紀錄');
+        expect(result).toMatchObject({status: 'completed', summary: {sections: expect.any(Array)}});
+        expect(JSON.stringify(result)).not.toContain('無過敏');
+        expect(JSON.stringify(result)).toContain('來源未提供過敏陰性證據');
       } else {
         expect(result).toMatchObject({status: 'completed', summary: {sections: expect.any(Array)}});
       }
