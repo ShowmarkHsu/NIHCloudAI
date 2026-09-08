@@ -4,7 +4,7 @@ Date: 2026-08-27. The release owner authorized replacement of the fixed remote
 model and route after the previous fixed route repeatedly failed the sealed
 content-policy gate.
 
-The selected fixed configuration is `openai/gpt-4.1-mini` through the single
+The selected fixed configuration is `openai/gpt-4.1` through the single
 `azure` provider route. It retains `response_format` JSON Schema strict mode,
 `require_parameters: true`, `zdr: true`, `data_collection: "deny"`, and
 `allow_fallbacks: false`. The request pins `provider.only: ["azure"]`; it may

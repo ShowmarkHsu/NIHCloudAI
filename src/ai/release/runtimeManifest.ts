@@ -20,7 +20,7 @@ export const OLLAMA_MODEL_DIGEST =
   'sha256:07ea59a474013479c8b6b802bef095c40e964a1d776ba02f264c0e30e1aede0c' as const;
 export const OPENROUTER_ENDPOINT =
   'https://openrouter.ai/api/v1/chat/completions' as const;
-export const OPENROUTER_MODEL = 'openai/gpt-4.1-mini' as const;
+export const OPENROUTER_MODEL = 'openai/gpt-4.1' as const;
 export const OPENROUTER_ROUTE = 'azure' as const;
 
 const gitCommitSchema = z.string().regex(/^[a-f0-9]{40}$/);

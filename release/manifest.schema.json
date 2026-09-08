@@ -61,7 +61,7 @@
           "required": ["endpoint", "model", "route", "temperature", "topP", "seed", "reasoningEffort", "reasoningExclude", "maxTokens", "stream", "strictJsonSchema", "tools", "plugins", "webSearch", "allowFallbacks", "quantization", "zdr", "dataCollection", "requireParameters"],
           "properties": {
             "endpoint": { "const": "https://openrouter.ai/api/v1/chat/completions" },
-            "model": { "const": "openai/gpt-4.1-mini" },
+        "model": { "const": "openai/gpt-4.1" },
             "route": { "const": "azure" },
             "temperature": { "const": 0 },
             "topP": { "const": 1 },
