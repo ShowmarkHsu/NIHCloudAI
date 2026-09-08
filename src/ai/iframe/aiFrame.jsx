@@ -245,6 +245,10 @@ function AiFrame() {
       status === "transport-failed" ? "無法連線至 Provider；沒有可複製內容。" :
       status === "response-unreadable" ? "Provider 回應無法安全讀取；沒有可複製內容。" :
       status === "provider-http-4xx-failed" ? "Ollama 拒絕請求（HTTP 4xx）；沒有可複製內容。" :
+      status === "provider-http-400-failed" ? "Ollama 拒絕請求（HTTP 400：請求格式或選項不被接受）；沒有可複製內容。" :
+      status === "provider-http-404-failed" ? "Ollama 找不到模型或 endpoint（HTTP 404）；沒有可複製內容。" :
+      status === "provider-http-413-failed" ? "Ollama 拒絕過大的請求（HTTP 413）；沒有可複製內容。" :
+      status === "provider-http-422-failed" ? "Ollama 拒絕請求內容（HTTP 422：schema 或欄位不被接受）；沒有可複製內容。" :
       status === "provider-http-5xx-failed" ? "Ollama 服務端錯誤（HTTP 5xx）；沒有可複製內容。" :
       status === "provider-context-budget-exceeded" ? "本次密封資料超過本機模型可安全處理的大小；沒有可複製內容。" :
       status === "provider-http-failed" ? "Provider 拒絕請求；沒有可複製內容。" :

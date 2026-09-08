@@ -434,6 +434,7 @@ P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准�
 - `backgroundProviderBoundary` now applies a conservative `PROVIDER_PROMPT_CHAR_BUDGET=100000` preflight while retaining `num_ctx=32768` and `num_predict=1024`. It never truncates clinical facts and does not hide the failure by increasing timeout or changing required checks.
 - Focused boundary: 20/20; typecheck: passed; real-Ollama synthetic extension UI: 3/3. The live 4xx still requires a bounded size-bucket comparison or request-envelope diagnosis before any model/context change is justified.
 - Release remains blocked by the existing P2/P3 evidence, clinical/pharmacy acceptance, and release-owner gates; PR #1 remains Draft. No Ready, merge, tag, artifact, or release action was taken.
+- Follow-up diagnostic commit classifies Ollama HTTP 400/404/413/422 without reading or exposing response bodies; this distinguishes request format, model/endpoint, payload-size, and schema rejection while retaining fail-closed behavior.
 
 - 使用者重新載入最新 dist 後，實際 Ollama UI 仍顯示「Provider 拒絕請求」；本機 `/api/tags`、固定 `gemma4:e2b-it-qat` 與 digest 均正常，最新 real-Ollama synthetic extension UI 仍為 3/3 通過，因此問題尚未證明是 Ollama service 或固定模型全域故障。
 - 新增 bounded HTTP rejection categories：4xx 與 5xx；不回傳 status code、response body、摘要、API key 或 PHI。如此可在下一次 live run 區分 request rejection 與 Ollama server failure。
