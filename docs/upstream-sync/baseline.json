@@ -1,0 +1,59 @@
+{
+  "$schema": "./baseline.schema.json",
+  "schemaVersion": 3,
+  "capturedAt": "2026-08-14",
+  "product": {
+    "name": "NIHCloudAI",
+    "integrationRepositoryAtCapture": "https://github.com/ShowmarkHsu/NHITW_cloud_analyzer_react_MUI.git"
+  },
+  "upstream": {
+    "repository": "https://github.com/leescot/NHITW_cloud_analyzer_react_MUI.git",
+    "commit": "cad76e59c60eafc2947939fc44d7683ba9f7ab9d",
+    "version": "26.0702.1",
+    "license": {
+      "spdx": "Apache-2.0",
+      "path": "LICENSE",
+      "sha256": "937421423788e11ca034e88a57736d0c0eeb3387c8dfe75db5c050262449c12b"
+    }
+  },
+  "nicloudaiSource": {
+    "repository": "https://github.com/ShowmarkHsu/NIHCloudAI.git",
+    "commit": "bab69c741e1f6a5b2da65276ce8fe955973e05ca"
+  },
+  "canonicalMigration": {
+    "method": "two-tree-patch",
+    "canonicalBaseCommit": "f48a7411786ecd7b6586ff26e33a446827d378b0",
+    "upstreamSnapshotCommit": "cad76e59c60eafc2947939fc44d7683ba9f7ab9d",
+    "upstreamSnapshotTree": "935820baf34e8e8f2ae01e26b29eac3af786f559",
+    "importCommit": "f7debf69835bd8261cb767c9c27a741b255456c9",
+    "importTree": "eb743c59a961a7782c4aaed028c316a120f9d9a0",
+    "patchSha256": "aa9d8bc02ff40ee43c33c36237fe9dcbe910134b513d21341c23efcbb8ea44ca"
+  },
+  "remoteTopology": {
+    "verificationStatus": "verified-final-fork-accessible",
+    "checkedAt": "2026-08-14",
+    "roles": {
+      "origin": {
+        "repository": "https://github.com/ShowmarkHsu/NHITW_cloud_analyzer_react_MUI.git",
+        "configured": true,
+        "readable": true,
+        "writable": true,
+        "note": "GitHub API verified this repository is a fork of upstream and the authenticated maintainer has push permission; no push was attempted."
+      },
+      "upstream": {
+        "repository": "https://github.com/leescot/NHITW_cloud_analyzer_react_MUI.git",
+        "configured": true,
+        "readable": true,
+        "writable": false,
+        "note": "Public upstream and pinned commit verified read-only and configured as upstream."
+      },
+      "nicloudai": {
+        "repository": "https://github.com/ShowmarkHsu/NIHCloudAI.git",
+        "configured": true,
+        "readable": true,
+        "writable": true,
+        "note": "Source repository access verified and configured as the separate nicloudai provenance remote."
+      }
+    }
+  }
+}

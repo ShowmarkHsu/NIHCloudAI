@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "types": ["node", "vitest/globals"]
+  },
+  "include": [
+    "src/ai/contracts/**/*.ts",
+    "src/ai/providers/**/*.ts",
+    "src/ai/projection/**/*.ts",
+    "src/ai/rules/**/*.ts",
+    "src/ai/summary/**/*.ts",
+    "src/ai/session/**/*.ts",
+    "src/background/**/*.ts",
+    "src/ai/release/**/*.ts",
+    "tests/ai/contracts/**/*.ts",
+    "tests/ai/summary/**/*.ts",
+    "tests/ai/formatter/**/*.ts",
+    "tests/ai/projection/**/*.ts",
+    "tests/ai/session/**/*.ts",
+    "tests/ai/security/**/*.ts",
+    "tests/ai/release/**/*.ts",
+    "vitest.ai.config.ts"
+  ]
+}

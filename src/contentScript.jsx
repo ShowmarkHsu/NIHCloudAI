@@ -1,0 +1,127 @@
+import { installContentDataSessionRuntime } from './ai/session/contentRuntime';
+import { NHI_CLOUD_ORIGIN } from './ai/session/closedDataSessionLifecycle';
+import { backgroundActiveSnapshotRecoveryRequestSchema } from './ai/contracts/messages';
+
+console.log("Content script loaded");
+
+const contentDataSessionRuntime = window.location.origin === NHI_CLOUD_ORIGIN
+  ? installContentDataSessionRuntime({
+    origin: window.location.origin,
+    send(message) {
+      return chrome.runtime.sendMessage(message);
+    },
+    newSessionId() {
+      return `ds_${crypto.randomUUID().replaceAll('-', '')}`;
+    },
+    newPatientId() {
+      return `pt_${crypto.randomUUID().replaceAll('-', '')}`;
+    },
+    now() {
+      return new Date().toISOString();
+    },
+    issueSourceReference() {
+      return `sr_${crypto.randomUUID().replaceAll('-', '')}`;
+    },
+    onLabSnapshotSealed(presentation) {
+      window.dispatchEvent(new CustomEvent('ai.lab-snapshot.sealed', {
+        detail: {...presentation, frameUrl: chrome.runtime.getURL('ai-frame.html')},
+      }));
+    },
+    onLabSnapshotInvalidated() {
+      window.dispatchEvent(new CustomEvent('ai.lab-snapshot.invalidated'));
+    },
+    addEventListener(type, listener) {
+      window.addEventListener(type, listener);
+    },
+    removeEventListener(type, listener) {
+      window.removeEventListener(type, listener);
+    },
+  })
+  : null;
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (
+    contentDataSessionRuntime === null
+    || !backgroundActiveSnapshotRecoveryRequestSchema.safeParse(message).success
+  ) return false;
+  if (
+    sender.id !== chrome.runtime.id
+    || sender.tab !== undefined
+    || sender.url !== chrome.runtime.getURL('background.js')
+  ) return false;
+  sendResponse(contentDataSessionRuntime.activeSnapshotRecoveryMessage());
+  return true;
+});
+
+function initializeExtension() {
+  console.log("Content script initializing");
+
+  const rootDiv = document.createElement("div");
+  rootDiv.id = "nhi-floating-root";
+  document.body.appendChild(rootDiv);
+
+  import("./components/FloatingIcon")
+    .then((module) => {
+      const FloatingIcon = module.default;
+      return Promise.all([import("react"), import("react-dom/client")])
+        .then(([React, ReactDOM]) => {
+          ReactDOM.createRoot(rootDiv).render(React.createElement(FloatingIcon));
+        });
+    })
+    .catch(error => {
+      console.error("載入 React 元件時出錯:", error);
+    });
+
+  import("./legacyContent.js")
+    .then(() => {
+      console.log("Legacy content script loaded");
+    })
+    .catch((error) => {
+      console.error("載入舊版內容時出錯:", error);
+    });
+
+  import("./localDataHandler.js")
+    .then((localDataHandler) => {
+      console.log("本地資料處理器已載入");
+
+      const messageHandlers = new Map([
+        ["loadLocalData", async (message, sendResponse) => {
+          try {
+            const result = await localDataHandler.processLocalData(
+              message.data,
+              message.filename
+            );
+            sendResponse(result);
+          } catch (error) {
+            console.error("處理本地資料時出錯:", error);
+            sendResponse({
+              success: false,
+              message: `處理資料時出錯: ${error.message}`,
+              error: error.toString()
+            });
+          }
+        }],
+        ["clearLocalData", (message, sendResponse) => {
+          const result = localDataHandler.clearLocalData();
+          sendResponse(result);
+        }]
+      ]);
+
+      chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        const handler = messageHandlers.get(message.action);
+        if (handler) {
+          handler(message, sendResponse);
+          return true;
+        }
+      });
+    })
+    .catch((error) => {
+      console.error("載入本地資料處理器時出錯:", error);
+    });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener('DOMContentLoaded', initializeExtension);
+} else {
+  initializeExtension();
+}

@@ -1,0 +1,91 @@
+# Upstream synchronization policy
+
+## Repository roles
+
+The intended repository topology is fixed:
+
+| Remote | Role | Repository |
+| --- | --- | --- |
+| `origin` | Historical upstream integration fork | `ShowmarkHsu/NHITW_cloud_analyzer_react_MUI` |
+| `upstream` | NHITW Cloud Analyzer source | `leescot/NHITW_cloud_analyzer_react_MUI` |
+| `nicloudai` | Canonical NIHCloudAI product repository | `ShowmarkHsu/NIHCloudAI` |
+
+On 2026-08-14 the final fork was verified through the GitHub API as a fork of
+the configured upstream, and the authenticated maintainer had push permission.
+The independent integration worktree now uses the three remote roles above.
+The 2026-09-02 release-owner decision designates `nicloudai` as canonical. Its
+`main` history and the original integration history do not share an ancestor.
+The 2026-09-03 reconciliation therefore starts a new branch from canonical
+`main`, preserves the v0.1.0 evidence, imports the upstream snapshot with a
+recorded two-tree patch, and replays the integration commits without attaching
+the unrelated history. Remote push or PR remains blocked until authentication
+and repository protection settings are verified.
+The exact result is recorded in [`baseline.json`](baseline.json); this topology
+verification did not push, create a branch on GitHub, or modify `main`.
+
+The only long-lived branch is `main`. Feature, fix, and synchronization work
+uses short-lived `codex/*` branches. Formal history must not be rebased or
+force-pushed.
+
+## Fixed baseline and provenance
+
+- The integration baseline is upstream commit
+  `cad76e59c60eafc2947939fc44d7683ba9f7ab9d`, upstream extension version
+  `26.0702.1`.
+- `baseline:check` accepts either the original upstream-ancestor history or the
+  fixed canonical two-tree-patch migration recorded in `baseline.json`. In the
+  migration form, canonical base/import ancestry and the immutable import tree
+  are verified locally. If the pinned upstream snapshot object is absent, the
+  verifier fetches only that commit from the baseline repository into a
+  temporary ref, removes the ref after verification, and never changes the
+  configured remotes. It then verifies the snapshot tree and byte-for-byte
+  recomputes the recorded canonical-base-to-upstream-snapshot patch with deterministic
+  `git diff --binary --full-index` options. An unavailable snapshot, tree drift,
+  or patch digest drift fails closed.
+- Reused NIHCloudAI concepts or code must cite source commit
+  `bab69c741e1f6a5b2da65276ce8fe955973e05ca` in the implementing commit or PR.
+- The upstream Apache-2.0 [`LICENSE`](../../LICENSE) is retained unchanged.
+  [`NOTICE`](../../NOTICE) records upstream and NIHCloudAI attribution.
+- Release owner 已於 2026-09-02 指派 NIHCloudAI 產品版本 `0.2.0`；Chrome
+  build version 另以單調遞增且合法的 `26.702.2` 維護，兩者不得混用。這項產品身份
+  決策不代表 artifact、臨床或 publication gate 已核准；upstream version
+  `26.0702.1` 仍只作為 provenance 保留。
+
+## Synchronization triggers
+
+The accountable maintainer checks upstream:
+
+1. monthly;
+2. before every controlled-pilot release; and
+3. immediately for a security fix, NHI page compatibility fix, or material
+   source-data-format change.
+
+## Synchronization procedure
+
+1. Start a short-lived sync branch from the latest `main`.
+2. Record the pre-sync upstream commit, target upstream commit, changed paths,
+   and baseline hashes.
+3. Merge upstream with an explicit merge commit. Do not rebase formal history.
+4. Run the non-AI characterization suite, clinical seam safety suite, and the
+   applicable clinical evidence gates.
+5. Have the accountable maintainer review and merge the PR into `main`.
+
+Selective transplantation is allowed only when a stopped full sync contains an
+independently reviewable fix. Its commit and changed paths must retain explicit
+upstream provenance.
+
+## Stop conditions and rollback
+
+Stop the sync if any of the following is true:
+
+- the final fork or required source commit is unavailable;
+- non-AI observable behavior changes without reviewed product intent;
+- the AI safety seam, patient/revision isolation, or projection compatibility
+  gate fails; or
+- required clinical evidence is missing, expired, or invalidated.
+
+Do not work around a stop by force-pushing, rebasing formal history, weakening a
+test, or silently broadening model input. A merged upstream sync is rolled back
+with a revert of its merge commit. An unmerged batch is rolled back by removing
+only its isolated worktree/short-lived branch; the original dirty worktree is
+never reset or cleaned.

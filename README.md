@@ -1,50 +1,181 @@
-# NICloudAI
+# NIHCloudAI
 
-NICloudAI 是一個隱私優先的 Chrome 擴充功能原型，用來把健保醫療資訊雲端查詢系統中的近期資料整理成可追溯來源的臨床摘要。
+NIHCloudAI 以 **NHITW Cloud Analyzer（更好的健保雲端 2.0）** 為 upstream
+產品基底，保留既有非 AI 功能與操作方式，並在獨立批次中導入可核對的臨床摘要。
 
-目前凍結基準版本為 `v0.1.0`。版本內容見 [CHANGELOG](./CHANGELOG.md)，重建與回復程序見[發布基準](./docs/RELEASE_BASELINE.md)。
+本 repository 的 upstream 與 NIHCloudAI 來源追溯、同步政策及固定基準記錄於
+[`docs/upstream-sync/`](docs/upstream-sync/)。原專案名稱、Apache-2.0 授權與著作權
+歸屬均予保留。
 
-目前專案已完成四段可執行的 MVP 垂直切片：擴充功能可建立標準化病人快照，以確定性規則整理用藥、過敏、檢驗數值趨勢、明示異常與具有明確日期的用藥區間重疊，再由使用者主動選擇本機 Ollama 或 OpenRouter BYOK 產生結構化摘要。第一個遠端模型固定為 `openai/gpt-oss-120b`。設定畫面可先用固定且不含病歷的請求測試連線、模型名稱與結構化輸出能力。規則結果不依賴 LLM，且只有通過 schema、來源引用、確定性安全訊號涵蓋與可見文字內部識別檢查的 AI 摘要才會顯示；模型不得遺漏安全訊號或降低其閱讀優先級。資料與摘要只在 extension session 內暫存。`clinical-rules.v2` 與四個合成邊界案例已於 2026-08-12 完成醫師／藥師重新認證；合法健保測試環境的五個資料子集與 OpenRouter `openai/gpt-oss-120b` 端對端流程亦於同日由操作者回報驗證通過。
+目前 `main` 是未加入 AI 的穩定 upstream fork 基準；`codex/integration-recovery`
+已建立檢驗資料的 sealed vertical slice，以及由 extension-origin iframe 經 background
+呼叫固定 Provider 的受限流程。這些流程只以合成資料與本機 build 驗證，尚未有真實
+Provider、臨床資料或人工臨床驗收；因此不具備臨床使用或正式發布條件。現況判讀、
+已知缺口與收斂路線見[專案復原計畫](docs/PROJECT_RECOVERY_PLAN.md)。
+已授權操作者的非 PHI 人工檢核只能依
+[受控人工驗證 Runbook](docs/CONTROLLED_MANUAL_VALIDATION_RUNBOOK.md) 執行；通過該
+流程不表示 release ready 或可臨床使用。
 
-## 核心原則
+`npm run verify` 只驗證合成契約、非 AI 回歸、建置、browser suite，以及已載入的
+MV3 iframe fail-closed 與本機合成 Provider transport browser test；測試會使用隔離的
+暫存 artifact 將固定 endpoint 改寫至 loopback，不會連線實際 OpenRouter。它不是
+實際 AI Provider、臨床驗收或部署核准。
 
-- LLM 只處理標準化後的病人快照，不直接讀取 DOM 或健保 API 原始回應。
-- 確定性規則負責數值、時間範圍、趨勢與重疊計算；LLM 只負責整理文字。
-- 每個摘要項目都必須引用病人快照中實際存在的來源紀錄。
-- 欄位不足時，確定性規則不得推定異常、趨勢或用藥區間重疊。
-- 預設使用本機 Ollama；遠端 Provider 採使用者自行提供 API Key（BYOK）。
-- API Key 只保存於 `chrome.storage.session`，不進入原始碼、Git、環境檔或建置產物。
-- Provider 連線測試使用程式內固定 JSON 請求，不讀取或傳送病人快照。
+NIHCloudAI 產品版本為 `0.2.0`，Chrome 擴充功能則使用獨立、單調遞增的 build
+version `26.702.2`；Chrome 介面透過 `version_name` 顯示 `NIHCloudAI 0.2.0`。
+產品的 canonical repository 是
+[`ShowmarkHsu/NIHCloudAI`](https://github.com/ShowmarkHsu/NIHCloudAI)。版本定版不
+代表已完成發布核准；任何 tag、artifact 或部署仍須通過臨床與治理 gate。
+版本、signed tag、RC、artifact 與 rollback 規則見
+[`docs/RELEASE_GOVERNANCE.md`](docs/RELEASE_GOVERNANCE.md)。
 
-## 開發
+## Upstream project
 
-```powershell
-npm install
-npm test
-npm run typecheck
-npm run build
-npm run verify
-```
+以下原始說明屬於 NHITW Cloud Analyzer upstream 基準。
 
-第一版只以 Chrome 開發人員模式載入未封裝的 `dist` 目錄，不上架 Chrome Web Store，也不視為院內正式部署版本。安裝、手動更新、移除、權限與資料處理邊界請依照[開發人員模式散布與安裝指南](./docs/DEVELOPER_MODE_DISTRIBUTION.md)。
+## NHITW Cloud Analyzer (更好的健保雲端 2.0)
 
-詳細的產品與安全邊界請參考：
+這是一個 Chrome 擴充功能，用於從健保雲端資料系統擷取資料。此工具可協助醫療專業人員更有效率地處理健保雲端資料。
 
-- [領域詞彙](./CONTEXT.md)
-- [MVP 規格](./docs/MVP_SPEC.md)
-- [決策地圖](./docs/DECISION_MAP.md)
-- [實作計畫](./docs/IMPLEMENTATION_PLAN.md)
-- [發布基準](./docs/RELEASE_BASELINE.md)
-- [合成案例臨床驗收標準](./docs/CLINICAL_ACCEPTANCE.md)
-- [合法健保測試環境驗證紀錄](./docs/NHI_AUTHORIZED_ENVIRONMENT_VALIDATION.md)
-- [OpenRouter 端對端驗證紀錄](./docs/OPENROUTER_E2E_VALIDATION.md)
-- [開發人員模式散布與安裝指南](./docs/DEVELOPER_MODE_DISTRIBUTION.md)
-- [安全政策](./SECURITY.md)
+## 功能特點
 
-## 尚未提供
+- 從健保雲端資料系統中擷取患者資料
+- 實時處理並顯示資料
+- 支援資料擷取和解析
+- 使用者友善的介面設計
 
-- 其他 Ollama 模型，以及 OpenRouter 以外遠端 Provider 的端對端相容性驗證。
-- 重複檢查、跨藥物交互作用與需要臨床知識庫的進階規則。
-- Chrome Web Store 上架、院內管理式散布與自動更新流程。
+## 系統需求
 
-本工具只提供資料摘要與來源導航，不提供診斷或治療建議。
+- [Google Chrome](https://www.google.com/chrome/) 瀏覽器（其他 Chromium 核心的瀏覽器如 [Microsoft Edge](https://www.microsoft.com/edge) 亦可，但介面可能稍有不同）
+- 健保雲端資料系統存取權限 (<https://medcloud2.nhi.gov.tw/>)
+
+## 安裝說明
+
+### 安裝說明影片(Youtube): [連結](https://www.youtube.com/watch?v=atu3LXBK6og)
+
+### 從 Chrome 線上應用程式商店安裝
+
+如果電腦可以連上外網，可直接至 [Chrome 線上應用程式商店](https://chromewebstore.google.com/detail/kmhlkhgagjadmoclpjomgodfbdfkifja)下載安裝本擴充功能。
+
+### 使用 Chrome 開發人員模式安裝
+
+1. 至本專案版本庫 Releases 下載[最新版的 `nihcloudai-extension` 壓縮檔](https://github.com/ShowmarkHsu/NIHCloudAI/releases/latest)
+2. 將下載的壓縮檔解壓縮為資料夾
+3. 在 Chrome 瀏覽器中，前往「管理擴充功能」頁面（或造訪網址 `chrome://extensions/`）
+4. 在右上角啟用「開發人員模式」
+5. 點擊「載入未封裝項目」按鈕
+6. 選擇步驟 2 的資料夾（`manifest.json` 等檔案所在的資料夾）
+7. 擴充功能應該已成功安裝並顯示在您的擴充功能列表中
+
+### 從專案原始碼編譯安裝
+
+1. 複製或下載此專案的原始碼到您的電腦
+2. 開啟終端機，並進入專案目錄
+3. 執行以下命令安裝相依套件並建置專案：
+
+   ```
+   npm ci && npm run build
+   ```
+
+4. 比照上一節的步驟 3–7 在瀏覽器安裝，其中在步驟 6 選擇專案中的 `dist` 資料夾
+
+## 使用方法
+
+1. 安裝擴充功能後，前往 [健保雲端資料系統](https://medcloud2.nhi.gov.tw/imu/)
+2. 點擊瀏覽器工具列中的擴充功能圖示開始使用
+3. 按照界面指示進行操作
+
+## 設定選項與預設值
+
+擴充功能提供多種設定選項，可以根據使用者的需求進行個人化。以下是各類設定及其預設值：
+
+### 一般顯示設定
+
+- **固定顯示總覽頁面**：開啟/關閉 開啟頁面時，固定顯示「總覽」頁面
+- **文字大小**
+  - 標題文字大小：中 (medium)
+  - 內容文字大小：中 (medium)
+  - 註釋文字大小：小 (small)
+- **浮動圖示位置**：右上 / 右中 / 右下
+
+### 西藥顯示設定
+
+- **簡化藥品名稱**：開啟/關閉 簡化藥物名稱功能
+- **顯示學名**：開啟/關閉 關閉 顯示藥品學名 （註釋文字）
+- **顯示診斷**：開啟/關閉顯示 ICD10 診斷 （註釋文字）
+- **顯示藥理分類 (ATC5)**：開啟/關閉顯示 ATC5 藥品分類名稱 （註釋文字）
+- **複製格式**：含用法用量 直式/橫式
+
+### 藥理分類 (ATC5) 設定
+
+- **啟用顏色標記**：開啟/關閉 ATC5 分類標記顏色
+- **分類群組** （預設值，可自行新增/刪減/更改內容）
+  - NSAID: 非類固醇消炎止痛藥
+  - ACEI: 血管張力素轉換酶抑制劑
+  - ARB: 血管張力素受體阻斷劑
+  - STATIN: 他汀類藥物
+  - SGLT2: 鈉-葡萄糖共同運輸蛋白-2 抑制劑
+  - GLP1: 胰高血糖素樣肽-1 受體激動劑
+- **顏色群組設定**
+  - 紅色標記：NSAID （預設值，可自行更改）
+  - 橙色標記：ARB, ACEI, STATIN （預設值，可自行更改）
+  - 綠色標記：（無預設值）
+
+### 中藥顯示設定
+
+- **顯示診斷**：開啟/關閉 顯示 ICD10 診斷
+- **顯示功效名稱**：開啟/關閉 功效名稱
+- **複製格式**：含用法用量 直式/橫式
+
+### 檢驗報告設定
+
+- **顯示檢驗單位**：開啟/關閉 顯示檢驗單位 （註釋文字）
+- **顯示檢驗參考值**：開啟/關閉 顯示檢驗的參考值 （註釋文字）
+- **顯示檢驗縮寫**：開啟/關閉 顯示檢驗名稱縮寫
+- **開啟異常值變色**：開啟/關閉 顯示檢驗數值異常變色，高於參考值為紅色，低於參考值為綠色
+- **檢驗報告呈現方式**：直式/橫式/兩欄/三欄/依分類 顯示
+- **檢驗報告複製格式**：直式/橫式
+
+### 「總覽」頁面設定
+
+- **用藥追蹤天數**：100 天 （預設值，可自行更改）
+- **檢驗追蹤天數**：180 天 （預設值，可自行更改）
+- **影像追蹤天數**：180 天 （預設值，可自行更改）
+- **關注檢驗項目**：預設包含常見檢驗項目 （有固定清單，可自行選定與排序）)
+- **關注影像項目**：預設包含常見影像檢查 （有固定清單，可自行選定）
+
+## 貢獻
+
+我們歡迎各種形式的貢獻！
+
+### 如何貢獻
+
+1. Fork 本專案
+2. 創建您的功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交您的修改 (`git commit -m 'feat: add some AmazingFeature'`)
+4. Push 到分支 (`git push origin feature/AmazingFeature`)
+5. 發起 Pull Request
+
+## 授權協議
+
+本專案採用 Apache License 2.0 授權。詳見 [LICENSE](LICENSE) 檔案。
+
+## 貢獻者
+
+感謝所有對本專案做出貢獻的開發者！
+
+- **leescot** - 專案維護者
+- aszk1415
+- Danny Lin
+- Hsieh-Ting Lin (林協霆)
+
+## 聯絡方式
+
+如有問題或建議，歡迎透過以下方式聯繫：
+
+- 提交 [GitHub Issue](https://github.com/ShowmarkHsu/NIHCloudAI/issues)
+- 查看 [GitHub Discussions](https://github.com/ShowmarkHsu/NIHCloudAI/discussions)
+
+---
+
+**免責聲明**：本工具僅供醫療專業人員輔助使用，所有醫療決策應基於專業判斷。

@@ -1,0 +1,22 @@
+{
+  "$schema": "./fixture.schema.json",
+  "fixtureVersion": 1,
+  "id": "sparse-and-malformed",
+  "synthetic": true,
+  "description": "Sparse fields, duplicates, unknown codes, invalid reference text, and an expired synthetic session fail safely.",
+  "coverage": ["missing-date", "empty-fields", "unknown-code", "duplicate-record", "unexpected-reference", "invalid-token", "expired-session", "safe-empty-fallback", "no-previous-patient-residue"],
+  "clock": {"now": "2026-06-30T12:00:00+08:00", "timezone": "Asia/Taipei"},
+  "sessions": [{"id": "fixture-session-sparse", "patientKey": "synthetic-patient-sparse"}, {"id": "fixture-session-expired", "patientKey": "synthetic-patient-expired"}],
+  "settingsVariants": [{"id": "default", "values": {"showLabReference": true, "showLabUnit": true}}],
+  "events": [
+    {"seq": 1, "type": "session-start", "sessionId": "fixture-session-expired", "patientKey": "synthetic-patient-expired"},
+    {"seq": 2, "type": "source-result", "sessionId": "fixture-session-expired", "patientKey": "synthetic-patient-expired", "source": "patient-summary", "status": "has-data", "body": {"rObject": [{"summary_text": "SYNTHETIC PREVIOUS PATIENT STATE"}]}, "error": null},
+    {"seq": 3, "type": "session-start", "sessionId": "fixture-session-sparse", "patientKey": "synthetic-patient-sparse"},
+    {"seq": 4, "type": "source-result", "sessionId": "fixture-session-sparse", "patientKey": "synthetic-patient-sparse", "source": "western-medication", "status": "malformed", "body": {"rObject": [{"drug_date": "", "drug_code": "SYN-UNKNOWN", "drug_ename": ""}, {"drug_date": "", "drug_code": "SYN-UNKNOWN", "drug_ename": ""}], "issues": ["missing-date", "empty-name", "duplicate-record", "unknown-code"]}, "error": null},
+    {"seq": 5, "type": "source-result", "sessionId": "fixture-session-sparse", "patientKey": "synthetic-patient-sparse", "source": "lab", "status": "malformed", "body": {"rObject": [{"inspect_date": "not-a-date", "order_code": "LAB-SYN-UNKNOWN", "assay_value": "not-a-number", "ref_value": "unexpected reference text"}], "issues": ["invalid-date", "invalid-reference"]}, "error": null},
+    {"seq": 6, "type": "source-result", "sessionId": "fixture-session-sparse", "patientKey": "synthetic-patient-sparse", "source": "patient-summary", "status": "unauthorized", "body": null, "error": {"code": "SYNTHETIC_INVALID_CREDENTIAL", "httpStatus": 401}},
+    {"seq": 7, "type": "source-result", "sessionId": "fixture-session-sparse", "patientKey": "synthetic-patient-sparse", "source": "imaging", "status": "confirmed-empty", "body": {"rObject": []}, "error": null},
+    {"seq": 8, "type": "source-result", "sessionId": "fixture-session-expired", "patientKey": "synthetic-patient-expired", "source": "patient-summary", "status": "has-data", "body": {"rObject": [{"summary_text": "SYNTHETIC EXPIRED SESSION TEXT"}]}, "error": null}
+  ],
+  "expected": {"activeSessionId": "fixture-session-sparse", "activePatientKey": "synthetic-patient-sparse", "acceptedEventSeq": [1, 2, 3, 4, 5, 6, 7], "rejectedEventSeq": [8], "sourceStates": {"western-medication": "malformed", "lab": "malformed", "patient-summary": "unauthorized", "imaging": "confirmed-empty"}}
+}

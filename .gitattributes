@@ -1,0 +1,5 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Byte-level clinical summary goldens must match the formatter's LF contract
+tests/fixtures/clinical/expected/*.txt text eol=lf

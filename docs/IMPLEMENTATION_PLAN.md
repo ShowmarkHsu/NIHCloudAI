@@ -1,51 +1,441 @@
-# NICloudAI 實作計畫
+# NIHCloudAI 實作與發布收斂計畫
 
-每一階段都建立可獨立驗證的垂直切片，先使用合成資料，最後才連接實際健保雲端頁面。
+最後更新：2026-09-02  
+目前分支：`codex/canonical-integration-0.2.0`  
+文件用途：作為跨 Codex session 的單一執行計畫與進度紀錄。
 
-目前已完成專案骨架、確定性規則、兩種 Provider adapter、無病歷連線測試、session-only BYOK、摘要協調流程、健保雲端薄型 adapter、合成 golden tests、`clinical-rules.v2` 與四個合成邊界案例的醫師／藥師重新認證，以及使用本機 Ollama `gemma4:e2b-it-qat` 的 Chrome MV3 合成 smoke。第一個遠端 API 已定為 OpenRouter，模型固定為 `openai/gpt-oss-120b`；合法授權健保頁面與 OpenRouter 的完整人工驗證已於 2026-08-12 由操作者回報通過。
+## 目標與發布邊界
 
-## 1. 專案骨架與合成資料
+將目前已接通的 NIHCloudAI Chrome Extension 與封閉 AI 摘要流程，收斂為可重現、可審核、具完整非 PHI 證據的受控試用候選版本。
 
-- 建立 Manifest V3、React、TypeScript 與測試環境。
-- 定義來源紀錄、病人快照、臨床事實、摘要輸出的 schema。
-- 建立不含真實病人資訊的合成 fixtures。
-- 完成病人切換與資料工作階段清除測試。
+在工程、人工操作、臨床／藥事及 release-owner gate 全部完成前，不得宣稱正式發布、release-ready 或可供一般臨床使用。
 
-## 2. 確定性資料處理
+## 狀態標記
 
-- 建立各資料類型 adapter，先以 fixtures 驗證。
-- 計算時間範圍、異常值、趨勢及用藥時間重疊。
-- 每個計算結果保留來源引用。
-- 建立純規則摘要畫面，確認沒有 LLM 時仍可使用。
+- `TODO`：尚未開始
+- `IN PROGRESS`：本次或後續 session 正在處理
+- `BLOCKED`：需要外部權限、人工環境或決策
+- `DONE`：已有可驗證證據
 
-## 3. 本機 Ollama
+## 基線快照
 
-- 實作 Provider 介面、timeout、取消與健康檢查。
-- 使用結構化輸出並驗證來源引用。
-- 建立模型失敗、格式錯誤、逾時與服務未啟動的 UI 狀態。
-- 以固定 fixtures 建立 golden tests。
+截至 2026-09-02：
 
-## 4. OpenRouter BYOK Provider
+- 工程實作估計完成度：85–90%。
+- 正式／臨床發布準備估計完成度：60–70%。
+- 方案 B 分支直接以 canonical `main@f48a741` 為祖先；未連接原本的 unrelated integration history。
+- `npm run verify:release`：通過。
+- AI tests：141 passed、5 個真實 Ollama cases skipped。
+- Browser Mocha：106 passed。
+- Extension localhost／iframe integration：通過。
+- Visual：45 passed、1 skipped；`settings-accordion-lab` 1440×900 的舊 golden 高度不一致已修正。
+- 最新 release builder 已支援 deterministic ZIP、manifest、`SHA256SUMS` 與 reproducible-build gate，但尚未有正式 release-owner inputs 與核准產物。
 
-- 建立設定頁、session-only secret vault 與清除功能。
-- 只由 background service worker 執行 Provider 請求。
-- 固定 OpenRouter endpoint，加入 optional host permission 與輸出遮罩。
-- 加入不含病歷的連線測試與第一次外送提醒。
+## 執行計畫
 
-## 5. 健保雲端整合
+### P0 — 恢復可信的工程與交付基線
 
-- 以參考專案與合法測試操作確認端點及資料格式。
-- 建立薄的健保資料擷取 adapter，避免 UI 和 LLM 依賴原始格式。
-- 驗證登入、授權過期、部分權限、無資料及病人切換情境。
-- 僅在本機人工測試中使用真實授權資料，不建立真實資料 fixture。
+| ID | 狀態 | 工作 | 完成條件 |
+| --- | --- | --- | --- |
+| P0.1 | DONE | 診斷 `settings-accordion-lab` 1px visual regression | 有穩定最小重現、根因、修正；完整 visual suite 通過且不盲目更新 golden |
+| P0.2 | DONE | 強化 release CI gate | 使用 `npm ci`，tag/release 前執行 `npm run verify` 與 `npm run test:visual` |
+| P0.3 | DONE | 建立跨 session 計畫與進度文件 | 本文件存在，含狀態、證據、下一步與續作規則 |
+| P0.4 | IN PROGRESS | 建立 integration branch remote tracking／PR 與 review 策略 | 分支有明確 remote、PR、review 與合併方式；不 force-push/rebase shared history |
+| P0.5 | DONE | 清理過時進度敘述 | Recovery/B6/CKM 文件不再把已完成項目列為未完成，且保留歷史稽核邊界 |
 
-2026-08-12 已完成合法環境的 origin、頁面範圍、五個資料子集、正規化病人快照、來源回查及授權生命週期驗證；紀錄不保存病人資料或原始 API 回應。
+### P1 — 定版產品與版本身份
 
-## 6. 臨床驗證與發布準備
+| ID | 狀態 | 工作 | 完成條件 |
+| --- | --- | --- | --- |
+| P1.1 | DONE | 盤點名稱、SemVer、manifest、package、README 與 tag 規則 | 形成一致方案與修改清單，標出需 owner 決策項目 |
+| P1.2 | DONE | 定版 NIHCloudAI 初始 SemVer 與產品名稱 | release owner 明確核准版本與名稱 |
+| P1.3 | DONE | 同步產品 metadata | `package.json`、Chrome manifest、README、CHANGELOG、release manifest 一致 |
+| P1.4 | DONE | 定義 RC、annotated tag 與 rollback 規則 | 文件化 tag 格式、RC 升版、撤回與回復流程 |
 
-- 已建立合成案例的必要驗收主張、量化門檻與不可接受輸出清單，並於 2026-08-12 完成醫師與藥師簽核。
-- 已建立缺漏欄位、矛盾來源、明示危急標記與用藥區間重疊的合成邊界案例與規則驗證；`clinical-rules.v2` 與四個案例已於 2026-08-12 完成醫師與藥師逐案重新認證。
-- 已在摘要生成脈絡記錄 Provider、模型、prompt、schema 與規則版本，並在 popup 提供安全版本投影。
-- 已完成 OpenRouter `openai/gpt-oss-120b` 的開發人員模式端對端人工驗證；見[OpenRouter 端對端驗證紀錄](./OPENROUTER_E2E_VALIDATION.md)。
-- 已執行權限、資料外送、secret、log 與建置產物檢查。
-- 已決定第一版僅以 Chrome 開發人員模式散布，並完成安裝、手動更新、移除、權限、隱私邊界與已知限制說明；見[開發人員模式散布與安裝指南](./DEVELOPER_MODE_DISTRIBUTION.md)。
+### P2 — 完成受控人工驗證
+
+| ID | 狀態 | 工作 | 完成條件 |
+| --- | --- | --- | --- |
+| P2.1 | BLOCKED | Developer-mode install/update/remove | 授權操作者依 runbook 完成並留下 bounded、non-PHI evidence |
+| P2.2 | BLOCKED | NHI-origin 八類資料與 session lifecycle | 核准測試病人上驗證收集、切病人、revision、登出、關分頁與取消 |
+| P2.3 | BLOCKED | Ollama direct-origin／optional permission | 固定模型與環境完成生成、驗證、review/copy、撤權流程 |
+| P2.4 | BLOCKED | OpenRouter 固定 route | 記錄 endpoint/model/version，逐 session consent、permission、BYOK 與 no-fallback 行為 |
+
+P2 僅允許保存結果、時間、版本與雜湊等 bounded evidence；不得保存 PHI、API key、request/response body、clipboard、HAR 或病人畫面。
+
+### P3 — 臨床驗收與正式產物核准
+
+| ID | 狀態 | 工作 | 完成條件 |
+| --- | --- | --- | --- |
+| P3.1 | BLOCKED | 整體 synthetic-summary 臨床／藥事驗收 | 當前 prompt/schema/rules/model 組合取得完整 acceptance |
+| P3.2 | BLOCKED | 彙整 evidence hashes | 必要 configuration、clinical 與操作證據均有可驗證 SHA-256 |
+| P3.3 | BLOCKED | 產生 immutable release candidate | 乾淨 commit 上產生 ZIP、manifest、`SHA256SUMS` 並通過 reproducibility |
+| P3.4 | BLOCKED | Release-owner 決策 | Artifact、Provenance、Publication 三項均有正式結果 |
+
+### P4 — 受控試用
+
+| ID | 狀態 | 工作 | 完成條件 |
+| --- | --- | --- | --- |
+| P4.1 | BLOCKED | 設計與核准 controlled pilot | P0–P3 全數完成，且安全、隱私、院內與臨床角色均核准 |
+| P4.2 | BLOCKED | 執行試用與 rollback 演練 | 有範圍、監測、停止條件、事件處理及回復紀錄 |
+
+## 依賴順序
+
+`P0 工程 gate → P1 產品身份 → P2 人工驗證 → P3 臨床與產物核准 → P4 受控試用`
+
+P0 與 P1 的純工程盤點可平行進行；P2 需要授權操作者、核准測試環境與 Provider 帳號；P3.3 必須等版本身份及所需 evidence hashes 固定後才能產生正式候選產物。
+
+## Release owner 決策
+
+2026-09-02 已確認：
+
+1. 既有 standalone annotated tag `v0.1.0` 視為同一產品 lineage；目前整合版從 `0.2.0` 開始，RC 使用 `v0.2.0-rc.N`；既有 tag 不得重用、移動或刪除。
+2. Canonical repository 為 `ShowmarkHsu/NIHCloudAI`。
+3. 沿用既有 Chrome extension ID；產品 SemVer 與 Chrome 單調遞增 build version 分離，使用 `version_name` 顯示 `NIHCloudAI 0.2.0`。
+4. 對外品牌與中文介面正式名稱均使用 `NIHCloudAI`，不另加未核准的中文副標。
+5. Release tag 使用 annotated signed tag；僅授權 release owner 可建立正式 tag/release。
+
+可直接採用、不需等待的發布規則：tag 僅從乾淨 `main`、完整 gates 與 evidence 通過後建立；RC 為 prerelease，stable 才是 latest；撤回版本保留 tag/hash 並標為 withdrawn，不移動 tag；程式回退使用 revert 並發布更高 patch 與 Chrome build version。
+
+## 跨 session 續作規則
+
+每次開始工作時：
+
+1. 讀取本文件、`git status --short --branch` 及最近提交。
+2. 驗證上一筆 `IN PROGRESS` 的實際狀態，不只依賴文字紀錄。
+3. 從「下一個可執行工作」開始；不得越過尚未完成的必要 gate。
+4. 保留使用者及其他代理的既有修改，不清除未知變更。
+
+每次結束工作前：
+
+1. 更新工作狀態與完成證據。
+2. 在下方新增進度紀錄，包含日期、執行項目、驗證結果、未解風險及下一步。
+3. 若為 `BLOCKED`，記錄需要的權限、外部資料或 owner 決策。
+4. 確認 `git status`，清楚列出本次新增或修改的檔案。
+
+## 進度紀錄
+
+### 2026-09-02 — 計畫啟動
+
+- 建立本文件，將既有建議轉為 P0–P4 可追蹤工作。
+- 啟動 P0.1 visual regression 診斷。
+- 啟動 P0.2 release CI gate 強化。
+- 啟動 P1.1 產品／版本身份盤點。
+- 保留發布邊界：目前只允許受控開發驗證，不宣稱正式或臨床可用。
+
+### 2026-09-02 — P0.2 與 P1.1
+
+- P0.2 完成：`.github/workflows/release.yml` 改用 `npm ci`，安裝 Playwright Chromium，且在 tag/release 前執行 `npm run verify` 與 `npm run test:visual`。
+- CI workflow 已通過 YAML parse、gate 順序、lockfile/scripts 存在性與 `git diff --check` 驗證；已知 visual 失敗現在會正確阻擋發布。
+- P1.1 完成：確認既有 annotated `v0.1.0` 指向非目前 HEAD 祖先的 standalone baseline，不能重用。
+- 建議整合版產品 SemVer 為 `0.2.0`、首個 RC 為 `v0.2.0-rc.1`；是否採用仍待 release owner 決定。
+- 找到 release schema 與 runtime 對 extension version 三段／四段接受範圍不一致；正式 RC 前需連同 SemVer prerelease 支援一起修正並加測試。
+
+下一個可執行工作：完成 P0.1；其後執行完整 visual 驗證。P0.4 需要建立 remote/PR 的外部寫入授權；P1.2–P1.4 等待上述 release-owner 決策。
+
+### 2026-09-02 — P0.1 Visual baseline 修復
+
+- 使用單一 Playwright case 建立 11–14 秒的 red-capable loop，連跑三次均穩定重現 760×418 對 760×419。
+- 逐像素比較確認 actual 前 418 rows 與舊 1440 golden 完全相同，只多出底部第 419 row；1024 golden 同為 760×419。
+- `LabSettings.jsx` 自 golden 建立 commit 起沒有變更；DOM 高度在兩 viewport 均為 417.515625px。已排除產品 CSS、內容、字型／依賴與動畫時序 regression。
+- 僅重錄 `settings-accordion-lab-desktop-1440x900.png`，未修改產品 CSS、未放寬 screenshot threshold。
+- `npm.cmd run test:visual`：visual CLI 1 passed；Playwright 45 passed、1 skipped，exit code 0。
+
+下一個可執行工作：完成 P0.5 文件收斂。P0.4 保持 blocked，需 owner 指定 canonical remote 並授權建立 remote branch／PR；P1.2–P1.4 等待 release-owner 決策。
+
+### 2026-09-02 — P0.5 文件狀態收斂
+
+- `PROJECT_RECOVERY_PLAN.md` 與 `B6_RELEASE_EVIDENCE.md` 頂部新增 current-status 指引，明確保留歷史稽核內容，並將目前執行狀態導向本文件。
+- CKM screening plan 註明舊 checkbox 曾過時；Tasks 1–4 依現有程式、測試及 commits 補登完成。
+- Task 5 僅補登本次可重現的 build 與 browser suite；指定 mock fixture 不存在，mock、人工驗證與收尾維持未完成，未用推測補登。
+- 驗證：screening formula smoke values 符合預期；build 成功；相關 ESLint 通過；browser Mocha 106 passed；`git diff --check` 通過。
+
+### 本次 session handoff
+
+- 已完成：P0.1、P0.2、P0.3、P0.5、P1.1。
+- 外部阻塞：P0.4 需要 canonical remote 決策及建立 remote branch／PR 的授權。
+- Owner 決策阻塞：P1.2–P1.4 需要決定產品 lineage、canonical repository、Chrome build version 映射、中文名稱與 tag 簽署／權限。
+- 環境阻塞：P2、P3.1、P3.4、P4 需要授權操作者、核准測試環境、Provider 帳號、臨床／藥事及 release-owner 角色。
+
+下一個 session 應先讀取「待 release owner 決策」，取得決策後執行 P1.2–P1.4；若 owner 同時授權外部 Git 寫入，才執行 P0.4。
+
+### 2026-09-02 — Release owner 決策確認
+
+- 核准產品版本 `0.2.0` 與首個候選 tag `v0.2.0-rc.1`。
+- 核准 canonical repository `ShowmarkHsu/NIHCloudAI`，並授權準備 integration remote branch／PR。
+- 核准產品 SemVer 與 Chrome build version 分離、沿用 extension ID，品牌與中文介面名稱均使用 `NIHCloudAI`。
+- 核准 annotated signed tag 與 main-only、clean-tree、all-gates-before-release 規則。
+- P1.2 標記完成；啟動 P0.4、P1.3、P1.4。
+
+### 2026-09-02 — P0.4 Canonical history blocker
+
+- 唯讀確認 canonical `nicloudai/main` 指向 standalone `v0.1.0` commit `f48a741`；目前 `codex/integration-recovery` 與它沒有共同祖先。
+- Canonical remote 尚無 `codex/integration-recovery` branch；目前 `gh` authentication token 已失效，無法確認 private repository 的既有 PR、ruleset 或 branch protection。
+- 禁止直接 push／開一般 PR，避免產生 unrelated-history 的巨型替換或破壞 canonical history。
+- 待 owner 選擇：A）建立明確的 unrelated-history bridge merge，完整保留兩邊歷史但接受大型 reconciliation PR；B）從 canonical `main` 建新 integration branch，挑選或重做必要變更，較安全但工作量較大。預設建議 B。
+- 在重新完成 `gh auth`、選定 reconciliation 策略及本地變更收斂前，P0.4 維持 `BLOCKED`。
+
+### 2026-09-02 — P1.3／P1.4 產品身份與發布治理
+
+- Package identity 更新為 `nihcloudai@0.2.0`；canonical repository、issues 與 homepage 統一為 `ShowmarkHsu/NIHCloudAI`。
+- Chrome manifest 品牌改為 `NIHCloudAI`，build version 以合法且單調遞增的 `26.702.2` 取代含前導零的舊格式，`version_name` 為 `NIHCloudAI 0.2.0`。
+- UI、README、CHANGELOG 與 build artifact stem 統一為 NIHCloudAI／`nihcloudai-extension`；舊 alpha/stable release-branch scripts 改為 fail-fast，避免違反 main-only policy。
+- Release schema、runtime validator 與 artifact builder 已支援完整 SemVer 2.0 prerelease（包含 `0.2.0-rc.1`）及三／四段 Chrome build version；補上 malformed prerelease、leading zero 與段數 drift 測試。
+- 上游 baseline schema 升至 v2，明確將歷史 integration repository、上游 `26.0702.1` provenance 與目前產品 `0.2.0` 身份分離；`baseline:check` 通過。
+- 新增 `RELEASE_GOVERNANCE.md`，固定 RC、signed annotated tag、immutable artifact、withdraw/revert/patch rollback 與 evidence gate 規則。
+- Release workflow 不再自行建立日期 tag 或一般 ZIP；只接受與輸入版本相符、GitHub signature verification 通過的既有 annotated tag，要求五個 evidence SHA-256，並使用 deterministic builder 產生 ZIP、manifest 與 `SHA256SUMS`。
+- Release workflow 已拆成 read-only verify/package job 與受 `release` environment 保護的 write-only draft publish job；驗 tag commit 位於 canonical `main`、stable 與核准 RC 同 commit，拒絕既有 release／asset overwrite，並將第三方 Actions pin 到不可變 commit SHA。
+- 完整驗證：`npm.cmd run verify` exit 0；AI 140 passed、5 skipped，typecheck/lint/characterization/build/release-readiness 通過，Browser 106 passed，Extension integration 通過。
+- Visual：CLI 1 passed；Playwright 45 passed、1 skipped，exit 0。
+- Release builder 新增 source identity fail-closed gate：tag/workflow release version 必須同時等於 `package.json` version 與 Chrome `version_name`；新增 mismatch regression test，immutable artifact suite 8/8 與 typecheck 通過。
+
+### 本次更新後 handoff
+
+- P1.2–P1.4 已完成；目前本地產品身份與發布契約已收斂。
+- P0.4 仍 blocked：canonical 與 integration histories unrelated，且 `gh` token 失效。預設建議從 canonical `main` 建新 integration branch，再挑選／重做必要變更。
+- P2 仍需要授權操作者、核准環境與 Provider access；P3.2 等待五份外部 evidence hashes，P3.3 必須在 canonical clean commit 上執行，P3.4 等待 release-owner 最終核准。
+- 建立 `v0.2.0-rc.1` 前，候選 commit 必須先將 `package.json` 與 `version_name` 切換為 `0.2.0-rc.1`；目前 `0.2.0` 表示目標 stable identity，不可直接被 builder 誤標為 RC。
+- Canonical repository 尚須由 owner 設定受保護的 `release` Environment、required reviewer、signed-tag ruleset 與不可變 releases／attestation；設定完成並可驗證前 Publication gate 保持 blocked。
+
+### 2026-09-02 — 獨立 release audit 與 hardening
+
+- 依 Chrome 官方規範發現 `26.0702.2` 的非零段含前導零，不是合法 Web Store version；改採可保持數值順序的合法 `26.702.2`。
+- Builder、runtime schema 與 JSON Schema 現在一致驗證 Chrome 1–4 段、每段 0–65535、非零段不得前導零、版本不得全零；測試涵蓋合法四段、前導零、65536、全零與五段拒絕。
+- Release workflow 改用 Windows runner，與目前 visual golden 平台一致；移除 Linux `--with-deps` 路徑。
+- Workflow 新增 per-tag concurrency、canonical repository/main ancestry、existing release refusal、stable-to-approved-RC same-commit gate。
+- Verify/package job 僅 `contents: read` 且 `persist-credentials: false`；draft publish job 才有 `contents: write`，且不 checkout 或執行 repository code。
+- `checkout`、`setup-node`、`upload-artifact`、`download-artifact` 與 `action-gh-release` 全部 pin 到查得的不可變 commit；release action 升至受支援的 v3，設定 `overwrite_files: false` 與 unmatched-file failure。
+- 最終 `npm.cmd run verify`：AI 141 passed、5 real-Ollama skipped；typecheck、lint、characterization 9/9、build、23-artifact readiness、Browser 106、Extension integration 全通過。
+- 最終 `npm.cmd run test:visual`：CLI 1 passed；Playwright 45 passed、1 skipped，exit 0。
+
+剩餘 release blocker：canonical history reconciliation、有效 `gh auth`、受保護 release environment/tag ruleset/immutable releases、可定位且不可變的五份 evidence objects 與 hashes、P2 人工驗證及整體臨床／藥事 acceptance。
+
+### 2026-09-02 — 方案 B：canonical integration migration 啟動
+
+- 重新驗證 GitHub 與本機的 canonical `main` 均為 `f48a741`；目前來源 HEAD 為 `26db24a`，兩者 `merge-base` 不存在，history blocker 與前次 handoff 一致。
+- `gh auth status` 確認 `ShowmarkHsu` token 無效；remote branch、PR、environment、ruleset 與 immutable-release 設定仍待重新授權後確認。
+- 從 `f48a741` 建立隔離分支 `codex/canonical-integration-0.2.0` 與獨立 worktree；原 `codex/integration-recovery` dirty worktree 未 reset、checkout、clean 或覆寫。
+- Commit `d5ca728` 將 canonical v0.1.0 治理、驗收與架構文件原樣保存至 `docs/history/v0.1.0/`，並標明其證據不滿足 v0.2.0 的 P2/P3 gates。
+- Commit `f7debf6` 以 `f48a741` 到 upstream-integrated `cad76e5` 的直接 two-tree diff 導入應用基線；未建立 unrelated-history merge parent。Patch SHA-256：`B2C9209795B2F6EA832DD96163C496B26B21CAB8E64B0C1917E2CE7830183236`。
+- 基線 `npm run build` 通過。`cad76e5` 本身沒有 lockfile，因此本批不能執行 `npm ci`；lockfile 由後續 integration commits 恢復後再執行 clean-install gate。
+- P0.4 改為 `IN PROGRESS`。下一步依原順序分段移植 `cad76e5..26db24a` 的既有 commits，每段執行相應測試；之後再分批套用未提交的 visual、文件、provenance、identity、release contract、builder 與 workflow hardening。
+
+### 2026-09-02 — 方案 B batch 1：provenance／characterization／visual 基線
+
+- 依原順序移植來源 `75b0486..4a06360` 六個 commits；新分支對應範圍為 `866aa46..b534697`，保留每個原始 commit 的作者、訊息與可審查邊界。
+- 驗證通過：synthetic fixtures 6/6、non-AI characterization 8/8、Browser Mocha 106 passed、Playwright visual 40 passed。
+- `baseline:check` 在本批預期失敗：舊 gate 只接受 `cad76e5` 為 Git ancestor，但方案 B 以可驗證 two-tree patch 導入且刻意不連接 unrelated history。後續 provenance hardening 必須改以固定來源 tree／patch hash 驗證此 migration，並在最終 `npm run verify` 前補回全綠。
+- 未建立 tag、artifact 或 release；原 dirty worktree 保持不變。下一批移植 typed boundary、lint、AI contracts 與 release schema。
+
+### 2026-09-02 — 方案 B batch 2：typed boundary／AI contracts
+
+- 依原順序移植來源 `821483c..c5c162a` 五個 commits；新分支對應範圍為 `287250d..0e3162a`。
+- 驗證通過：AI 18 passed、TypeScript AI typecheck、B1/AI lint scope 與 lint。
+- 下一批移植 projection、session/security、summary state 與 B6 readiness；publication 與 P2/P3 gates 維持 blocked。
+
+### 2026-09-02 — 方案 B batches 3–5：closed AI runtime 與 controlled-validation code
+
+- 依原順序移植來源 `aeec581..6419eea` 七十二個 commits，涵蓋 projection、tab-scoped session/security、fixed summary、runtime/provider/iframe、permission、transport、coverage、phase-one clinical sources 與 extension UI tests。
+- 中途 byte-level summary golden 因 Windows 初次 materialization 為 CRLF 而失敗；來源 commit `8857722` 已加入 `eol=lf`，將原工作樹的相同 blob 以 LF 物化並重新索引後，未產生內容差異，相關 formatter test 回復通過。
+- 乾淨安裝：移除本次建立的 `node_modules` junction 並確認原工作樹依賴仍存在；隔離 worktree 的 `npm ci` 通過。
+- 前半批驗證通過：AI 118 passed、typecheck、lint、characterization 9/9、build、23-artifact readiness、Browser 106、Extension iframe integration、visual CLI 1 與 Playwright 46 passed。
+- 後半批驗證通過：AI 125 passed、2 real-Ollama skipped、typecheck、build、23-artifact readiness、Extension iframe integration。
+- `baseline:check` 的 ancestry-only 限制仍是已知 migration gate，留待 provenance batch 修正；P2/P3 文件中的舊 bounded observations 不升級為本次正式 acceptance。
+- 下一批移植剩餘 summary/provider/release/extension closure 與 immutable builder commits。
+
+### 2026-09-02 — 方案 B batch 6：完成 committed integration history 移植
+
+- 依原順序移植來源 `5a4231a..26db24a` 最後二十六個 commits；累計 109 個 `cad76e5` 之後的既有 commits 全數移植，未建立 unrelated-history merge。
+- 排除本 migration 新增的 `docs/history/v0.1.0/` 與本計畫文件後，新分支 tree 與來源 `26db24a` 無差異。
+- 驗證通過：AI 138 passed、5 real-Ollama skipped、typecheck、lint、characterization 9/9、build、23-artifact readiness、Browser 106、Extension iframe 與 localhost injection integration、visual CLI 1 與 Playwright 46 passed。
+- `baseline:check` 仍只因 ancestry-only 假設 blocked。下一步分批套用原 dirty delta，並在 provenance batch 以 canonical snapshot migration evidence 修正此 gate。
+
+### 2026-09-03 — 方案 B dirty batch A：visual golden
+
+- Commit `9dade0c` 只移植 `settings-accordion-lab-desktop-1440x900.png`，SHA-256 為 `FF5381C3ACC87D7E11015603D534310418F69EE1BB5C87F239002575A3E822A9`。
+- 專案 visual runner 的 settings-accordion 單一 case 2/2 通過；完整 visual CLI 1 passed、Playwright 46 passed。
+- 直接呼叫 Playwright CLI 曾因未啟動 Vite server 出現 `ERR_CONNECTION_REFUSED`；改用專案自帶且負責 server lifecycle 的 runner 後通過，未修改產品或測試門檻。
+- 下一批移植 recovery/B6/CKM 文件 current-status 收斂；P2/P3 與 publication 仍 blocked。
+
+### 2026-09-03 — 方案 B dirty batch B：current-status 文件收斂
+
+- Commit `acbd304` 移植 `B6_RELEASE_EVIDENCE.md`、`PROJECT_RECOVERY_PLAN.md` 與 CKM screening plan 的 current-status 更新；保留原歷史內容並避免把舊 evidence 誤列為 v0.2.0 的 P2/P3 acceptance。
+- `git diff --check` 通過，僅有 Windows LF→CRLF 提示；未改動產品程式。
+- 下一批處理 upstream provenance schema/checker，並修正方案 B 不具 upstream ancestor 的可驗證 snapshot migration gate。
+
+### 2026-09-03 — 方案 B dirty batch C：canonical snapshot provenance
+
+- Commit `ba3c56a` 將 upstream baseline schema 升至 v3，記錄 canonical base、upstream snapshot/tree、import commit/tree 與 two-tree patch SHA-256。
+- `baseline:check` 現在保留原 upstream-ancestor 模式，並增加 canonical-two-tree-patch 模式；本分支驗證 canonical base/import ancestry 與 immutable import tree 後通過。
+- Package-coupled focused contract test 已驗證 migration assertions，但因 identity 尚為 `nhitw-cloud-analyzer@26.0702.1` 而預期失敗；該 test 不納入本 commit，留待下一個 `nihcloudai@0.2.0` identity 批次一起轉綠。
+- 下一批移植 package/lock、Chrome manifest、品牌 UI、README/CHANGELOG、build 與 test mock identity。
+
+### 2026-09-03 — 方案 B dirty batch D：NIHCloudAI 0.2.0 identity
+
+- Commit `4297bed` 統一 package/lock、canonical URLs、Chrome manifest、build、UI、README/CHANGELOG 與 visual mock：`nihcloudai@0.2.0`、Chrome `26.702.2`、`NIHCloudAI 0.2.0`。
+- 隔離 worktree 的 `npm ci` 完成：added 506 packages、0 vulnerabilities。期間一次 partial install 造成 `ENOTEMPTY`；確認無殘留 npm/node process後，重跑同一 clean install 成功。
+- 驗證通過：canonical snapshot `baseline:check`、focused identity/provenance contract 2/2、build、Browser 106、visual CLI 1、Playwright 45 passed／1 skipped。
+- 下一批移植 release SemVer/Chrome schema 與 runtime contract；仍不建立 RC tag 或 artifact。
+
+### 2026-09-03 — 方案 B dirty batch E：release version contracts
+
+- Commit `ee9ed0f` 對齊 JSON Schema、runtime validator 與 contract tests，支援完整 SemVer prerelease 及合法 Chrome 1–4 段 build version，並拒絕前導零、超界、全零與段數 drift。
+- Focused release contract 7/7 與 AI typecheck 通過；`git diff --check` 無錯誤。
+- 下一批移植 deterministic builder 的 source-identity fail-closed gate 與 immutable artifact tests；只執行測試內的 temporary artifacts，不建立 RC 或正式 artifact。
+
+### 2026-09-03 — 方案 B dirty batch F：immutable builder hardening
+
+- Commit `9ddb53e` 移植 builder 的 source-identity fail-closed gate：release input/tag version 必須與 package version、Chrome `version_name` 一致。
+- Immutable artifact suite 8/8 與 AI typecheck 通過；測試產物僅位於 temporary repos/directories，未建立 RC tag 或正式 release artifact。
+- 下一批移植 signed-tag、canonical-main、evidence-hash、protected-environment draft publication workflow 與 fail-fast legacy release scripts。
+
+### 2026-09-03 — 方案 B dirty batch G：release workflow 與治理
+
+- Commit `40082c1` 移植 signed annotated tag、canonical-main ancestry、evidence hashes、stable-to-approved-RC、existing-release refusal、protected `release` environment 與 draft-only publication workflow；legacy alpha/stable scripts 改為 fail fast。
+- Workflow YAML 以 lockfile 既有 `js-yaml` 成功解析；兩支 shell script 通過 `bash -n`；`npm run verify:release` 通過：AI 141 passed／5 real-Ollama skipped、typecheck、lint、characterization 9/9、build、23-artifact readiness 全綠。
+- 未 dispatch workflow、未建立 tag、未建立正式 artifact 或 GitHub release。Protected environment/required reviewer/signed-tag ruleset/immutable releases/attestation 在 gh 重新授權並可驗證前，Publication gate 仍 blocked。
+- 原 dirty delta 已全部按批次移植。下一步稽核 tree 差異與原 dirty worktree 完整性，更新 ledger 後執行最終 `npm run verify` 與 `npm run test:visual`。
+
+### 2026-09-03 — 方案 B 本地移植完成與最終 gates
+
+- 原 dirty delta 已完成移植。22 個不需 migration 特化的 dirty/untracked 路徑以 Git blob hash 逐一比對，來源工作樹與新 branch 22/22 相同；五個 upstream provenance 路徑則包含方案 B 所需的 schema v3、import commit/tree 與 patch hash 擴充。
+- 原 `codex/integration-recovery` 仍保有 26 個 tracked modifications 與兩個 untracked docs；全程未 reset、checkout、clean、force-push 或覆寫該工作樹。隔離 `codex/canonical-integration-0.2.0` worktree 在本進度更新前乾淨。
+- 最終 `npm run verify` 通過：AI 141 passed、5 real-Ollama skipped；typecheck、lint、characterization 9/9、build、23-artifact readiness、Browser 106、Extension localhost 與 iframe integration 全通過。
+- 最終 `npm run test:visual` 通過：visual CLI 1 passed；Playwright 45 passed、1 skipped。
+- GitHub canonical `main` 再次以 `git ls-remote` 確認仍為 `f48a741`。`gh auth status` 仍顯示 `ShowmarkHsu` token invalid，因此尚未 push、建立 PR 或檢查 repository protection settings；P0.4 維持 `IN PROGRESS`。
+- Publication gate 維持 blocked：尚未驗證 protected `release` environment、required reviewer、signed-tag ruleset、immutable releases/attestation，且 P2/P3 evidence 與臨床／藥事 acceptance 未完成。不得建立 RC tag、正式 artifact 或發布。
+
+下一個可執行工作：由使用者執行 `gh auth login -h github.com` 後，唯讀稽核 canonical branch protection、release environment、ruleset、immutable releases/attestation；確認安全後再 push `codex/canonical-integration-0.2.0` 並建立 reconciliation PR。
+
+### 2026-09-03 — GitHub authentication 與 publication-control 稽核
+
+- `gh auth status` 已恢復：`ShowmarkHsu` 為 active account，具 `repo` 與 `workflow` scopes；canonical repository 為 private `ShowmarkHsu/NIHCloudAI`，default branch 為 `main`。
+- Canonical `main` 再次確認仍為 `f48a741`，遠端尚無 `codex/canonical-integration-0.2.0`，因此沒有覆寫既有 branch 的風險。
+- `main` branch protection 與 repository rulesets API 均回覆 HTTP 403：目前 private repository 方案需升級 GitHub Pro 或改為 public 才能啟用。不得把無法設定誤記為已保護。
+- Repository environments 回覆 `total_count: 0`，`release` environment 不存在，因此沒有 required reviewer gate。
+- Immutable releases API 回覆 `enabled: false`、`enforced_by_owner: false`；attestation publication control 尚未建立可驗證設定。
+- Publication gate 維持 `BLOCKED`。允許下一步只做非 force push 的 integration branch 與 draft reconciliation PR；不得 merge、建立 tag、RC artifact 或 release。
+
+### 2026-09-03 — Remote integration branch 與 draft PR
+
+- 以一般 push 建立 remote branch `nicloudai/codex/canonical-integration-0.2.0`，tracking 已設定；push 前確認遠端 branch 不存在、canonical `main@f48a741` 是本分支 ancestor，未使用 force、rebase 或 unrelated-history merge。
+- 建立 draft reconciliation PR #1：`https://github.com/ShowmarkHsu/NIHCloudAI/pull/1`。PR 明列 v0.1.0 evidence 保存、two-tree snapshot provenance、109 個 commit replay、dirty batches、完整測試與 publication blockers。
+- P0.4 的 remote tracking、PR 與 review/merge 策略已建立，但在人工作業完成 review 前維持 `IN PROGRESS`；PR 必須保持 draft，不得因 repository 無 protection 而直接合併。
+- 下一步由 release owner 決定 GitHub plan/visibility 方案以取得 branch/ruleset 功能，並安排 reconciliation review。改為 public 是重大 visibility 變更，不得由代理自行執行。
+
+### 2026-09-03 — P2/P3 evidence 封裝準備
+
+- 新增 `RELEASE_EVIDENCE_PREPARATION.md`，把 release workflow 所需的 Ollama configuration、Ollama clinical acceptance、OpenRouter configuration、OpenRouter clinical acceptance 與 OpenRouter metadata 定義為五個獨立、不可變 evidence objects。
+- 文件固定每個 object 的最小封面、候選 commit／contract 綁定、必要核准角色、受控 locator、雙實作 SHA-256 核對與 release-owner digest ledger；明確禁止把空白範本、歷史觀察或自動化測試結果當成 acceptance。
+- Runbook 已連到此封裝流程。此批只完成不需臨床授權的準備工作；沒有填造結果、簽核或 digest。P2.1–P2.4、P3.1–P3.4 均維持 `BLOCKED`，且不得建立 tag、artifact 或 release。
+
+### 2026-09-03 — Handoff／GitHub 治理／Draft PR 再稽核
+
+- 原 dirty worktree 仍位於 `codex/integration-recovery@26db24a`，保有 26 個 tracked modifications 與兩個 untracked documents；隔離分支在本次文件更新前為 `ce187d2`、乾淨且追蹤遠端同名分支。Canonical `main` 與遠端均仍為 `f48a741`，原 integration history 與 canonical main 仍無共同祖先，handoff 無漂移。
+- Canonical repository 仍為 private；GitHub API 不揭露 account plan 名稱，但 `main` 回報 `protected: false`，branch protection 與 repository rulesets API 均回 HTTP 403：`Upgrade to GitHub Pro or make this repository public to enable this feature.`。不得繞過或把不可用功能記為已設定。
+- Repository environments 仍為 0，沒有 `release` environment 或 required reviewer；immutable releases 仍為 `enabled: false`／`enforced_by_owner: false`。Releases、Actions artifacts 與 deployments 均為空；tags 只有既有 `v0.1.0`。
+- Draft PR #1 在 evidence 準備 commit 推送後仍為 Open／Draft，base `main@f48a741`、head `codex/canonical-integration-0.2.0@5aa18f8`，mergeable 只表示 Git 可合併，不代表治理 gate 通過。PR 現為 134 commits、485 files、約 +130630/−13199；沒有 reviews、review requests、comments、status checks、check runs 或 workflow runs。
+- PR body 的 canonical 起點、unrelated-history 隔離、two-tree snapshot provenance、109 commits replay、dirty-worktree 保留及 publication blockers 與實況一致；但遠端完全沒有 CI／review evidence，因此 P0.4 維持 `IN PROGRESS`，PR 不具 Ready 或 merge 條件。
+- GitHub plan 升級或 visibility 變更前，branch protection、required checks 與 `v*` signed-tag ruleset 保持外部 blocker；visibility 是重大設定，不由代理自行變更。Protected environment、required reviewer、immutable release／attestation、P2/P3 evidence 與臨床／藥事 acceptance 也仍未完成，不得轉 Ready、merge、建立 RC tag、artifact 或 release。
+
+### 2026-09-03 — 本 session 最終工程 gates
+
+- `npm run verify` 通過：AI 141 passed／5 real-Ollama skipped、typecheck、lint、characterization 9/9、build、23-artifact readiness、Browser 106、Extension localhost 與 iframe integration 全部通過。
+- `npm run test:visual` 通過：visual CLI 1 passed；Playwright 45 passed、1 skipped。
+- 本次只有治理／evidence 文件變更，沒有建立或發布 RC tag、artifact 或 release；完整 gates 通過不會解除上述 GitHub 治理、人工 P2/P3、臨床／藥事或 release-owner blockers。
+
+### 2026-09-03 — PR standards review：React lint 與 visual harness 文件
+
+- 兩軸 PR review 的 Standards 軸發現 production lint 固定為 React 18.3、visual lint 固定為 19.0，但 package runtime 已是 React 19；兩個 scope 均改用 eslint-plugin-react 的 `detect`，避免後續版本再漂移。
+- Visual README 移除「unchanged upstream」的失真敘述，改為直接 import／mount production components、不複製 rendering，並補記 sealed AI safe-empty、coverage、opaque alias 與 raw alias 不外洩的現有案例。
+- `npm run lint` 通過，production／visual `eslint --print-config` 均解析 `react.version=detect`；此批不改產品 runtime，也不改任何 release gate 狀態。
+
+### 2026-09-04 — PR spec review：方案 B provenance fail-closed 修正
+
+- Spec review 發現 canonical-two-tree-patch mode 只驗 canonical base/import ancestry 與 import tree，沒有取得 pinned upstream snapshot、驗 snapshot tree 或重算 patch digest；fresh canonical clone 可能在缺少 source object 時仍把 provenance 誤列為通過。
+- Verifier 現在在缺少 snapshot object 時由 baseline repository fetch 固定 commit 到 temporary ref，驗證 commit 與 upstream tree，完成後刪除 temporary ref且不新增 permanent remote；fetch、tree 或 digest 任一步失敗即 fail closed。
+- 稽核亦確認舊 ledger 的 `b2c920…` 無法依已記錄的 two-tree 定義重現，且不能改用不同的 import-parent→import 意義硬湊。現明確固定 canonical-base→upstream-snapshot 的 `git diff --binary --full-index --no-ext-diff --no-textconv` bytes，新可重現 SHA-256 為 `aa9d8bc02ff40ee43c33c36237fe9dcbe910134b513d21341c23efcbb8ea44ca`；舊值保留在本歷史紀錄但不再作有效 provenance input。
+- Regression tests 覆蓋 temporary fetch/no permanent remote、snapshot 無法取得、snapshot tree tamper 與 patch digest tamper；AI 145 passed、5 real-Ollama skipped，`baseline:check` 通過。此工程 provenance 修正不等於 P3.2 外部 evidence hashes 或 P3.4 release-owner 核准。
+- 初次完整 gate 另抓到 `.mjs` verifier test import 與 Buffer helper overload 的 TypeScript 邊界問題；保留 strict typecheck，以明確的 executable-script boundary 註記及相容 overload 修正，`npm run typecheck:ai` 隨後通過。
+
+### 2026-09-04 — PR spec review：stable promotion 與 publication fail-closed
+
+- Spec review 確認舊規則同時要求 RC/stable 指向同一 commit，又要求該 commit 的 package／Chrome identity 分別等於 RC 與 stable，形成永遠無法通過的矛盾。現改為 stable promotion commit：必須是最後一個已核准且已發布 RC commit 的直接 child，且只可修改 `package.json`、`package-lock.json`、`public/manifest.json` 三個版本身份檔；stable 自身仍須重跑 gates 與重新綁定適用 evidence。
+- `approved_rc_tag` 現須對應 `isPrerelease=true` 且 `isDraft=false` 的已發布 RC，不再讓任意 draft prerelease 冒充核准 RC。
+- Verify/package job 在建置任何正式 artifact 前，先以 `RELEASE_GOVERNANCE_TOKEN` fail closed 查核 canonical main 已保護且有 strict required status checks、`release` environment 含 required reviewer 且禁止 self-review、immutable releases 已啟用，以及唯一由 `ShowmarkHsu`（user ID `12873164`）bypass 的 active `refs/tags/v*` creation/update/deletion ruleset；token 缺失、API 無權或任何設定不符皆停止。Signed annotated tag 仍另由 GitHub verification 驗證。
+- 新增納入 `verify:release` 的 workflow contract suite：11/11 通過，覆蓋 promotion direct-parent/allowlist、draft RC 拒絕、strict required checks、environment reviewer/no-self-review、immutable releases、tag ruleset唯一 bypass actor與 governance token。Workflow YAML parse 通過。
+- 現有 GitHub private plan blocker、未建立 environment/ruleset、immutable releases disabled 與 token 未配置，會讓新 preflight 預期 fail closed；這是正確阻擋，不是 gate 完成。PR 繼續保持 Draft，不得 merge、tag、artifact 或 release。
+
+### 2026-09-04 — Review 修正後完整 gates
+
+- `npm run verify` 通過：AI 145 passed／5 real-Ollama skipped、release workflow contracts 11/11、typecheck、lint、characterization 9/9、build、23-artifact readiness、Browser 106、Extension localhost 與 iframe integration 全部通過。
+- `npm run test:visual` 通過：visual CLI 1 passed；Playwright 45 passed、1 skipped。
+- Review 的 Standards 軸共 4 項（2 hard、2 judgement calls）；本次完成兩項 hard drift。Spec 軸共 4 項（2 high、2 medium）；本次完成 stable promotion、publication fail-closed、approved RC 與 two-tree provenance 四項修正。較低風險的 format-editor duplication／legacy no-op 重構不混入本次 release 收斂批次。
+- 工程 gates 全綠仍不解除 GitHub 方案／治理、PR review、P2/P3、臨床／藥事與 release-owner blockers；PR 必須維持 Draft。
+
+### 2026-09-07 — Browser Mocha completion-signal closure
+
+- 維持原始 dirty worktree `codex/integration-recovery@26db24a9176a2ed1d46179173a07e5ac2d6f994f` 不變；保留 26 個 tracked modifications 與 2 個 untracked documents。所有工程變更均在隔離 worktree `codex/canonical-integration-0.2.0` 完成。
+- 本 session 延續並推送 `c84133d`、`a423052`、`897ce56`、`c307d17`；最新工程修正為 `9ad46f4 fix(test): wait for browser mocha runner completion`。
+- CI failure chain：PR run `33849218995` 的 visual SUCCESS、verify FAILURE；verify 在 `npm run test:browser` 等待 `#mocha-stats.pass` 60 秒超時，pageErrors 為空、readyState=complete、Mocha/stats/scripts 均已載入。實測 Mocha DOM 會完成，但 reporter DOM class 不應作為唯一完成協定。
+- 先建立 `tests/browser-mocha-completion.test.mjs` red-capable regression test；修正前以 3 秒超時變紅。根因是 browser runner 未暴露可靠的 runner lifecycle completion signal，而非測試本身未完成。
+- 修正 `tests/test.js` 使用 `mocha.run(callback)`，將 runner stats 暴露為 `globalThis.__browserMochaResult`；`tests/run-browser-mocha.mjs` 改等待明確結果，並在未完成時回報 stats、page errors、未完成測試、readyState 與 bootstrap 狀態。新增 focused npm script `test:browser:completion`。
+- 修正後 focused completion test、`npm run test:browser` 均通過（106 passed, 0 failures, 0 pending）；未增加 timeout、skip、移除 required check 或重跑掩蓋失敗。
+- 推送後 PR #1 仍為 OPEN/Draft，base `main@f48a7411786ecd7b6586ff26e33a446827d378b0`；新 workflow run `34077774836` 已針對 `9ad46f4` 啟動，最終狀態須於本次 docs commit 後重新追蹤。
+- 治理與 release blockers 維持：private repository plan gate 使 main protection/rulesets API 回 403；`release` environment/required reviewer 未建立；immutable releases disabled；`RELEASE_GOVERNANCE_TOKEN` 未設定；P2/P3 evidence、臨床／藥事 acceptance、release-owner artifact/provenance/publication gates 未完成。因此不得 Ready、merge、tag、建立正式 artifact 或 release。
+
+### 2026-09-07 — CI failure follow-up：timezone portability
+
+- 工程 diagnostics commit `d538d0f` 讓 CI 在 completion signal 成功後回報實際失敗案例：`test_chineseMedProcessor.js:2222` 的 `calculateRemainingDays` 在非台北時區將含 `+0800` 日期以 runtime `setHours(0)` 正規化，造成 `1.041666...` 與預期 2 不一致；以 Playwright `America/Los_Angeles` 本地重現。
+- 修正 commit `b4ceb96 fix(test): normalize dated medication fixtures by calendar day`：日期字串改依自身 `YYYY-MM-DD` calendar date 使用 UTC day normalization，避免 CI timezone／DST 改變臨床日期語意；LA timezone browser run 與一般 browser run 均 106 passed。
+- run `34077863228`：visual SUCCESS（45 passed／1 skipped）；verify FAILURE（105 passed、1 failure，已由 `d538d0f` diagnostics 定位）。run `34078135707`：visual SUCCESS；verify 同一 timezone failure。`b4ceb96` 推送後 run `34078472772` 已啟動，最終結果待本次 session 追蹤。
+- 本地最後完整 `npm run verify` 與 `npm run test:visual`：在 `b74ec9e` 後完成成功；`d538d0f` 僅增加 diagnostics，`b4ceb96` 已另行通過 targeted LA/browser tests，docs commit 後仍須重跑最終兩個命令確認。
+- 治理 blockers 不變：PR #1 維持 OPEN/Draft；private repo plan gate 導致 main protection/rulesets 403；`release` environment/reviewer、immutable releases、`RELEASE_GOVERNANCE_TOKEN`、P2/P3 evidence、臨床／藥事 acceptance 與 release-owner gates 均未完成，不得 Ready、merge、tag、正式 artifact 或 release。
+
+### 2026-09-07 — Final CI outcome
+
+- `f788ff2 fix(date): preserve local semantics for date-only inputs` 已推送至 `nicloudai/codex/canonical-integration-0.2.0`；它修正 `b4ceb96` 對 date-only string／numeric injected clock 的相容性回歸，未改寫任何 shared history。
+- GitHub Actions run `34078633478`（head `f788ff274715603aacc0ec2d2a260774243620ec`）已終態綠：verify SUCCESS、visual SUCCESS；verify 完整流程通過，visual 45 passed／1 skipped。PR #1 維持 OPEN/Draft。
+- 本地 targeted Browser Mocha、`America/Los_Angeles` browser regression、characterization 9/9、`npm run test:browser` 與 `npm run test:visual` 均曾成功；最後一次完整 `npm run verify` 在既有 `upstream-baseline-contract.test.ts:182` 以 15 秒測試界線 timeout，未更改 timeout 或弱化 gate。GitHub 完整 verify 綠提供 canonical Windows CI 終態證據。
+- 最終狀態：Browser Mocha 原始 completion blocker 已修正並由 CI 驗證；仍不得 Ready／merge／tag／正式 artifact／release，直到 PR review、GitHub governance controls、P2/P3 evidence、臨床／藥事 acceptance 及 release-owner gates 完成。
+
+### 2026-09-07 — GitHub governance controls configured
+
+- 依 release owner 指示，canonical repository `ShowmarkHsu/NIHCloudAI` 已改為 public；原始 dirty worktree 未修改。
+- `main` protection 已啟用：strict required checks 為 `verify` 與 `visual`、至少 1 個 PR approval、dismiss stale reviews、require last-push approval、linear history、conversation resolution、禁止 force-push 與 deletion。
+- 已建立 active `protected-release-tags` ruleset，限制 `refs/tags/v*` 的 creation/update/deletion；唯一 bypass actor 為 `ShowmarkHsu`（user ID `12873164`）。Immutable releases API 已回報 `enabled: true`。
+- 原先暴露於對話的 PAT 已從 repository secrets 移除；release owner 已以安全管道重新設定新的 `RELEASE_GOVERNANCE_TOKEN`，secret value 不寫入 repository 或文件。舊 PAT 仍須確認已在 GitHub Settings revoke；在此確認前不得視為安全輪換完成。
+- 目前唯一未完成的自動化治理設定是 `release` environment required reviewer。現有 environment 僅為 `NIHCloudAI` 且無 protection rules；collaborators 只有 `ShowmarkHsu`，無法在禁止 self-review 的前提下代填 reviewer。Publication gate 仍維持 `BLOCKED`。
+
+### 2026-09-07 — Release environment self-review policy
+
+- 依 release owner 明確指示，`release` environment 已建立 required reviewer `ShowmarkHsu`（user ID `12873164`），並設定 `prevent_self_review: false`；此為有意識的治理弱化，因 repository 目前沒有第二位 reviewer。
+- `.github/workflows/release.yml` 與 release workflow contract 已同步改為要求 required reviewer 存在且明確允許 self-review；main protection、strict `verify`／`visual` checks、tag ruleset、immutable releases、token、P2/P3 evidence 與臨床／藥事 gates 不受此變更放寬。
+
+### 2026-09-07 — Controlled website/browser operation smoke
+
+- 以固定 `gemma4:e2b-it-qat`（digest `07ea59a474013479c8b6b802bef095c40e964a1d776ba02f264c0e30e1aede0c`）、loopback Ollama 與合成資料執行 `npm run test:extension:ollama`。
+- Build 成功；3/3 fresh synthetic `has-data` browser sessions 通過完整 validator、review/copy gating；同一流程亦確認 invalid scopes fail closed，並完成 synthetic loopback Provider round trip。
+- 這是 bounded engineering/browser operation evidence，不是臨床 acceptance、deployment approval 或 release approval；未保留 PHI、Provider output、畫面、clipboard 或 secrets。
+
+### 2026-09-08 — OpenRouter allergy-negative runtime closure
+
+- 延續 `524ddf2`、`8eeb7c0`、`bff022b`、`0f2134b` 的 OpenRouter prompt/schema/model route 收斂；真實網站仍回報 Provider 產生「無過敏」，而 sealed allergy source 未明示支持。
+- Diagnostics 已確認：OpenRouter response extraction、strict JSON schema、system/user prompt 傳遞及最新 `openai/gpt-4.1` dist 均正常；失敗發生在本機 clinical content validator，原本會 fail closed。
+- 先以 `tests/ai/integration/sealed-provider-request.test.ts` 建立 red regression，再由 `2641f34 fix(ai): neutralize unsupported allergy negatives` 加入窄範圍 deterministic boundary：只有 allergy coverage 不是 `has-data`、且沒有 sealed `no-known-allergy` evidence 時，才將精確的未受支持「無／沒有已知過敏紀錄」片語替換為不作陰性判定的來源核對提示；不產生「無過敏」、不放行陽性 allergy data 或其他陰性敘述，且保留 source aliases 供人工核對。此安全收斂由後續 focused regression 確認。
+- Focused AI regression 及 typecheck 通過；Browser Mocha completion regression 通過，`npm run test:browser` 為 106 passed。`2641f34` 已推送至 canonical remote；dist 必須由此 commit 重新 build 後載入 extension。
+- 本次仍不是臨床／藥事 acceptance，也不代表 Provider 摘要品質已獲授權；PR #1 維持 OPEN/Draft，未建立 tag、正式 artifact 或 release。治理 blockers 維持：P2/P3 evidence、臨床／藥事 acceptance、release-owner gates 尚未完成。
+
+### 2026-09-08 — Ollama HTTP rejection diagnostics
+
+### 2026-09-08 — Ollama live-request context preflight
+
+- The live Ollama failure is now classified as HTTP 4xx while the fixed synthetic UI path remains 3/3 successful. Added a red-first regression for an oversized synthetic sealed prompt; it now fails closed before `fetch` with `provider-context-budget-exceeded`, without returning prompt, facts, aliases, identifiers, or PHI.
+- `backgroundProviderBoundary` now applies a conservative `PROVIDER_PROMPT_CHAR_BUDGET=100000` preflight while retaining `num_ctx=32768` and `num_predict=1024`. It never truncates clinical facts and does not hide the failure by increasing timeout or changing required checks.
+- Focused boundary: 20/20; typecheck: passed; real-Ollama synthetic extension UI: 3/3. The live 4xx still requires a bounded size-bucket comparison or request-envelope diagnosis before any model/context change is justified.
+- Release remains blocked by the existing P2/P3 evidence, clinical/pharmacy acceptance, and release-owner gates; PR #1 remains Draft. No Ready, merge, tag, artifact, or release action was taken.
+- Follow-up diagnostic commit classifies Ollama HTTP 400/404/413/422 without reading or exposing response bodies; this distinguishes request format, model/endpoint, payload-size, and schema rejection while retaining fail-closed behavior.
+
+- 使用者重新載入最新 dist 後，實際 Ollama UI 仍顯示「Provider 拒絕請求」；本機 `/api/tags`、固定 `gemma4:e2b-it-qat` 與 digest 均正常，最新 real-Ollama synthetic extension UI 仍為 3/3 通過，因此問題尚未證明是 Ollama service 或固定模型全域故障。
+- 新增 bounded HTTP rejection categories：4xx 與 5xx；不回傳 status code、response body、摘要、API key 或 PHI。如此可在下一次 live run 區分 request rejection 與 Ollama server failure。
+- focused boundary 19/19、typecheck 與 real-Ollama synthetic UI 3/3 通過。下一步需以最新 dist 重測實際資料；若為 4xx，再檢查 live request size／schema compatibility；若為 5xx，再檢查 Ollama server resource／runtime log。治理與 release blockers 不變。

@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ShowmarkHsu/NIHCloudAI/blob/main/docs/upstream-sync/baseline.schema.json",
+  "title": "NIHCloudAI upstream baseline",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "capturedAt", "product", "upstream", "nicloudaiSource", "canonicalMigration", "remoteTopology"],
+  "properties": {
+    "$schema": {"const": "./baseline.schema.json"},
+    "schemaVersion": {"const": 3},
+    "capturedAt": {"type": "string", "format": "date"},
+    "product": {"$ref": "#/$defs/product"},
+    "upstream": {"$ref": "#/$defs/upstream"},
+    "nicloudaiSource": {"$ref": "#/$defs/source"},
+    "canonicalMigration": {"$ref": "#/$defs/canonicalMigration"},
+    "remoteTopology": {"$ref": "#/$defs/remoteTopology"}
+  },
+  "$defs": {
+    "gitUrl": {"type": "string", "pattern": "^https://github\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\\.git$"},
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "product": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "integrationRepositoryAtCapture"],
+      "properties": {
+        "name": {"const": "NIHCloudAI"},
+        "integrationRepositoryAtCapture": {"$ref": "#/$defs/gitUrl"}
+      }
+    },
+    "upstream": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "commit", "version", "license"],
+      "properties": {
+        "repository": {"$ref": "#/$defs/gitUrl"},
+        "commit": {"$ref": "#/$defs/sha"},
+        "version": {"type": "string", "minLength": 1},
+        "license": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["spdx", "path", "sha256"],
+          "properties": {
+            "spdx": {"const": "Apache-2.0"},
+            "path": {"const": "LICENSE"},
+            "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          }
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "commit"],
+      "properties": {
+        "repository": {"$ref": "#/$defs/gitUrl"},
+        "commit": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "canonicalMigration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "canonicalBaseCommit",
+        "upstreamSnapshotCommit",
+        "upstreamSnapshotTree",
+        "importCommit",
+        "importTree",
+        "patchSha256"
+      ],
+      "properties": {
+        "method": {"const": "two-tree-patch"},
+        "canonicalBaseCommit": {"$ref": "#/$defs/sha"},
+        "upstreamSnapshotCommit": {"$ref": "#/$defs/sha"},
+        "upstreamSnapshotTree": {"$ref": "#/$defs/sha"},
+        "importCommit": {"$ref": "#/$defs/sha"},
+        "importTree": {"$ref": "#/$defs/sha"},
+        "patchSha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "remoteRole": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "configured", "readable", "writable", "note"],
+      "properties": {
+        "repository": {"$ref": "#/$defs/gitUrl"},
+        "configured": {"type": "boolean"},
+        "readable": {"type": "boolean"},
+        "writable": {"type": "boolean"},
+        "note": {"type": "string", "minLength": 1}
+      }
+    },
+    "remoteTopology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verificationStatus", "checkedAt", "roles"],
+      "properties": {
+        "verificationStatus": {
+          "enum": [
+            "verified",
+            "verified-final-fork-accessible",
+            "blocked-final-fork-unavailable",
+            "blocked-final-fork-permission"
+          ]
+        },
+        "checkedAt": {"type": "string", "format": "date"},
+        "roles": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["origin", "upstream", "nicloudai"],
+          "properties": {
+            "origin": {"$ref": "#/$defs/remoteRole"},
+            "upstream": {"$ref": "#/$defs/remoteRole"},
+            "nicloudai": {"$ref": "#/$defs/remoteRole"}
+          }
+        }
+      }
+    }
+  }
+}

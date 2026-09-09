@@ -1,29 +1,62 @@
 {
   "manifest_version": 3,
-  "name": "NICloudAI",
-  "version": "0.1.0",
-  "description": "隱私優先的近期病歷摘要助理",
-  "action": {
-    "default_title": "開啟 NICloudAI",
-    "default_popup": "index.html"
-  },
+  "name": "NIHCloudAI",
+  "version": "26.702.2",
+  "version_name": "NIHCloudAI 0.2.0",
+  "description": "協助醫療人員整理健保雲端資料並產生可核對的 AI 臨床摘要",
+  "homepage_url": "https://github.com/ShowmarkHsu/NIHCloudAI",
+  "permissions": [
+    "storage",
+    "clipboardWrite"
+  ],
+  "host_permissions": [
+    "https://medcloud2.nhi.gov.tw/*",
+    "https://drugtw.com/*"
+  ],
+  "optional_host_permissions": [
+    "http://127.0.0.1:11434/*",
+    "https://openrouter.ai/*"
+  ],
   "background": {
-    "service_worker": "background.js",
-    "type": "module"
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "19": "images/icon19.png",
+      "38": "images/icon38.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
   },
   "content_scripts": [
     {
-      "matches": ["https://medcloud2.nhi.gov.tw/imu/*"],
-      "js": ["content.js"],
+      "matches": [
+        "https://medcloud2.nhi.gov.tw/*"
+      ],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ],
-  "permissions": ["storage"],
-  "host_permissions": [
-    "http://localhost:11434/*",
-    "http://127.0.0.1:11434/*"
-  ],
-  "optional_host_permissions": [
-    "https://openrouter.ai/*"
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "drug-images.html",
+        "drug-images.js",
+        "ai-frame.html",
+        "ai-frame.js"
+      ],
+      "matches": [
+        "https://medcloud2.nhi.gov.tw/*"
+      ]
+    }
   ]
 }

@@ -1,0 +1,28 @@
+{
+  "$schema": "./fixture.schema.json",
+  "fixtureVersion": 1,
+  "id": "settings-extremes",
+  "synthetic": true,
+  "description": "Observable settings cover both toggle extremes, all icon and text sizes, lab layouts, custom formats, and copy orders without changing source data.",
+  "coverage": ["every-toggle-off", "every-toggle-on", "icon-top-right", "icon-middle-right", "icon-bottom-right", "text-small", "text-medium", "text-large", "colorful-tabs-off", "colorful-tabs-on", "all-lab-layouts", "atc-custom-groups", "focused-list-order", "custom-medication-copy", "custom-lab-copy", "copy-all-new-to-old", "copy-all-old-to-new"],
+  "clock": {"now": "2026-06-30T12:00:00+08:00", "timezone": "Asia/Taipei"},
+  "sessions": [{"id": "fixture-session-settings", "patientKey": "synthetic-patient-settings"}],
+  "settingsVariants": [
+    {"id": "minimal", "values": {"autoOpenPage": false, "alwaysOpenOverviewTab": false, "useColorfulTabs": false, "enableCKMTab": false, "enableNephroReport": false, "enableCKMScreening": false, "fetchAdultHealthCheck": false, "fetchCancerScreening": false, "fetchHbcvdata": false, "simplifyMedicineName": false, "showGenericName": false, "showDiagnosis": false, "showATC5Name": false, "separateShortTermMeds": false, "showExternalDrugImage": false, "enableMedicationCustomCopyFormat": false, "enableMedicationCopyAll": false, "enableATC5Colors": false, "showChineseDiagnosis": false, "showEffectName": false, "showUnit": false, "showReference": false, "enableLabAbbrev": false, "highlightAbnormal": false, "enableLabChooseCopy": false, "enableLabCustomCopyFormat": false, "enableLabCopyAll": false, "floatingIconPosition": "top-right", "titleTextSize": "small", "contentTextSize": "small", "noteTextSize": "small"}},
+    {"id": "maximal", "values": {"autoOpenPage": true, "alwaysOpenOverviewTab": true, "useColorfulTabs": true, "enableCKMTab": true, "enableNephroReport": true, "enableCKMScreening": true, "fetchAdultHealthCheck": true, "fetchCancerScreening": true, "fetchHbcvdata": true, "simplifyMedicineName": true, "showGenericName": true, "showDiagnosis": true, "showATC5Name": true, "separateShortTermMeds": true, "showExternalDrugImage": true, "enableMedicationCustomCopyFormat": true, "enableMedicationCopyAll": true, "enableATC5Colors": true, "showChineseDiagnosis": true, "showEffectName": true, "showUnit": true, "showReference": true, "enableLabAbbrev": true, "highlightAbnormal": true, "enableLabChooseCopy": true, "enableLabCustomCopyFormat": true, "enableLabCopyAll": true, "floatingIconPosition": "bottom-right", "titleTextSize": "large", "contentTextSize": "large", "noteTextSize": "large", "medicationCopyAllOrder": "oldToNew", "labCopyAllOrder": "oldToNew", "displayLabFormat": "threeColumn", "atcGroups": ["SYNTHETIC-GROUP-A", "SYNTHETIC-GROUP-B"], "trackedLabs": ["LAB-SYN-B", "LAB-SYN-A"], "customMedicationCopy": ["date", "hospital", "drug"], "customLabCopy": ["date", "hospital", "item"]}},
+    {"id": "middle-icon-and-medium-text", "values": {"floatingIconPosition": "middle-right", "titleTextSize": "medium", "contentTextSize": "medium", "noteTextSize": "medium"}},
+    {"id": "layout-by-type", "values": {"displayLabFormat": "byType"}},
+    {"id": "layout-vertical", "values": {"displayLabFormat": "vertical"}},
+    {"id": "layout-horizontal", "values": {"displayLabFormat": "horizontal"}},
+    {"id": "layout-two-column", "values": {"displayLabFormat": "twoColumn"}},
+    {"id": "layout-three-column", "values": {"displayLabFormat": "threeColumn"}},
+    {"id": "copy-new-to-old", "values": {"medicationCopyAllOrder": "newToOld", "labCopyAllOrder": "newToOld"}},
+    {"id": "copy-old-to-new", "values": {"medicationCopyAllOrder": "oldToNew", "labCopyAllOrder": "oldToNew"}}
+  ],
+  "events": [
+    {"seq": 1, "type": "session-start", "sessionId": "fixture-session-settings", "patientKey": "synthetic-patient-settings"},
+    {"seq": 2, "type": "source-result", "sessionId": "fixture-session-settings", "patientKey": "synthetic-patient-settings", "source": "western-medication", "status": "has-data", "body": {"rObject": [{"drug_date": "2026-06-29", "drug_code": "SYN-SETTING-MED", "drug_ename": "SYNTHETIC SETTING ITEM"}]}, "error": null},
+    {"seq": 3, "type": "source-result", "sessionId": "fixture-session-settings", "patientKey": "synthetic-patient-settings", "source": "lab", "status": "has-data", "body": {"rObject": [{"inspect_date": "2026-06-29", "order_code": "LAB-SYN-A", "assay_value": "1", "unit": "u", "ref_value": "0-2"}]}, "error": null}
+  ],
+  "expected": {"activeSessionId": "fixture-session-settings", "activePatientKey": "synthetic-patient-settings", "acceptedEventSeq": [1, 2, 3], "rejectedEventSeq": [], "sourceStates": {"western-medication": "has-data", "lab": "has-data"}}
+}
